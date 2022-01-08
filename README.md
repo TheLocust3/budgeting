@@ -30,7 +30,6 @@ curl -XPOST http://localhost:3000/accounts/ -H "Content-Type: application/json" 
 
 ### next
  - transactions CRUD
- - sources CRUD
  - accounts CRUD
  - rules CRUD
 
