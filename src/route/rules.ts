@@ -10,15 +10,15 @@ router
     ctx.body = { 'rules': [] };
   })
   .get('/:ruleId', (ctx, next) => {
-    console.log("TEST")
     const accountId = ctx.params.accountId
     const ruleId = ctx.params.ruleId
     ctx.body = { 'id': ruleId, 'accountId': accountId };
   })
   .post('/', (ctx, next) => {
+    const rule = Rule.decode(ctx.request.body);
     ctx.body = Message.ok;
   })
-  .delete('/', (ctx, next) => {
+  .delete('/:ruleId', (ctx, next) => {
     ctx.body = Message.ok;
   });
 

@@ -9,14 +9,15 @@ router
   .get('/', (ctx, next) => {
     ctx.body = { 'transactions': [] };
   })
-  .get('/:id', (ctx, next) => {
-    const id = ctx.params.id
-    ctx.body = { 'id': id };
+  .get('/:transactionId', (ctx, next) => {
+    const transactionId = ctx.params.transactionId
+    ctx.body = { 'id': transactionId };
   })
   .post('/', (ctx, next) => {
+    const transaction = Transaction.decode(ctx.request.body);
     ctx.body = Message.ok;
   })
-  .delete('/', (ctx, next) => {
+  .delete('/:transactionId', (ctx, next) => {
     ctx.body = Message.ok;
   });
 

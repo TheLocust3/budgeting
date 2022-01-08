@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 
 export const Account = t.type({
-  accountId: t.string,
+  id: t.string,
   groupId: t.string,
   name: t.string
 })

@@ -15,9 +15,12 @@ router
     ctx.body = { 'id': accountId };
   })
   .post('/', (ctx, next) => {
+    const account = Account.decode(ctx.request.body);
+    console.log(ctx.request.body)
+    console.log(account)
     ctx.body = Message.ok;
   })
-  .delete('/', (ctx, next) => {
+  .delete('/:accountId', (ctx, next) => {
     ctx.body = Message.ok;
   })
   .use('/:accountId/rules', rulesRouter.routes(), rulesRouter.allowedMethods());
