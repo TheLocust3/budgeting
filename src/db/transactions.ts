@@ -5,12 +5,12 @@ namespace Query {
   export const createTable = `
     CREATE TABLE transactions (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
-      sourceId TEXT NOT NULL,
+      source_id TEXT NOT NULL,
       amount NUMERIC NOT NULL,
-      merchantName TEXT NOT NULL,
+      merchant_name TEXT NOT NULL,
       description TEXT NOT NULL,
-      authorizedAt DATE NOT NULL,
-      capturedAt DATE,
+      authorized_at DATE NOT NULL,
+      captured_at DATE,
       metadata JSONB NOT NULL
     )
   `;

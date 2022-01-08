@@ -14,5 +14,5 @@ const migrate = async (pool: Pool) => {
 
 console.log("Migrate start");
 
-export const pool = new Pool()
+export const pool = new Pool();
 migrate(pool);

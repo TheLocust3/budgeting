@@ -14,5 +14,5 @@ const rollback = async (pool: Pool) => {
 
 console.log("Rollback start");
 
-export const pool = new Pool()
+export const pool = new Pool();
 rollback(pool);

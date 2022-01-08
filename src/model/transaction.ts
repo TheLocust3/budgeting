@@ -1,4 +1,4 @@
-import { Either, map, flatten } from 'fp-ts/Either';
+import * as E from 'fp-ts/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as iot from 'io-ts';
 import { DateFromUnixTime, optionFromNullable } from 'io-ts-types';
@@ -27,11 +27,12 @@ export namespace Json {
   })
   export type t = iot.TypeOf<typeof t>
 
-  export const lift = (transaction: any): Either<iot.Errors, Internal.t> => {
+  export const lift = (transaction: any): E.Either<Error, Internal.t> => {
     return pipe(
       t.decode(transaction),
-      map(Internal.t.decode),
-      flatten
+      E.map(Internal.t.decode),
+      E.flatten,
+      E.mapLeft(E.toError)
     );
   }
 }

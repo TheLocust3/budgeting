@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { Task } from 'fp-ts/lib/Task'
+import * as T from 'fp-ts/lib/Task'
 
 namespace Query {
   export const createTable = `
@@ -12,7 +12,7 @@ namespace Query {
   export const dropTable = `DROP TABLE rules`
 }
 
-export const migrate = (pool: Pool): Task<Boolean> => async () => {
+export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
   try {
     await pool.query(Query.createTable);
     return true;
@@ -22,7 +22,7 @@ export const migrate = (pool: Pool): Task<Boolean> => async () => {
   }
 }
 
-export const rollback = (pool: Pool): Task<Boolean> => async () => {
+export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
   try {
     await pool.query(Query.dropTable);
     return true;

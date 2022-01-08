@@ -1,19 +1,37 @@
 import { Pool } from 'pg';
-import { Task } from 'fp-ts/lib/Task'
+import camelcaseKeys from 'camelcase-keys'
+import { pipe } from 'fp-ts/lib/function';
+import * as E from 'fp-ts/Either';
+import * as T from 'fp-ts/lib/Task';
+import * as TE from 'fp-ts/lib/TaskEither';
+import * as iot from 'io-ts';
+
+import * as Account from '../model/Account';
 
 namespace Query {
   export const createTable = `
     CREATE TABLE accounts (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
-      groupId TEXT NOT NULL,
+      group_id TEXT NOT NULL,
       name TEXT NOT NULL
     )
   `;
 
   export const dropTable = `DROP TABLE accounts`
+
+  export const create = (groupId: string, name: string) => {
+    return {
+      text: `
+        INSERT INTO accounts (group_id, name)
+        VALUES ($1, $2)
+        RETURNING *
+      `,
+      values: [groupId, name]
+    }
+  }
 }
 
-export const migrate = (pool: Pool): Task<Boolean> => async () => {
+export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
   try {
     await pool.query(Query.createTable);
     return true;
@@ -23,12 +41,33 @@ export const migrate = (pool: Pool): Task<Boolean> => async () => {
   }
 }
 
-export const rollback = (pool: Pool): Task<Boolean> => async () => {
+export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
   try {
     await pool.query(Query.dropTable);
     return true;
-  } catch(err) {
+  } catch (err) {
     console.log(err);
     return false;
   }
+}
+
+export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEither<Error, Account.Internal.t> => {
+  return pipe(
+    TE.tryCatch(
+      () => pool.query(Query.create(account.groupId, account.name)),
+      E.toError
+    ),
+    TE.chain(res => {
+      if (res.rows.length < 1) {
+        return TE.left(new Error("Empty response"));
+      } else {
+        return TE.right(res.rows);
+      }
+    }),
+    TE.chain(row => TE.fromEither(Account.Database.lift(camelcaseKeys(row[0])))),
+    TE.map(x => {
+      console.log(x)
+      return x
+    })
+  );
 }
