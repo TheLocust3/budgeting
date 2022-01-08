@@ -7,9 +7,12 @@
   "scripts": {
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
     "test": "jest --forceExit --coverage --verbose",
+    "build": "tsc --incremental",
     "start-ts": "tsc -w",
     "start-node": "nodemon dist/index.js",
-    "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" -c \"cyan.bold,green.bold\" \"npm run start-ts\" \"npm run start-node\""
+    "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" -c \"cyan.bold,green.bold\" \"npm run start-ts\" \"npm run start-node\"",
+    "migrate": "npm run build; node dist/db/migrate.js",
+    "rollback": "npm run build; node dist/db/rollback.js"
   },
   "devDependencies": {
     "@types/koa": "^2.13.4",
@@ -28,12 +31,15 @@
     "@koa/router": "^10.1.1",
     "@types/jest": "^27.4.0",
     "@types/koa-bodyparser": "^4.3.5",
+    "@types/pg": "^8.6.3",
     "fp-ts": "^2.11.6",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
     "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
     "monocle-ts": "^2.3.11",
     "newtype-ts": "^0.3.4",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "pg": "^8.7.1"
   }
 }

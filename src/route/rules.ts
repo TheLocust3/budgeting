@@ -3,7 +3,7 @@ import { Either, fold } from 'fp-ts/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { PathReporter } from 'io-ts/PathReporter';
 
-import * as Rule from '../model/rule'; // TODO: JK separate API json from internal model
+import * as Rule from '../model/rule';
 import { Message } from './util';
 
 export const router = new Router();

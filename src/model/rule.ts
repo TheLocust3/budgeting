@@ -17,7 +17,6 @@ export namespace Internal {
 
   export const t = iot.type({
     id: optionFromNullable(iot.string),
-    groupId: iot.string,
     rule: iot.union([Select, Attach])
   })
   export type t = iot.TypeOf<typeof t>
@@ -25,7 +24,6 @@ export namespace Internal {
 
 export namespace Json {
   export const t = iot.type({
-    groupId: iot.string,
     rule: iot.union([Internal.Select, Internal.Attach])
   })
   export type t = iot.TypeOf<typeof t>  
