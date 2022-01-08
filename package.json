@@ -1,0 +1,29 @@
+{
+  "name": "engine",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "author": "TheLocust3 <jake.kinsella@gmail.com>",
+  "license": "UNLICENSED",
+  "scripts": {
+    "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
+    "test": "jest --forceExit --coverage --verbose",
+    "start-ts": "tsc -w",
+    "start-node": "nodemon dist/index.js",
+    "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" -c \"cyan.bold,green.bold\" \"npm run start-ts\" \"npm run start-node\""
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.9.0",
+    "concurrently": "^7.0.0",
+    "eslint": "^8.6.0",
+    "jest": "^27.4.7",
+    "ts-jest": "^27.1.2",
+    "ts-node": "^10.4.0",
+    "tslib": "^2.3.1",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "@types/jest": "^27.4.0",
+    "nodemon": "^2.0.15"
+  }
+}
