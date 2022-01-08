@@ -1,6 +1,9 @@
 import Router from '@koa/router';
+import { Either, fold } from 'fp-ts/Either';
+import { pipe } from 'fp-ts/lib/pipeable';
+import { PathReporter } from 'io-ts/PathReporter';
 
-import { Rule } from '../model/rule'; // TODO: JK separate API json from internal model
+import * as Rule from '../model/rule'; // TODO: JK separate API json from internal model
 import { Message } from './util';
 
 export const router = new Router();
@@ -15,8 +18,19 @@ router
     ctx.body = { 'id': ruleId, 'accountId': accountId };
   })
   .post('/', (ctx, next) => {
-    const rule = Rule.decode(ctx.request.body);
-    ctx.body = Message.ok;
+    pipe(
+      ctx.request.body,
+      Rule.Json.lift,
+      fold(
+        (_) => {
+          ctx.status = 400
+          ctx.body = Message.error("Bad request");
+        },
+        (_) => {
+          ctx.body = Message.ok;
+        }
+      )
+    );
   })
   .delete('/:ruleId', (ctx, next) => {
     ctx.body = Message.ok;

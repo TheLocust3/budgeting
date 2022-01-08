@@ -1,14 +1,37 @@
-import * as t from 'io-ts';
+import { Either, map, flatten } from 'fp-ts/Either';
+import { pipe } from 'fp-ts/lib/pipeable';
+import * as iot from 'io-ts';
 import { DateFromUnixTime, optionFromNullable } from 'io-ts-types';
 
-export const Transaction = t.type({
-  id: t.string,
-  sourceId: t.string,
-  amount: t.number,
-  merchantName: t.string,
-  description: t.string,
-  authorizedAt: t.number,
-  capturedAt: optionFromNullable(DateFromUnixTime)
-})
+export namespace Internal {
+  export const t = iot.type({
+    id: optionFromNullable(iot.string),
+    sourceId: iot.string,
+    amount: iot.number,
+    merchantName: iot.string,
+    description: iot.string,
+    authorizedAt: iot.number,
+    capturedAt: optionFromNullable(DateFromUnixTime)
+  })
+  export type t = iot.TypeOf<typeof t>
+}
 
-export type Transaction = t.TypeOf<typeof Transaction>
+export namespace Json {
+  export const t = iot.type({
+    sourceId: iot.string,
+    amount: iot.number,
+    merchantName: iot.string,
+    description: iot.string,
+    authorizedAt: iot.number,
+    capturedAt: optionFromNullable(DateFromUnixTime)
+  })
+  export type t = iot.TypeOf<typeof t>
+
+  export const lift = (transaction: any): Either<iot.Errors, Internal.t> => {
+    return pipe(
+      t.decode(transaction),
+      map(Internal.t.decode),
+      flatten
+    );
+  }
+}
