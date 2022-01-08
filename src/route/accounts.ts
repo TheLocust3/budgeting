@@ -10,9 +10,9 @@ router
   .get('/', (ctx, next) => {
     ctx.body = { 'accounts': [] };
   })
-  .get('/:id', (ctx, next) => {
-    const id = ctx.params.id
-    ctx.body = { 'id': id };
+  .get('/:accountId', (ctx, next) => {
+    const accountId = ctx.params.accountId
+    ctx.body = { 'id': accountId };
   })
   .post('/', (ctx, next) => {
     ctx.body = Message.ok;
@@ -20,5 +20,5 @@ router
   .delete('/', (ctx, next) => {
     ctx.body = Message.ok;
   })
-  .use('/:id/rules', rulesRouter.routes(), rulesRouter.allowedMethods());
+  .use('/:accountId/rules', rulesRouter.routes(), rulesRouter.allowedMethods());
 

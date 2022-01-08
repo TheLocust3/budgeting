@@ -9,9 +9,11 @@ router
   .get('/', (ctx, next) => {
     ctx.body = { 'rules': [] };
   })
-  .get('/:id', (ctx, next) => {
-    const id = ctx.params.id
-    ctx.body = { 'id': id };
+  .get('/:ruleId', (ctx, next) => {
+    console.log("TEST")
+    const accountId = ctx.params.accountId
+    const ruleId = ctx.params.ruleId
+    ctx.body = { 'id': ruleId, 'accountId': accountId };
   })
   .post('/', (ctx, next) => {
     ctx.body = Message.ok;
