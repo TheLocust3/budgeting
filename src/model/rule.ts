@@ -15,21 +15,21 @@ export namespace Internal {
 
   export type Rule = Select | Attach
 
-  export const isSelect = (rule: Rule) => {
+  export const collectSelect = (rule: Rule): O.Option<Select> => {
     switch (rule._type) {
       case "Select":
-        return true;
+        return O.some(rule);
       case "Attach":
-        return false;
+        return O.none;
     }
   }
 
-  export const isAttach = (rule: Rule) => {
+  export const collectAttach = (rule: Rule): O.Option<Attach> => {
     switch (rule._type) {
       case "Select":
-        return false;
+        return O.none;
       case "Attach":
-        return true;
+        return O.some(rule);
     }
   }
 

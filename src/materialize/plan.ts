@@ -1,7 +1,10 @@
+import { pipe } from 'fp-ts/lib/pipeable';
+import * as A from 'fp-ts/Array';
+import * as O from 'fp-ts/Option';
+
 import * as Account from '../model/account';
 import * as Rule from '../model/rule';
-
-import * as A from 'fp-ts/Array';
+import { Array } from '../model/util';
 
 type Stage = {
   select: Rule.Internal.Select[],
@@ -15,9 +18,8 @@ export type t = {
 const buildStage = (rulesWrapper: Rule.Internal.t[]): Stage => {
   const rules = A.map((rule: Rule.Internal.t) => rule.rule)(rulesWrapper);
 
-  // TODO: JK yeehaw
-  const select = <Rule.Internal.Select[]> A.filter(Rule.Internal.isSelect)(rules);
-  const attach = <Rule.Internal.Attach[]> A.filter(Rule.Internal.isAttach)(rules);
+  const select = pipe(rules, A.map(Rule.Internal.collectSelect), Array.flattenOption);
+  const attach = pipe(rules, A.map(Rule.Internal.collectAttach), Array.flattenOption);
 
   return {
     select: select,
