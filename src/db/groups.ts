@@ -5,28 +5,26 @@ import * as T from 'fp-ts/lib/Task';
 import * as TE from 'fp-ts/lib/TaskEither';
 import * as iot from 'io-ts';
 
-import * as Account from '../model/Account';
+import * as Group from '../model/Group';
 
 namespace Query {
   export const createTable = `
-    CREATE TABLE accounts (
+    CREATE TABLE groups (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
-      group_id TEXT NOT NULL,
-      name TEXT NOT NULL,
-      FOREIGN KEY(group_id) REFERENCES groups(id)
+      name TEXT NOT NULL
     )
   `;
 
-  export const dropTable = `DROP TABLE accounts`
+  export const dropTable = `DROP TABLE groups`
 
-  export const create = (groupId: string, name: string) => {
+  export const create = (name: string) => {
     return {
       text: `
-        INSERT INTO accounts (group_id, name)
-        VALUES ($1, $2)
+        INSERT INTO groups (name)
+        VALUES ($1)
         RETURNING *
       `,
-      values: [groupId, name]
+      values: [name]
     }
   }
 }
@@ -51,10 +49,10 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
   }
 }
 
-export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEither<Error, Account.Internal.t> => {
+export const create = (pool: Pool) => (group: Group.Internal.t) : TE.TaskEither<Error, Group.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(account.groupId, account.name)),
+        () => pool.query(Query.create(group.name)),
         E.toError
       )
     , TE.chain(res => {
@@ -64,6 +62,6 @@ export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEit
           return TE.right(res.rows);
         }
       })
-    , TE.chain(row => TE.fromEither(Account.Database.lift(row[0])))
+    , TE.chain(row => TE.fromEither(Group.Database.lift(row[0])))
   );
 }

@@ -24,8 +24,9 @@ Start:
 `yarn start`
 
 ## sample requests
-`curl -XPOST http://localhost:3000/accounts/ -H "Content-Type: application/json" --data '{ "groupId": "1", "name": "test account" }'`
-`curl -XPOST http://localhost:3000/accounts/a193682a-a997-4058-bd15-a051d210d273/rules/ -H "Content-Type: application/json" --data '{ "rule": { "_type": "Select" } }'`
+`curl -XPOST http://localhost:3000/groups/ -H "Content-Type: application/json" --data '{ "name": "test group" }'`
+`curl -XPOST http://localhost:3000/accounts/ -H "Content-Type: application/json" --data '{ "groupId": "f58d8fa8-0f23-423c-b0ca-0b6259aa52b9", "name": "test account" }'`
+`curl -XPOST http://localhost:3000/rules/ -H "Content-Type: application/json" --data '{ "accountId": "9f9cb6ef-1406-49e8-bce0-9f4a911cbf38", "rule": { "_type": "Select" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "capturedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 
@@ -35,9 +36,8 @@ Start:
  - transactions CRUD
  - accounts CRUD
  - rules CRUD
- - actually add foreign key constraints
- - Materialize transactions
  - groups CRUD
+ - Materialize transactions
  - Accounts hierarchy
   - 1 global account per user
   - Materialize sub-accounts through global account
@@ -49,3 +49,4 @@ Start:
 ### miscellaneous
  - need to revamp models
    - more explicit json encoding/decoding
+   - One internal model, various decoders/encoders for it

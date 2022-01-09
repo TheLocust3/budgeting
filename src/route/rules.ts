@@ -20,10 +20,9 @@ router
     ctx.body = { 'id': ruleId, 'accountId': accountId };
   })
   .post('/', async (ctx, next) => {
-    const accountId = ctx.params.accountId
     await pipe(
         ctx.request.body
-      , Rule.Json.lift(accountId)
+      , Rule.Json.lift
       , TE.fromEither
       , TE.chain(RulesTable.create(ctx.db))
       , TE.map(Rule.Internal.t.encode)

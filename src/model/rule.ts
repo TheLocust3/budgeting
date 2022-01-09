@@ -25,17 +25,15 @@ export namespace Internal {
 
 export namespace Json {
   export const t = iot.type({
-    rule: iot.union([Internal.Select, Internal.Attach])
+      accountId: iot.string
+    , rule: iot.union([Internal.Select, Internal.Attach])
   })
   export type t = iot.TypeOf<typeof t>  
 
-  export const lift = (accountId: string) => (rule: any): E.Either<Error, Internal.t> => {
+  export const lift = (rule: any): E.Either<Error, Internal.t> => {
     return pipe(
         rule
       , t.decode
-      , E.map(rule => {
-          return { ...rule, accountId: accountId };
-        })
       , E.map(Internal.t.decode)
       , E.flatten
       , E.mapLeft(E.toError)

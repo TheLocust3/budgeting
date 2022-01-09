@@ -1,11 +1,13 @@
 import { Pool } from 'pg';
 
-import * as Transactions from './transactions'
-import * as Accounts from './accounts'
-import * as Rules from './rules'
+import * as Transactions from './transactions';
+import * as Groups from './groups';
+import * as Accounts from './accounts';
+import * as Rules from './rules';
 
 const rollback = async (pool: Pool) => {
   await Rules.rollback(pool)();
+  await Groups.rollback(pool)();
   await Accounts.rollback(pool)();
   await Transactions.rollback(pool)();
   console.log("Rollback complete");

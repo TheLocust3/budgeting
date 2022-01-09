@@ -4,7 +4,9 @@ import bodyParser from 'koa-bodyparser';
 import { Pool } from 'pg';
 
 import { router as transactionsRouter } from './route/transactions';
+import { router as groupsRouter } from './route/groups';
 import { router as accountsRouter } from './route/accounts';
+import { router as rulesRouter } from './route/rules';
 
 type State = {}
 
@@ -18,7 +20,9 @@ app.context.db = new Pool();
 const router = new Router();
 
 router.use('/transactions', transactionsRouter.routes(), transactionsRouter.allowedMethods());
+router.use('/groups', groupsRouter.routes(), groupsRouter.allowedMethods());
 router.use('/accounts', accountsRouter.routes(), accountsRouter.allowedMethods());
+router.use('/rules', rulesRouter.routes(), rulesRouter.allowedMethods());
 
 app.use(bodyParser());
 app.use(router.routes());
