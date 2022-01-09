@@ -71,7 +71,19 @@ router
         )
     )();
   })
-  .delete('/:accountId', (ctx, next) => {
-    ctx.body = Message.ok;
+  .delete('/:accountId', async (ctx, next) => {
+    const accountId = ctx.params.accountId
+    await pipe(
+        AccountsTable.deleteById(ctx.db)(accountId)
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (_) => {
+            ctx.body = Message.ok;
+          }
+        )
+    )();
   })
   .use('/:accountId/rules', rulesRouter.routes(), rulesRouter.allowedMethods());

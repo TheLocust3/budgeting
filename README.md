@@ -44,13 +44,15 @@ Start:
 `curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38/rules/883ecc47-d225-4d92-9efb-a49d5abf024c`
 `curl -XGET http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2`
 
+### delete
+`curl -XDELETE http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9`
+`curl -XDELETE http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38`
+`curl -XDELETE http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38/rules/883ecc47-d225-4d92-9efb-a49d5abf024c`
+`curl -XDELETE http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2`
+
 ## todo
 
 ### next
- - transactions CRUD
- - accounts CRUD
- - rules CRUD
- - groups CRUD
  - Materialize transactions
  - Accounts hierarchy
   - 1 global account per user
@@ -61,6 +63,7 @@ Start:
  - Rules conflict resolution
 
 ### miscellaneous
+ - request logging
  - the cascading id stuff is a little ridiculous
  - no need for camelize if columns are renamed in select
  - abstract common db queries/operations

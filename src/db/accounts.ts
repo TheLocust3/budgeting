@@ -54,6 +54,16 @@ namespace Query {
       values: [id]
     }
   }
+
+  export const deleteById = (id: string) => {
+    return {
+      text: `
+        DELETE FROM accounts
+        WHERE id = $1
+      `,
+      values: [id]
+    }
+  }
 }
 
 export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
@@ -108,6 +118,16 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
           return O.none;
         }
       })
+  );
+}
+
+export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.deleteById(id)),
+        E.toError
+      )
+    , TE.map(x => { return })
   );
 }
 

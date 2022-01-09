@@ -70,7 +70,19 @@ router
         )
     )();
   })
-  .delete('/:ruleId', (ctx, next) => {
-    ctx.body = Message.ok;
+  .delete('/:ruleId', async (ctx, next) => {
+    const ruleId = ctx.params.ruleId
+    await pipe(
+        RulesTable.deleteById(ctx.db)(ruleId)
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (_) => {
+            ctx.body = Message.ok;
+          }
+        )
+    )();
   });
 

@@ -69,8 +69,20 @@ router
         )
     )();
   })
-  .delete('/:groupId', (ctx, next) => {
-    ctx.body = Message.ok;
+  .delete('/:groupId', async (ctx, next) => {
+    const groupId = ctx.params.groupId
+    await pipe(
+        GroupsTable.deleteById(ctx.db)(groupId)
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (_) => {
+            ctx.body = Message.ok;
+          }
+        )
+    )();
   })
   .use('/:groupId/accounts', accountsRouter.routes(), accountsRouter.allowedMethods());
 

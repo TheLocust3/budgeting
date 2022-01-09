@@ -68,7 +68,19 @@ router
         )
     )();
   })
-  .delete('/:transactionId', (ctx, next) => {
-    ctx.body = Message.ok;
+  .delete('/:transactionId', async (ctx, next) => {
+    const transactionId = ctx.params.transactionId
+    await pipe(
+        TransactionsTable.deleteById(ctx.db)(transactionId)
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (_) => {
+            ctx.body = Message.ok;
+          }
+        )
+    )();
   });
 

@@ -43,13 +43,23 @@ namespace Query {
     }
   }
 
-    export const byId = (id: string) => {
+  export const byId = (id: string) => {
     return {
       text: `
         SELECT id, account_id, rule
         FROM rules
         WHERE id = $1
         LIMIT 1
+      `,
+      values: [id]
+    }
+  }
+
+  export const deleteById = (id: string) => {
+    return {
+      text: `
+        DELETE FROM rules
+        WHERE id = $1
       `,
       values: [id]
     }
@@ -108,6 +118,16 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
           return O.none;
         }
       })
+  );
+}
+
+export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.deleteById(id)),
+        E.toError
+      )
+    , TE.map(x => { return })
   );
 }
 
