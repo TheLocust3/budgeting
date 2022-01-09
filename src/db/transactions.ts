@@ -48,6 +48,18 @@ namespace Query {
     SELECT id, source_id, amount, merchant_name, description, authorized_at, captured_at, metadata
     FROM transactions
   `;
+
+    export const byId = (id: string) => {
+    return {
+      text: `
+        SELECT id, source_id, amount, merchant_name, description, authorized_at, captured_at, metadata
+        FROM transactions
+        WHERE id = $1
+        LIMIT 1
+      `,
+      values: [id]
+    }
+  }
 }
 
 export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
@@ -81,6 +93,27 @@ export const all = (pool: Pool) => () : TE.TaskEither<Error, Transaction.Interna
         , A.map(Transaction.Database.lift)
         , A.sequence(E.Applicative)
       )))
+  );
+}
+
+export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<Transaction.Internal.t>> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.byId(id)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Transaction.Database.lift)
+        , A.sequence(E.Applicative)
+      )))
+    , TE.map(transactions => {
+        if (transactions.length == 1) {
+          return O.some(transactions[0])
+        } else {
+          return O.none;
+        }
+      })
   );
 }
 

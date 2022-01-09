@@ -38,6 +38,9 @@ curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/acc
 curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38/rules/
 curl -XGET http://localhost:3000/transactions/
 
+### get
+curl -XGET http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2
+
 ## todo
 
 ### next
