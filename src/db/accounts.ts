@@ -52,17 +52,17 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
 
 export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEither<Error, Account.Internal.t> => {
   return pipe(
-    TE.tryCatch(
-      () => pool.query(Query.create(account.groupId, account.name)),
-      E.toError
-    ),
-    TE.chain(res => {
-      if (res.rows.length < 1) {
-        return TE.left(new Error("Empty response"));
-      } else {
-        return TE.right(res.rows);
-      }
-    }),
-    TE.chain(row => TE.fromEither(Account.Database.lift(row[0])))
+      TE.tryCatch(
+        () => pool.query(Query.create(account.groupId, account.name)),
+        E.toError
+      )
+    , TE.chain(res => {
+        if (res.rows.length < 1) {
+          return TE.left(new Error("Empty response"));
+        } else {
+          return TE.right(res.rows);
+        }
+      })
+    , TE.chain(row => TE.fromEither(Account.Database.lift(row[0])))
   );
 }

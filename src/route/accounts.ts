@@ -21,19 +21,19 @@ router
   })
   .post('/', async (ctx, next) => {
     await pipe(
-      ctx.request.body,
-      Account.Json.lift,
-      TE.fromEither,
-      TE.chain(AccountsTable.create(ctx.db)),
-      TE.match(
-        (_) => {
-          ctx.status = 400
-          ctx.body = Message.error("Bad request");
-        },
-        (account) => {
-          ctx.body = account;
-        }
-      )
+        ctx.request.body
+      , Account.Json.lift
+      , TE.fromEither
+      , TE.chain(AccountsTable.create(ctx.db))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (account) => {
+            ctx.body = account;
+          }
+        )
     )();
   })
   .delete('/:accountId', (ctx, next) => {
