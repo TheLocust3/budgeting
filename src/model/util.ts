@@ -1,7 +1,16 @@
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as O from 'fp-ts/Option';
+import * as E from 'fp-ts/Either';
 import * as t from 'io-ts';
 import * as types from 'io-ts-types';
+
+export const fromQuery = (value: string | string[] | undefined): E.Either<Error, string> => {
+  return pipe(
+      value
+    , t.string.decode
+    , E.mapLeft(E.toError)
+  );
+}
 
 export function withLazyDefault<T extends t.Mixed>(
   type: T,

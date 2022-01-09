@@ -9,14 +9,17 @@ import { PathReporter } from 'io-ts/PathReporter';
 import * as Rule from '../model/rule';
 import * as RulesTable from '../db/rules';
 import { Message } from './util';
+import { fromQuery } from '../model/util';
 
 export const router = new Router();
 
 router
   .get('/', async (ctx, next) => {
-    const accountId = ctx.params.accountId
     await pipe(
-        RulesTable.byAccountId(ctx.db)(accountId)
+        ctx.query.accountId
+      , fromQuery
+      , TE.fromEither
+      , TE.chain(RulesTable.byAccountId(ctx.db))
       , TE.map(A.map(Rule.Internal.t.encode))
       , TE.match(
           (_) => {
@@ -52,10 +55,9 @@ router
     )();
   })
   .post('/', async (ctx, next) => {
-    const accountId = ctx.params.accountId
     await pipe(
         ctx.request.body
-      , Rule.Json.lift(accountId)
+      , Rule.Json.lift
       , TE.fromEither
       , TE.chain(RulesTable.create(ctx.db))
       , TE.map(Rule.Internal.t.encode)

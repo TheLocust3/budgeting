@@ -30,9 +30,9 @@ export namespace Json {
   })
   export type t = iot.TypeOf<typeof t>  
 
-  export const lift = (accountId: string) => (rule: any): E.Either<Error, Internal.t> => {
+  export const lift = (rule: any): E.Either<Error, Internal.t> => {
     return pipe(
-        { ...rule, accountId }
+        rule
       , t.decode
       , E.map(Internal.t.decode)
       , E.flatten
