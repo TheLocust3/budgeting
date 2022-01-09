@@ -27,7 +27,7 @@ Start:
 
 ### create
 `curl -XPOST http://localhost:3000/groups/ -H "Content-Type: application/json" --data '{ "name": "test group" }'`
-`curl -XPOST http://localhost:3000/accounts/ -H "Content-Type: application/json" --data '{ "groupId": "af7cbe4d-8fb1-44b7-9d3d-fe965ecac973", "name": "test account" }'`
+`curl -XPOST http://localhost:3000/accounts/ -H "Content-Type: application/json" --data '{ "groupId": "a32136a8-71ed-45aa-bb43-7689d0587f68", "name": "test account" }'`
 `curl -XPOST http://localhost:3000/rules/ -H "Content-Type: application/json" --data '{ "accountId": "3d9ca325-691c-4be6-856e-8164090c4372", "rule": { "_type": "Select" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "capturedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
@@ -51,7 +51,7 @@ Start:
 `curl -XDELETE http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2`
 
 ### materialize account
-`curl -XGET http://localhost:3000/accounts/3d9ca325-691c-4be6-856e-8164090c4372/materialize`
+`curl -XGET http://localhost:3000/accounts/d191281c-681f-4f4c-ad43-77aacceaab54/materialize`
 
 ## todo
 
@@ -67,11 +67,14 @@ Start:
   - 1 global account per user
   - Materialize sub-accounts through global account
  - Complete rules
-   - Select is conflict-free
+   - Exists operator, regex operator
    - Some way of adding/updating metadata based on Select query + with ability to reference existing metadata
  - Rules conflict resolution
 
 ### miscellaneous
+ - some tests
+ - run linter
+ - move db logic from routes to some sort of controller
  - request logging
  - no need for camelize if columns are renamed in select
  - abstract common db queries/operations

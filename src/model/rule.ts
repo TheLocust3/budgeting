@@ -5,13 +5,13 @@ import * as iot from 'io-ts';
 import camelcaseKeys from 'camelcase-keys'
 
 export namespace Internal {
-  export type Operator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte" | "Regex"
+  export type Operator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte"
 
   export type Select = {
     _type: "Select";
-    operator: Operator;
     field: string;
-    matches: string;
+    operator: Operator;
+    value: string;
   }
 
   export type Attach = {
@@ -53,14 +53,13 @@ export namespace Json {
     , iot.literal("Lt")
     , iot.literal("Gte")
     , iot.literal("Lte")
-    , iot.literal("Regex")
   ])
 
   export const Select = iot.type({
       _type: iot.literal("Select")
     , operator: Operator
     , field: iot.string
-    , matches: iot.string
+    , value: iot.string
   })
 
   export const Attach = iot.type({

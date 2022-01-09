@@ -70,7 +70,7 @@ router
         ))
       , TE.chain(O.match(
             () => TE.right(O.none)
-          , (account) => pipe(account, materialize, E.map(O.some), TE.fromEither)
+          , (account) => pipe(account, materialize(ctx.db), TE.map(O.some))
         ))
       , TE.match(
           (_) => {
@@ -82,8 +82,8 @@ router
               ctx.status = 404
               ctx.body = Message.error("Not found");
             },
-            (_) => {
-              ctx.body = { transactions: [] };
+            (transactions) => {
+              ctx.body = { transactions: transactions };
             }
           )
         )
