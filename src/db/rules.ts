@@ -12,7 +12,8 @@ namespace Query {
     CREATE TABLE rules (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       account_id TEXT NOT NULL,
-      rule JSONB NOT NULL
+      rule JSONB NOT NULL,
+      FOREIGN KEY(account_id) REFERENCES accounts(id)
     )
   `;
 

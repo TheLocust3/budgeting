@@ -25,7 +25,7 @@ Start:
 
 ## sample requests
 `curl -XPOST http://localhost:3000/accounts/ -H "Content-Type: application/json" --data '{ "groupId": "1", "name": "test account" }'`
-`curl -XPOST http://localhost:3000/accounts/2/rules/ -H "Content-Type: application/json" --data '{ "rule": { "_type": "Select" } }'`
+`curl -XPOST http://localhost:3000/accounts/a193682a-a997-4058-bd15-a051d210d273/rules/ -H "Content-Type: application/json" --data '{ "rule": { "_type": "Select" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "capturedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 
