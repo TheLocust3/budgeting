@@ -15,6 +15,24 @@ export namespace Internal {
 
   export type Rule = Select | Attach
 
+  export const isSelect = (rule: Rule) => {
+    switch (rule._type) {
+      case "Select":
+        return true;
+      case "Attach":
+        return false;
+    }
+  }
+
+  export const isAttach = (rule: Rule) => {
+    switch (rule._type) {
+      case "Select":
+        return false;
+      case "Attach":
+        return true;
+    }
+  }
+
   export type t = {
     id: O.Option<string>;
     accountId: string;

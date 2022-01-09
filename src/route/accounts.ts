@@ -8,6 +8,8 @@ import { PathReporter } from 'io-ts/PathReporter';
 
 import * as Account from '../model/account';
 import * as AccountsTable from '../db/accounts';
+import * as RulesTable from '../db/rules';
+import { materialize } from '../materialize/index';
 import { Message } from './util';
 import { fromQuery } from '../model/util';
 
@@ -49,6 +51,39 @@ router
             },
             (account) => {
               ctx.body = { account: account };
+            }
+          )
+        )
+    )();
+  })
+  .get('/:accountId/materialize', async (ctx, next) => {
+    const accountId = ctx.params.accountId
+    await pipe(
+        AccountsTable.byId(ctx.db)(accountId)
+      , TE.chain(O.match(
+            () => TE.right(O.none)
+          , (account) => pipe(
+                accountId
+              , RulesTable.byAccountId(ctx.db)
+              , TE.map((rules) => { return O.some({ ...account, rules: rules }); })
+            )
+        ))
+      , TE.chain(O.match(
+            () => TE.right(O.none)
+          , (account) => pipe(account, materialize, E.map(O.some), TE.fromEither)
+        ))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          O.match(
+            () => {
+              ctx.status = 404
+              ctx.body = Message.error("Not found");
+            },
+            (_) => {
+              ctx.body = { transactions: [] };
             }
           )
         )

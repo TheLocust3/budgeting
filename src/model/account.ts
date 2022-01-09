@@ -4,11 +4,14 @@ import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
 import camelcaseKeys from 'camelcase-keys'
 
+import * as Rule from './rule';
+
 export namespace Internal {
   export type t = {
       id: O.Option<string>
     , groupId: string
     , name: string
+    , rules: Rule.Internal.t[]
   }
 }
 
@@ -24,7 +27,7 @@ export namespace Json {
     return pipe(
         account
       , Request.decode
-      , E.map(account => { return { ...account, id: O.none }; })
+      , E.map(account => { return { ...account, id: O.none, rules: [] }; })
       , E.mapLeft(E.toError)
     );
   }
@@ -54,7 +57,7 @@ export namespace Database {
         account
       , t.decode
       , E.map(camelcaseKeys)
-      , E.map(account => { return { ...account, id: O.some(account.id) }; })
+      , E.map(account => { return { ...account, id: O.some(account.id), rules: [] }; })
       , E.mapLeft(E.toError)
     );
   }

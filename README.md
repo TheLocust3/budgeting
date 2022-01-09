@@ -50,6 +50,9 @@ Start:
 `curl -XDELETE http://localhost:3000/rules/883ecc47-d225-4d92-9efb-a49d5abf024c`
 `curl -XDELETE http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2`
 
+### materialize account
+`curl -XGET http://localhost:3000/accounts/3d9ca325-691c-4be6-856e-8164090c4372/materialize`
+
 ## todo
 
 ### next
@@ -59,6 +62,7 @@ Start:
      - Eq, Neq, Gt, Ge, Lt, Le, Regex
      - Make typesafe (need to limit types on transaction)
      - How to handle metadata nesting?
+ - Schema validation
  - Accounts hierarchy
   - 1 global account per user
   - Materialize sub-accounts through global account
