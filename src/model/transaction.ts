@@ -4,6 +4,8 @@ import * as iot from 'io-ts';
 import * as types from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys'
 
+import { optionToNullable } from './util';
+
 export namespace Internal {
   export const PlaidMetadata = iot.type({
     _type: iot.literal("Plaid")
@@ -16,7 +18,7 @@ export namespace Internal {
     , merchantName: iot.string
     , description: iot.string
     , authorizedAt: types.date
-    , capturedAt: types.option(types.date)
+    , capturedAt: optionToNullable(types.date)
     , metadata: PlaidMetadata
   })
   export type t = iot.TypeOf<typeof t>
@@ -47,7 +49,8 @@ export namespace Json {
 
 export namespace Database {
   export const t = iot.type({
-      source_id: iot.string
+      id: iot.string
+    , source_id: iot.string
     , amount: types.NumberFromString
     , merchant_name: iot.string
     , description: iot.string

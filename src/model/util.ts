@@ -1,4 +1,7 @@
+import { pipe } from 'fp-ts/lib/pipeable';
+import * as O from 'fp-ts/Option';
 import * as t from 'io-ts';
+import * as types from 'io-ts-types';
 
 export function withLazyDefault<T extends t.Mixed>(
   type: T,
@@ -9,5 +12,26 @@ export function withLazyDefault<T extends t.Mixed>(
     type.is,
     (v) => type.decode(v != null ? v : defaultValue()),
     type.encode
+  )
+}
+
+export interface OptionToNullableC<C extends t.Mixed>
+  extends t.Type<O.Option<t.TypeOf<C>>, O.Option<t.TypeOf<C>>, unknown> {}
+
+export function optionToNullable<C extends t.Mixed>(
+  codec: C,
+  name: string = `Option<${codec.name}>`
+): OptionToNullableC<C> {
+  return new t.Type(
+    name,
+    types.option(codec).is,
+    types.option(codec).decode,
+    a =>
+      O.toNullable(
+        pipe(
+          a,
+          O.map(codec.encode)
+        )
+      )
   )
 }

@@ -25,6 +25,7 @@ router
       , Account.Json.lift
       , TE.fromEither
       , TE.chain(AccountsTable.create(ctx.db))
+      , TE.map(Account.Internal.t.encode)
       , TE.match(
           (_) => {
             ctx.status = 400

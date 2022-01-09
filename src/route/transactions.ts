@@ -24,6 +24,7 @@ router
       , Transaction.Json.lift
       , TE.fromEither
       , TE.chain(TransactionsTable.create(ctx.db))
+      , TE.map(Transaction.Internal.t.encode)
       , TE.match(
           (_) => {
             ctx.status = 400

@@ -1,7 +1,7 @@
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
-import { optionFromNullable } from 'io-ts-types';
+import { optionFromNullable, fromNullable } from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys'
 
 export namespace Internal {
