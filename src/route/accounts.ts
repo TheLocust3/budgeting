@@ -20,7 +20,7 @@ router
       , fromQuery
       , TE.fromEither
       , TE.chain(AccountsTable.byGroupId(ctx.db))
-      , TE.map(A.map(Account.Internal.t.encode))
+      , TE.map(A.map(Account.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -36,7 +36,7 @@ router
     const accountId = ctx.params.accountId
     await pipe(
         AccountsTable.byId(ctx.db)(accountId)
-      , TE.map(O.map(Account.Internal.t.encode))
+      , TE.map(O.map(Account.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -57,10 +57,10 @@ router
   .post('/', async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Account.Json.lift
+      , Account.Json.from
       , TE.fromEither
       , TE.chain(AccountsTable.create(ctx.db))
-      , TE.map(Account.Internal.t.encode)
+      , TE.map(Account.Json.to)
       , TE.match(
           (_) => {
             ctx.status = 400

@@ -1,43 +1,65 @@
-import * as E from 'fp-ts/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
+import * as O from 'fp-ts/Option';
+import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
 import { optionFromNullable } from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys'
 
 export namespace Internal {
+  export type Select = {
+    _type: "Select";
+  }
+
+  export type Attach = {
+    _type: "Attach";
+  }
+
+  export type Rule = Select | Attach
+
+  export type t = {
+    id: O.Option<string>;
+    accountId: string;
+    rule: Rule;
+  }
+}
+
+export namespace Json {
   export const Select = iot.type({
     _type: iot.literal("Select")
   })
+  
   export type Select = iot.TypeOf<typeof Select>
 
   export const Attach = iot.type({
     _type: iot.literal("Attach")
   })
+
   export type Attach = iot.TypeOf<typeof Attach>
 
-  export const t = iot.type({
-      id: optionFromNullable(iot.string)
-    , accountId: iot.string
+  export const Request = iot.type({
+      accountId: iot.string
     , rule: iot.union([Select, Attach])
   })
-  export type t = iot.TypeOf<typeof t>
-}
 
-export namespace Json {
-  export const t = iot.type({
-      accountId: iot.string
-    , rule: iot.union([Internal.Select, Internal.Attach])
-  })
-  export type t = iot.TypeOf<typeof t>  
+  export type Request = iot.TypeOf<typeof Request>
 
-  export const lift = (rule: any): E.Either<Error, Internal.t> => {
+  export const from = (rule: any): E.Either<Error, Internal.t> => {
     return pipe(
         rule
-      , t.decode
-      , E.map(Internal.t.decode)
-      , E.flatten
+      , Request.decode
+      , E.map(rule => { return { ...rule, id: O.none }; })
       , E.mapLeft(E.toError)
     );
+  }
+
+  export const to = (rule: Internal.t): any => {
+    const id = pipe(rule.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }))
+
+    return {
+        ...id
+      , accountId: rule.accountId
+      , rule: rule.rule
+    }
   }
 }
 
@@ -45,18 +67,17 @@ export namespace Database {
   export const t = iot.type({
       id: iot.string
     , account_id: iot.string
-    , rule: iot.union([Internal.Select, Internal.Attach])
+    , rule: iot.union([Json.Select, Json.Attach])
   });
 
   export type t = iot.TypeOf<typeof t>;
 
-  export const lift = (account: any): E.Either<Error, Internal.t> => {
+  export const lift = (rule: any): E.Either<Error, Internal.t> => {
     return pipe(
-        account
+        rule
       , t.decode
       , E.map(camelcaseKeys)
-      , E.map(Internal.t.decode)
-      , E.flatten
+      , E.map(rule => { return { ...rule, id: O.some(rule.id) }; })
       , E.mapLeft(E.toError)
     );
   }

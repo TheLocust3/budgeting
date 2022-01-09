@@ -53,7 +53,6 @@ Start:
 ## todo
 
 ### next
- - the cascading id stuff is a little ridiculous
  - Simple materialize transactions
    - `/accounts/:id/list`
    - Just Select rules
@@ -72,6 +71,3 @@ Start:
  - request logging
  - no need for camelize if columns are renamed in select
  - abstract common db queries/operations
- - need to revamp models
-   - more explicit json encoding/decoding
-   - One internal model, various decoders/encoders for it

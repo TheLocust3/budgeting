@@ -16,7 +16,7 @@ router
   .get('/', async (ctx, next) => {
     await pipe(
         TransactionsTable.all(ctx.db)()
-      , TE.map(A.map(Transaction.Internal.t.encode))
+      , TE.map(A.map(Transaction.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -32,7 +32,7 @@ router
     const transactionId = ctx.params.transactionId
     await pipe(
         TransactionsTable.byId(ctx.db)(transactionId)
-      , TE.map(O.map(Transaction.Internal.t.encode))
+      , TE.map(O.map(Transaction.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -53,10 +53,10 @@ router
   .post('/', async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Transaction.Json.lift
+      , Transaction.Json.from
       , TE.fromEither
       , TE.chain(TransactionsTable.create(ctx.db))
-      , TE.map(Transaction.Internal.t.encode)
+      , TE.map(Transaction.Json.to)
       , TE.match(
           (_) => {
             ctx.status = 400

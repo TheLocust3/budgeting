@@ -20,7 +20,7 @@ router
       , fromQuery
       , TE.fromEither
       , TE.chain(RulesTable.byAccountId(ctx.db))
-      , TE.map(A.map(Rule.Internal.t.encode))
+      , TE.map(A.map(Rule.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -36,7 +36,7 @@ router
     const ruleId = ctx.params.ruleId
     await pipe(
         RulesTable.byId(ctx.db)(ruleId)
-      , TE.map(O.map(Rule.Internal.t.encode))
+      , TE.map(O.map(Rule.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -57,10 +57,10 @@ router
   .post('/', async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Rule.Json.lift
+      , Rule.Json.from
       , TE.fromEither
       , TE.chain(RulesTable.create(ctx.db))
-      , TE.map(Rule.Internal.t.encode)
+      , TE.map(Rule.Json.to)
       , TE.match(
           (_) => {
             ctx.status = 400

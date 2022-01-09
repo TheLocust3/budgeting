@@ -16,7 +16,7 @@ router
   .get('/', async (ctx, next) => {
     await pipe(
         GroupsTable.all(ctx.db)()
-      , TE.map(A.map(Group.Internal.t.encode))
+      , TE.map(A.map(Group.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -32,7 +32,7 @@ router
     const groupId = ctx.params.groupId
     await pipe(
         GroupsTable.byId(ctx.db)(groupId)
-      , TE.map(O.map(Group.Internal.t.encode))
+      , TE.map(O.map(Group.Json.to))
       , TE.match(
           (_) => {
             ctx.status = 400
@@ -53,10 +53,10 @@ router
   .post('/', async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Group.Json.lift
+      , Group.Json.from
       , TE.fromEither
       , TE.chain(GroupsTable.create(ctx.db))
-      , TE.map(Group.Internal.t.encode)
+      , TE.map(Group.Json.to)
       , TE.match(
           (_) => {
             ctx.status = 400
