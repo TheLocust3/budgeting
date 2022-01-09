@@ -1,4 +1,5 @@
 import Router from '@koa/router';
+import * as A from 'fp-ts/Array';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
@@ -11,8 +12,20 @@ import { Message } from './util';
 export const router = new Router();
 
 router
-  .get('/', (ctx, next) => {
-    ctx.body = { 'transactions': [] };
+  .get('/', async (ctx, next) => {
+    await pipe(
+        TransactionsTable.all(ctx.db)()
+      , TE.map(A.map(Transaction.Internal.t.encode))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (transactions) => {
+            ctx.body = { transactions: transactions };
+          }
+        )
+    )();
   })
   .get('/:transactionId', (ctx, next) => {
     const transactionId = ctx.params.transactionId
@@ -30,8 +43,8 @@ router
             ctx.status = 400
             ctx.body = Message.error("Bad request");
           },
-          (account) => {
-            ctx.body = account;
+          (transaction) => {
+            ctx.body = transaction;
           }
         )
     )();
