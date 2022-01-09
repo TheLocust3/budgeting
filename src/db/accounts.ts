@@ -34,7 +34,7 @@ export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
   try {
     await pool.query(Query.createTable);
     return true;
-  } catch(err) {
+  } catch (err) {
     console.log(err);
     return false;
   }

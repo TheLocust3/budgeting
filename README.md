@@ -25,6 +25,7 @@ Start:
 
 ## sample requests
 `curl -XPOST http://localhost:3000/accounts/ -H "Content-Type: application/json" --data '{ "groupId": "1", "name": "test account" }'`
+`curl -XPOST http://localhost:3000/accounts/2/rules/ -H "Content-Type: application/json" --data '{ "rule": { "_type": "Select" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "capturedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 
@@ -34,8 +35,9 @@ Start:
  - transactions CRUD
  - accounts CRUD
  - rules CRUD
- - groups CRUD
+ - actually add foreign key constraints
  - Materialize transactions
+ - groups CRUD
  - Accounts hierarchy
   - 1 global account per user
   - Materialize sub-accounts through global account

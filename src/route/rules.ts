@@ -1,9 +1,11 @@
 import Router from '@koa/router';
-import { Either, fold } from 'fp-ts/Either';
+import * as E from 'fp-ts/Either';
+import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { PathReporter } from 'io-ts/PathReporter';
 
 import * as Rule from '../model/rule';
+import * as RulesTable from '../db/rules';
 import { Message } from './util';
 
 export const router = new Router();
@@ -17,20 +19,24 @@ router
     const ruleId = ctx.params.ruleId
     ctx.body = { 'id': ruleId, 'accountId': accountId };
   })
-  .post('/', (ctx, next) => {
-    pipe(
-      ctx.request.body,
-      Rule.Json.lift,
-      fold(
-        (_) => {
-          ctx.status = 400
-          ctx.body = Message.error("Bad request");
-        },
-        (_) => {
-          ctx.body = Message.ok;
-        }
-      )
-    );
+  .post('/', async (ctx, next) => {
+    const accountId = ctx.params.accountId
+    await pipe(
+        ctx.request.body
+      , Rule.Json.lift(accountId)
+      , TE.fromEither
+      , TE.chain(RulesTable.create(ctx.db))
+      , TE.map(Rule.Internal.t.encode)
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (rule) => {
+            ctx.body = rule;
+          }
+        )
+    )();
   })
   .delete('/:ruleId', (ctx, next) => {
     ctx.body = Message.ok;
