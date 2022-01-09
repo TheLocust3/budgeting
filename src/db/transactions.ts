@@ -8,6 +8,7 @@ import * as TE from 'fp-ts/lib/TaskEither';
 import * as iot from 'io-ts';
 
 import * as Transaction from '../model/Transaction';
+import { expectOne } from './util';
 
 namespace Query {
   export const createTable = `
@@ -100,7 +101,7 @@ export const all = (pool: Pool) => () : TE.TaskEither<Error, Transaction.Interna
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Transaction.Database.lift)
+        , A.map(Transaction.Database.from)
         , A.sequence(E.Applicative)
       )))
   );
@@ -114,16 +115,10 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Transaction.Database.lift)
+        , A.map(Transaction.Database.from)
         , A.sequence(E.Applicative)
       )))
-    , TE.map(transactions => {
-        if (transactions.length == 1) {
-          return O.some(transactions[0])
-        } else {
-          return O.none;
-        }
-      })
+    , TE.map(A.lookup(0))
   );
 }
 
@@ -151,13 +146,7 @@ export const create = (pool: Pool) => (transaction: Transaction.Internal.t) : TE
         )),
         E.toError
       )
-    , TE.chain(res => {
-        if (res.rows.length < 1) {
-          return TE.left(new Error("Empty response"));
-        } else {
-          return TE.right(res.rows);
-        }
-      })
-    , TE.chain(row => TE.fromEither(Transaction.Database.lift(row[0])))
+    , expectOne
+    , TE.chain(res => TE.fromEither(Transaction.Database.from(res.rows[0])))
   );
 }

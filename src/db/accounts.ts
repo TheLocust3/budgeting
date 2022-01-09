@@ -8,6 +8,7 @@ import * as TE from 'fp-ts/lib/TaskEither';
 import * as iot from 'io-ts';
 
 import * as Account from '../model/Account';
+import { expectOne } from './util';
 
 namespace Query {
   export const createTable = `
@@ -94,7 +95,7 @@ export const byGroupId = (pool: Pool) => (groupId: string) : TE.TaskEither<Error
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Account.Database.lift)
+        , A.map(Account.Database.from)
         , A.sequence(E.Applicative)
       )))
   );
@@ -108,16 +109,10 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Account.Database.lift)
+        , A.map(Account.Database.from)
         , A.sequence(E.Applicative)
       )))
-    , TE.map(accounts => {
-        if (accounts.length == 1) {
-          return O.some(accounts[0])
-        } else {
-          return O.none;
-        }
-      })
+    , TE.map(A.lookup(0))
   );
 }
 
@@ -137,13 +132,7 @@ export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEit
         () => pool.query(Query.create(account.groupId, account.name)),
         E.toError
       )
-    , TE.chain(res => {
-        if (res.rows.length < 1) {
-          return TE.left(new Error("Empty response"));
-        } else {
-          return TE.right(res.rows);
-        }
-      })
-    , TE.chain(row => TE.fromEither(Account.Database.lift(row[0])))
+    , expectOne
+    , TE.chain(res => TE.fromEither(Account.Database.from(res.rows[0])))
   );
 }

@@ -5,8 +5,6 @@ import * as iot from 'io-ts';
 import * as types from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys'
 
-import { optionToNullable } from './util';
-
 export namespace Internal {
   export type PlaidMetadata = {
     _type: "Plaid";
@@ -84,7 +82,7 @@ export namespace Database {
   })
   export type t = iot.TypeOf<typeof t>
 
-  export const lift = (transaction: any): E.Either<Error, Internal.t> => {
+  export const from = (transaction: any): E.Either<Error, Internal.t> => {
     return pipe(
         transaction
       , t.decode

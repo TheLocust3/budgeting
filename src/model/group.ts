@@ -2,8 +2,6 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
-import { Do } from 'fp-ts-contrib/Do'
-import { optionFromNullable, fromNullable } from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys'
 
 export namespace Internal {
@@ -47,7 +45,7 @@ export namespace Database {
 
   export type t = iot.TypeOf<typeof t>;
 
-  export const lift = (group: any): E.Either<Error, Internal.t> => {
+  export const from = (group: any): E.Either<Error, Internal.t> => {
     return pipe(
         group
       , t.decode
