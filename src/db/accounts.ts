@@ -1,5 +1,4 @@
 import { Pool } from 'pg';
-import camelcaseKeys from 'camelcase-keys'
 import { pipe } from 'fp-ts/lib/function';
 import * as E from 'fp-ts/Either';
 import * as T from 'fp-ts/lib/Task';
@@ -64,10 +63,6 @@ export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEit
         return TE.right(res.rows);
       }
     }),
-    TE.chain(row => TE.fromEither(Account.Database.lift(camelcaseKeys(row[0])))),
-    TE.map(x => {
-      console.log(x)
-      return x
-    })
+    TE.chain(row => TE.fromEither(Account.Database.lift(row[0])))
   );
 }

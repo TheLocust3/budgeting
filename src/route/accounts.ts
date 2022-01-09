@@ -25,18 +25,12 @@ router
       Account.Json.lift,
       TE.fromEither,
       TE.chain(AccountsTable.create(ctx.db)),
-      TE.map(x => {
-        console.log(x)
-        return x
-      }),
       TE.match(
         (_) => {
-          console.log('hmm2')
           ctx.status = 400
           ctx.body = Message.error("Bad request");
         },
         (account) => {
-          console.log('hmm')
           ctx.body = account;
         }
       )
