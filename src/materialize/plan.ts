@@ -6,7 +6,7 @@ import * as Account from '../model/account';
 import * as Rule from '../model/rule';
 import { Array } from '../model/util';
 
-type Stage = {
+export type Stage = {
   select: Rule.Internal.Select[],
   attach: Rule.Internal.Attach[]
 }

@@ -11,6 +11,7 @@ import * as Account from '../model/account';
 import * as Plan from './plan';
 import * as Schema from './schema';
 import * as Materializer from './materializer';
+import { Array } from '../model/util';
 
 export const materialize = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Error, Transaction.Internal.t[]> => {
   // TODO: JK track materialize logs with id
@@ -25,7 +26,7 @@ export const materialize = (pool: Pool) => (account: Account.Internal.t): TE.Tas
     , E.map(Materializer.build)
     , TE.fromEither
     , TE.chain((materializer) => {
-        return pipe(TransactionsTable.all(pool)(), TE.map(A.map(materializer)))
+        return pipe(TransactionsTable.all(pool)(), TE.map(A.map(materializer)), TE.map(Array.flattenOption))
       })
   );
 }
