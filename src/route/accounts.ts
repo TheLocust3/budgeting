@@ -8,6 +8,7 @@ import { PathReporter } from 'io-ts/PathReporter';
 import * as Account from '../model/account';
 import * as AccountsTable from '../db/accounts';
 import { Message } from './util';
+import { router as rulesRouter } from './rules';
 
 export const router = new Router();
 
@@ -20,9 +21,10 @@ router
     ctx.body = { 'id': accountId };
   })
   .post('/', async (ctx, next) => {
+    const groupId = ctx.params.groupId
     await pipe(
         ctx.request.body
-      , Account.Json.lift
+      , Account.Json.lift(groupId)
       , TE.fromEither
       , TE.chain(AccountsTable.create(ctx.db))
       , TE.map(Account.Internal.t.encode)
@@ -39,5 +41,5 @@ router
   })
   .delete('/:accountId', (ctx, next) => {
     ctx.body = Message.ok;
-  });
-
+  })
+  .use('/:accountId/rules', rulesRouter.routes(), rulesRouter.allowedMethods());

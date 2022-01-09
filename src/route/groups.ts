@@ -8,6 +8,7 @@ import { PathReporter } from 'io-ts/PathReporter';
 import * as Group from '../model/group';
 import * as GroupsTable from '../db/groups';
 import { Message } from './util';
+import { router as accountsRouter } from './accounts';
 
 export const router = new Router();
 
@@ -52,4 +53,5 @@ router
   .delete('/:groupId', (ctx, next) => {
     ctx.body = Message.ok;
   })
+  .use('/:groupId/accounts', accountsRouter.routes(), accountsRouter.allowedMethods());
 

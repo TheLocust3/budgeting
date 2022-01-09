@@ -16,15 +16,14 @@ export namespace Internal {
 
 export namespace Json {
   export const t = iot.type({
-      groupId: iot.string
-    , name: iot.string
+    name: iot.string
   });
 
   export type t = iot.TypeOf<typeof t>;
 
-  export const lift = (account: any): E.Either<Error, Internal.t> => {
+  export const lift = (groupId: string) => (account: any): E.Either<Error, Internal.t> => {
     return pipe(
-        account
+        { ...account, groupId }
       , t.decode
       , E.map(Internal.t.decode)
       , E.flatten
