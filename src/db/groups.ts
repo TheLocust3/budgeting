@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { pipe } from 'fp-ts/lib/function';
+import * as A from 'fp-ts/Array';
 import * as E from 'fp-ts/Either';
 import * as T from 'fp-ts/lib/Task';
 import * as TE from 'fp-ts/lib/TaskEither';
@@ -27,6 +28,11 @@ namespace Query {
       values: [name]
     }
   }
+
+  export const all = `
+    SELECT id, name
+    FROM groups
+  `;
 }
 
 export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
@@ -47,6 +53,20 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
+}
+
+export const all = (pool: Pool) => () : TE.TaskEither<Error, Group.Internal.t[]> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.all),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Group.Database.lift)
+        , A.sequence(E.Applicative)
+      )))
+  );
 }
 
 export const create = (pool: Pool) => (group: Group.Internal.t) : TE.TaskEither<Error, Group.Internal.t> => {

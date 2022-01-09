@@ -33,7 +33,8 @@ Start:
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 
 ### list
-curl -XGET http://localhost:3000/transactions/ -H "Accept: application/json"
+curl -XGET http://localhost:3000/groups/
+curl -XGET http://localhost:3000/transactions/
 
 ## todo
 

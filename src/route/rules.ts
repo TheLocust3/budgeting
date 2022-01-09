@@ -1,4 +1,5 @@
 import Router from '@koa/router';
+import * as A from 'fp-ts/Array';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';

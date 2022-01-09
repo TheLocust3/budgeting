@@ -1,4 +1,5 @@
 import Router from '@koa/router';
+import * as A from 'fp-ts/Array';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
@@ -11,8 +12,20 @@ import { Message } from './util';
 export const router = new Router();
 
 router
-  .get('/', (ctx, next) => {
-    ctx.body = { 'groups': [] };
+  .get('/', async (ctx, next) => {
+      await pipe(
+        GroupsTable.all(ctx.db)()
+      , TE.map(A.map(Group.Internal.t.encode))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (groups) => {
+            ctx.body = { groups: groups };
+          }
+        )
+    )();
   })
   .get('/:groupId', (ctx, next) => {
     const groupId = ctx.params.groupId
