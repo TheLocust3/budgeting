@@ -5,8 +5,13 @@ import * as iot from 'io-ts';
 import camelcaseKeys from 'camelcase-keys'
 
 export namespace Internal {
+  export type Operator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte" | "Regex"
+
   export type Select = {
     _type: "Select";
+    operator: Operator;
+    field: string;
+    matches: string;
   }
 
   export type Attach = {
@@ -41,24 +46,31 @@ export namespace Internal {
 }
 
 export namespace Json {
+  export const Operator = iot.union([
+      iot.literal("Eq")
+    , iot.literal("Neq")
+    , iot.literal("Gt")
+    , iot.literal("Lt")
+    , iot.literal("Gte")
+    , iot.literal("Lte")
+    , iot.literal("Regex")
+  ])
+
   export const Select = iot.type({
-    _type: iot.literal("Select")
+      _type: iot.literal("Select")
+    , operator: Operator
+    , field: iot.string
+    , matches: iot.string
   })
-  
-  export type Select = iot.TypeOf<typeof Select>
 
   export const Attach = iot.type({
     _type: iot.literal("Attach")
   })
 
-  export type Attach = iot.TypeOf<typeof Attach>
-
   export const Request = iot.type({
       accountId: iot.string
     , rule: iot.union([Select, Attach])
   })
-
-  export type Request = iot.TypeOf<typeof Request>
 
   export const from = (rule: any): E.Either<Error, Internal.t> => {
     return pipe(
@@ -86,8 +98,6 @@ export namespace Database {
     , account_id: iot.string
     , rule: iot.union([Json.Select, Json.Attach])
   });
-
-  export type t = iot.TypeOf<typeof t>;
 
   export const from = (rule: any): E.Either<Error, Internal.t> => {
     return pipe(

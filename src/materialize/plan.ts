@@ -22,8 +22,8 @@ const buildStage = (rulesWrapper: Rule.Internal.t[]): Stage => {
   const attach = pipe(rules, A.map(Rule.Internal.collectAttach), Array.flattenOption);
 
   return {
-    select: select,
-    attach: attach
+      select: select
+    , attach: attach
   };
 }
 

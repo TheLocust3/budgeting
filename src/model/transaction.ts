@@ -37,8 +37,6 @@ export namespace Json {
     , metadata: PlaidMetadata
   });
 
-  export type Request = iot.TypeOf<typeof Request>;
-
   export const from = (transaction: any): E.Either<Error, Internal.t> => {
     return pipe(
         transaction
@@ -80,7 +78,6 @@ export namespace Database {
     , captured_at: types.optionFromNullable(types.date)
     , metadata: Json.PlaidMetadata
   })
-  export type t = iot.TypeOf<typeof t>
 
   export const from = (transaction: any): E.Either<Error, Internal.t> => {
     return pipe(

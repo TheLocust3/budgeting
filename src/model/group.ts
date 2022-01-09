@@ -16,8 +16,6 @@ export namespace Json {
     name: iot.string
   });
 
-  export type Request = iot.TypeOf<typeof Request>;
-
   export const from = (group: any): E.Either<Error, Internal.t> => {
     return pipe(
         group
@@ -42,8 +40,6 @@ export namespace Database {
       id: iot.string
     , name: iot.string
   });
-
-  export type t = iot.TypeOf<typeof t>;
 
   export const from = (group: any): E.Either<Error, Internal.t> => {
     return pipe(
