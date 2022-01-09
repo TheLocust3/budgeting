@@ -33,13 +33,16 @@ Start:
 `curl -XPOST http://localhost:3000/transactions/ -H "Content-Type: application/json" --data '{ "sourceId": "1", "amount": 10.53, "merchantName": "Apple", "description": "Description", "authorizedAt": 1641693073, "metadata": { "_type": "Plaid" } }'`
 
 ### list
-curl -XGET http://localhost:3000/groups/
-curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/
-curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38/rules/
-curl -XGET http://localhost:3000/transactions/
+`curl -XGET http://localhost:3000/groups/`
+`curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/`
+`curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38/rules/`
+`curl -XGET http://localhost:3000/transactions/`
 
 ### get
-curl -XGET http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2
+`curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9`
+`curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38`
+`curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38/rules/883ecc47-d225-4d92-9efb-a49d5abf024c`
+`curl -XGET http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2`
 
 ## todo
 
@@ -58,7 +61,9 @@ curl -XGET http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568
  - Rules conflict resolution
 
 ### miscellaneous
+ - the cascading id stuff is a little ridiculous
  - no need for camelize if columns are renamed in select
+ - abstract common db queries/operations
  - need to revamp models
    - more explicit json encoding/decoding
    - One internal model, various decoders/encoders for it

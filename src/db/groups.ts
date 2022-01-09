@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import { pipe } from 'fp-ts/lib/function';
 import * as A from 'fp-ts/Array';
+import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as T from 'fp-ts/lib/Task';
 import * as TE from 'fp-ts/lib/TaskEither';
@@ -33,6 +34,18 @@ namespace Query {
     SELECT id, name
     FROM groups
   `;
+
+  export const byId = (id: string) => {
+    return {
+      text: `
+        SELECT id, name
+        FROM groups
+        WHERE id = $1
+        LIMIT 1
+      `,
+      values: [id]
+    }
+  }
 }
 
 export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
@@ -66,6 +79,27 @@ export const all = (pool: Pool) => () : TE.TaskEither<Error, Group.Internal.t[]>
         , A.map(Group.Database.lift)
         , A.sequence(E.Applicative)
       )))
+  );
+}
+
+export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<Group.Internal.t>> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.byId(id)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Group.Database.lift)
+        , A.sequence(E.Applicative)
+      )))
+    , TE.map(groups => {
+        if (groups.length == 1) {
+          return O.some(groups[0])
+        } else {
+          return O.none;
+        }
+      })
   );
 }
 

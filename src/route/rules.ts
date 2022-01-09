@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import * as A from 'fp-ts/Array';
+import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
@@ -28,10 +29,27 @@ router
         )
     )();
   })
-  .get('/:ruleId', (ctx, next) => {
-    const accountId = ctx.params.accountId
+  .get('/:ruleId', async (ctx, next) => {
     const ruleId = ctx.params.ruleId
-    ctx.body = { 'id': ruleId, 'accountId': accountId };
+    await pipe(
+        RulesTable.byId(ctx.db)(ruleId)
+      , TE.map(O.map(Rule.Internal.t.encode))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          O.match(
+            () => {
+              ctx.status = 404
+              ctx.body = Message.error("Not found");
+            },
+            (rule) => {
+              ctx.body = { rule: rule };
+            }
+          )
+        )
+    )();
   })
   .post('/', async (ctx, next) => {
     const accountId = ctx.params.accountId

@@ -49,7 +49,7 @@ namespace Query {
     FROM transactions
   `;
 
-    export const byId = (id: string) => {
+  export const byId = (id: string) => {
     return {
       text: `
         SELECT id, source_id, amount, merchant_name, description, authorized_at, captured_at, metadata

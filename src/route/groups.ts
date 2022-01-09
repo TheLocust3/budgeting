@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import * as A from 'fp-ts/Array';
+import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
@@ -28,9 +29,27 @@ router
         )
     )();
   })
-  .get('/:groupId', (ctx, next) => {
+  .get('/:groupId', async (ctx, next) => {
     const groupId = ctx.params.groupId
-    ctx.body = { 'id': groupId };
+    await pipe(
+        GroupsTable.byId(ctx.db)(groupId)
+      , TE.map(O.map(Group.Internal.t.encode))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          O.match(
+            () => {
+              ctx.status = 404
+              ctx.body = Message.error("Not found");
+            },
+            (group) => {
+              ctx.body = { group: group };
+            }
+          )
+        )
+    )();
   })
   .post('/', async (ctx, next) => {
     await pipe(
