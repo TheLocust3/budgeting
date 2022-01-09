@@ -53,7 +53,13 @@ Start:
 ## todo
 
 ### next
- - Materialize transactions
+ - the cascading id stuff is a little ridiculous
+ - Simple materialize transactions
+   - `/accounts/:id/list`
+   - Just Select rules
+     - Eq, Neq, Gt, Ge, Lt, Le, Regex
+     - Make typesafe (need to limit types on transaction)
+     - How to handle metadata nesting?
  - Accounts hierarchy
   - 1 global account per user
   - Materialize sub-accounts through global account
@@ -64,7 +70,6 @@ Start:
 
 ### miscellaneous
  - request logging
- - the cascading id stuff is a little ridiculous
  - no need for camelize if columns are renamed in select
  - abstract common db queries/operations
  - need to revamp models
