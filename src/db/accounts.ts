@@ -30,6 +30,17 @@ namespace Query {
       values: [groupId, name]
     }
   }
+
+  export const byGroupId = (groupId: string) => {
+    return {
+      text: `
+        SELECT id, group_id, name
+        FROM accounts
+        WHERE group_id = $1
+      `,
+      values: [groupId]
+    }
+  }
 }
 
 export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
@@ -50,6 +61,20 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
+}
+
+export const byGroupId = (pool: Pool) => (groupId: string) : TE.TaskEither<Error, Account.Internal.t[]> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.byGroupId(groupId)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Account.Database.lift)
+        , A.sequence(E.Applicative)
+      )))
+  );
 }
 
 export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEither<Error, Account.Internal.t> => {

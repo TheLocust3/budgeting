@@ -12,8 +12,21 @@ import { Message } from './util';
 export const router = new Router();
 
 router
-  .get('/', (ctx, next) => {
-    ctx.body = { 'rules': [] };
+  .get('/', async (ctx, next) => {
+    const accountId = ctx.params.accountId
+    await pipe(
+        RulesTable.byAccountId(ctx.db)(accountId)
+      , TE.map(A.map(Rule.Internal.t.encode))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (rules) => {
+            ctx.body = { rules: rules };
+          }
+        )
+    )();
   })
   .get('/:ruleId', (ctx, next) => {
     const accountId = ctx.params.accountId

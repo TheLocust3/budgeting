@@ -20,7 +20,7 @@ namespace Query {
 
   export const dropTable = `DROP TABLE rules`
 
-    export const create = (accountId: string, rule: any) => {
+  export const create = (accountId: string, rule: any) => {
     return {
       text: `
         INSERT INTO rules (account_id, rule)
@@ -28,6 +28,17 @@ namespace Query {
         RETURNING *
       `,
       values: [accountId, rule]
+    }
+  }
+
+  export const byAccountId = (accountId: string) => {
+    return {
+      text: `
+        SELECT id, account_id, rule
+        FROM rules
+        WHERE account_id = $1
+      `,
+      values: [accountId]
     }
   }
 }
@@ -50,6 +61,20 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
+}
+
+export const byAccountId = (pool: Pool) => (accountId: string) : TE.TaskEither<Error, Rule.Internal.t[]> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.byAccountId(accountId)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Rule.Database.lift)
+        , A.sequence(E.Applicative)
+      )))
+  );
 }
 
 export const create = (pool: Pool) => (rule: Rule.Internal.t) : TE.TaskEither<Error, Rule.Internal.t> => {

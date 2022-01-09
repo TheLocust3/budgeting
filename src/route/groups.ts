@@ -14,7 +14,7 @@ export const router = new Router();
 
 router
   .get('/', async (ctx, next) => {
-      await pipe(
+    await pipe(
         GroupsTable.all(ctx.db)()
       , TE.map(A.map(Group.Internal.t.encode))
       , TE.match(

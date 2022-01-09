@@ -13,8 +13,21 @@ import { router as rulesRouter } from './rules';
 export const router = new Router();
 
 router
-  .get('/', (ctx, next) => {
-    ctx.body = { 'accounts': [] };
+  .get('/', async (ctx, next) => {
+    const groupId = ctx.params.groupId
+    await pipe(
+        AccountsTable.byGroupId(ctx.db)(groupId)
+      , TE.map(A.map(Account.Internal.t.encode))
+      , TE.match(
+          (_) => {
+            ctx.status = 400
+            ctx.body = Message.error("Bad request");
+          },
+          (accounts) => {
+            ctx.body = { accounts: accounts };
+          }
+        )
+    )();
   })
   .get('/:accountId', (ctx, next) => {
     const accountId = ctx.params.accountId
