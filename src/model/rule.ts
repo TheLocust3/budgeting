@@ -7,33 +7,58 @@ import camelcaseKeys from 'camelcase-keys'
 export namespace Internal {
   export type Operator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte"
 
-  export type Select = {
-    _type: "Select";
+  export type And = { 
+    _type: "And";
+    left: Clause;
+    right: Clause;
+  }
+
+  export type Or = {
+    _type: "Or";
+    left: Clause;
+    right: Clause
+  }
+
+  export type Not = {
+    _type: "Not";
+    clause: Clause;
+  }
+
+  export type Match = { 
+    _type: "Match";
     field: string;
     operator: Operator;
     value: string;
   }
 
-  export type Attach = {
-    _type: "Attach";
+  export type Clause = And | Or | Not | Match
+
+  export type Include = {
+    _type: "Include";
+    clause: Clause;
   }
 
-  export type Rule = Select | Attach
+  export type Exclude = {
+    _type: "Exclude";
+    clause: Clause;
+  }
 
-  export const collectSelect = (rule: Rule): O.Option<Select> => {
+  export type Rule = Include | Exclude
+
+  export const collectInclude = (rule: Rule): O.Option<Include> => {
     switch (rule._type) {
-      case "Select":
+      case "Include":
         return O.some(rule);
-      case "Attach":
+      case "Exclude":
         return O.none;
     }
   }
 
-  export const collectAttach = (rule: Rule): O.Option<Attach> => {
+  export const collectExclude = (rule: Rule): O.Option<Exclude> => {
     switch (rule._type) {
-      case "Select":
+      case "Include":
         return O.none;
-      case "Attach":
+      case "Exclude":
         return O.some(rule);
     }
   }
@@ -53,23 +78,48 @@ export namespace Json {
     , iot.literal("Lt")
     , iot.literal("Gte")
     , iot.literal("Lte")
-  ])
+  ]);
 
-  export const Select = iot.type({
-      _type: iot.literal("Select")
-    , operator: Operator
+  export const And: iot.Type<Internal.And> = iot.recursion("And", () => iot.type({
+      _type: iot.literal("And")
+    , left: Clause
+    , right: Clause
+  }));
+
+  export const Or: iot.Type<Internal.Or> = iot.recursion("Or", () => iot.type({
+      _type: iot.literal("Or")
+    , left: Clause
+    , right: Clause
+  }));
+
+  export const Not: iot.Type<Internal.Not> = iot.recursion("Not", () => iot.type({
+      _type: iot.literal("Not")
+    , clause: Clause
+  }));
+
+  export const Match: iot.Type<Internal.Match> = iot.recursion("Match", () => iot.type({
+      _type: iot.literal("Match")
     , field: iot.string
+    , operator: Operator
     , value: iot.string
-  })
+  }));
 
-  export const Attach = iot.type({
-    _type: iot.literal("Attach")
-  })
+  export const Clause = iot.union([And, Or, Not, Match]);
+
+  export const Include = iot.type({
+      _type: iot.literal("Include")
+    , clause: Clause
+  });
+
+  export const Exclude = iot.type({
+      _type: iot.literal("Exclude")
+    , clause: Clause
+  });
 
   export const Request = iot.type({
       accountId: iot.string
-    , rule: iot.union([Select, Attach])
-  })
+    , rule: iot.union([Include, Exclude])
+  });
 
   export const from = (rule: any): E.Either<Error, Internal.t> => {
     return pipe(
@@ -95,7 +145,7 @@ export namespace Database {
   export const t = iot.type({
       id: iot.string
     , account_id: iot.string
-    , rule: iot.union([Json.Select, Json.Attach])
+    , rule: iot.union([Json.Include, Json.Exclude])
   });
 
   export const from = (rule: any): E.Either<Error, Internal.t> => {

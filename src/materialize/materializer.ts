@@ -8,7 +8,11 @@ import * as Rule from '../model/rule';
 import * as Plan from './plan';
 
 type Materializer = (transaction: Transaction.Internal.t) => O.Option<Transaction.Internal.t>;
-type Predicate = (transaction: Transaction.Internal.t) => Boolean;
+
+type Result = "Include" | "Exclude" | "NoMatch"
+type IncludeExclude = (transaction: Transaction.Internal.t) => Result
+
+/*type Predicate = (transaction: Transaction.Internal.t) => Boolean;
 
 const getField = (field: string) => (transaction: Transaction.Internal.t): string => {
   if (field == "id") {
@@ -29,11 +33,11 @@ const buildPredicate = (pred: Predicate): Materializer => {
       return O.none
     }
   };
-}
+}*/
 
-const buildSelect = (rule: Rule.Internal.Select): Materializer => {
+const buildInclude = (rule: Rule.Internal.Include): IncludeExclude => {
   // INVARIANT: we've validated the schema and all the fields + types line up
-  switch (rule.operator) {
+  /*switch (rule.operator) {
     case "Eq":
       return buildPredicate((transaction) => getField(rule.field)(transaction) === rule.value);
     case "Neq":
@@ -46,22 +50,48 @@ const buildSelect = (rule: Rule.Internal.Select): Materializer => {
       return buildPredicate((transaction) => Number(getField(rule.field)(transaction)) >= Number(rule.value));
     case "Lte":
       return buildPredicate((transaction) => Number(getField(rule.field)(transaction)) <= Number(rule.value));
-  }
+  }*/
+  return (transaction: Transaction.Internal.t) => "NoMatch";
 }
 
 // TODO: JK
-const buildAttach = (rule: Rule.Internal.Attach): Materializer => {
-  return (transaction: Transaction.Internal.t) => O.some(transaction)
+const buildExclude = (rule: Rule.Internal.Exclude): IncludeExclude => {
+  return (transaction: Transaction.Internal.t) => "NoMatch";
 }
 
 const buildStage = (stage: Plan.Stage): Materializer => {
-  const selectMaterializers = A.map(buildSelect)(stage.select);
-  const attachMaterializers = A.map(buildAttach)(stage.attach);
+  const includeMaterializers = A.map(buildInclude)(stage.include);
+  const excludeMaterializers = A.map(buildExclude)(stage.exclude);
 
-  return (transaction: Transaction.Internal.t) => pipe(
-      selectMaterializers.concat(attachMaterializers)
-    , A.reduce(O.some(transaction), (transaction, materializer) => pipe(transaction, O.map(materializer), O.flatten))
-  );
+  const include = (transaction: Transaction.Internal.t): Result => {
+    for (let mat of includeMaterializers) {
+      if (mat(transaction) === "Include") {
+        return "Include"
+      }
+    }
+    return "NoMatch"
+  }
+
+  const exclude = (transaction: Transaction.Internal.t): Result => {
+    for (let mat of includeMaterializers) {
+      if (mat(transaction) === "Exclude") {
+        return "Exclude"
+      }
+    }
+    return "NoMatch"
+  }
+
+  return (transaction: Transaction.Internal.t) => {
+    const includeResult = include(transaction);
+    const excludeResult = include(transaction);
+    // TODO: JK conflict
+
+    if (includeResult === "Include") {
+      return O.some(transaction);
+    } else {
+      return O.none;
+    }
+  }
 }
 
 export const build = (plan: Plan.t): Materializer => {

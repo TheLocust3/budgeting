@@ -57,8 +57,16 @@ Start:
 ## todo
 
 ### next
- - Selects
-   - filters vs adds
+ - Better select API
+   - Select clause is either include or exclude
+ - system tests
+   - run tests against the api
+ - frontends
+   - move route logic to frontend module
+   - all pure functions
+   - scrub errors before returning to route
+ - basic select conflict resolution
+   - If two select clauses both include and excluse, this is a conflict
  - Schema validation
  - Accounts hierarchy
   - 1 global account per user
@@ -66,10 +74,10 @@ Start:
  - Complete rules
    - Exists operator, regex operator
    - Some way of adding/updating metadata based on Select query + with ability to reference existing metadata
- - Rules conflict resolution
+ - Complete conflict resolution
 
 ### miscellaneous
- - some tests
+ - unit tests against frontends/components
  - run linter
  - move db logic from routes to some sort of controller
  - request logging
