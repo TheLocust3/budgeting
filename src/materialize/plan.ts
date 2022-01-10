@@ -7,8 +7,7 @@ import * as Rule from '../model/rule';
 import { Array } from '../model/util';
 
 export type Stage = {
-  include: Rule.Internal.Include[],
-  exclude: Rule.Internal.Exclude[]
+  include: Rule.Internal.Include[]
 }
 
 export type t = {
@@ -19,11 +18,9 @@ const buildStage = (rulesWrapper: Rule.Internal.t[]): Stage => {
   const rules = A.map((rule: Rule.Internal.t) => rule.rule)(rulesWrapper);
 
   const include = pipe(rules, A.map(Rule.Internal.collectInclude), Array.flattenOption);
-  const exclude = pipe(rules, A.map(Rule.Internal.collectExclude), Array.flattenOption);
 
   return {
-      include: include
-    , exclude: exclude
+    include: include
   };
 }
 

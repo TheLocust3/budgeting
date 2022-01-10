@@ -8,11 +8,7 @@ import * as Rule from '../model/rule';
 import * as Plan from './plan';
 
 type Materializer = (transaction: Transaction.Internal.t) => O.Option<Transaction.Internal.t>;
-
-type Result = "Include" | "Exclude" | "NoMatch"
-type IncludeExclude = (transaction: Transaction.Internal.t) => Result
-
-/*type Predicate = (transaction: Transaction.Internal.t) => Boolean;
+type Predicate = (transaction: Transaction.Internal.t) => Boolean
 
 const getField = (field: string) => (transaction: Transaction.Internal.t): string => {
   if (field == "id") {
@@ -25,73 +21,57 @@ const getField = (field: string) => (transaction: Transaction.Internal.t): strin
   }
 }
 
-const buildPredicate = (pred: Predicate): Materializer => {
-  return (transaction: Transaction.Internal.t) => {
-    if (pred(transaction)) {
-      return O.some(transaction)
-    } else {
-      return O.none
-    }
-  };
-}*/
-
-const buildInclude = (rule: Rule.Internal.Include): IncludeExclude => {
-  // INVARIANT: we've validated the schema and all the fields + types line up
-  /*switch (rule.operator) {
+const buildMatch = (rule: Rule.Internal.Match): Predicate => {
+  switch (rule.operator) {
     case "Eq":
-      return buildPredicate((transaction) => getField(rule.field)(transaction) === rule.value);
+      return (transaction) => getField(rule.field)(transaction) === rule.value;
     case "Neq":
-      return buildPredicate((transaction) => getField(rule.field)(transaction) !== rule.value);
+      return (transaction) => getField(rule.field)(transaction) !== rule.value;
     case "Gt":
-      return buildPredicate((transaction) => Number(getField(rule.field)(transaction)) > Number(rule.value));
+      return (transaction) => Number(getField(rule.field)(transaction)) > Number(rule.value);
     case "Lt":
-      return buildPredicate((transaction) => Number(getField(rule.field)(transaction)) < Number(rule.value));
+      return (transaction) => Number(getField(rule.field)(transaction)) < Number(rule.value);
     case "Gte":
-      return buildPredicate((transaction) => Number(getField(rule.field)(transaction)) >= Number(rule.value));
+      return (transaction) => Number(getField(rule.field)(transaction)) >= Number(rule.value);
     case "Lte":
-      return buildPredicate((transaction) => Number(getField(rule.field)(transaction)) <= Number(rule.value));
-  }*/
-  return (transaction: Transaction.Internal.t) => "NoMatch";
+      return (transaction) => Number(getField(rule.field)(transaction)) <= Number(rule.value);
+  }
 }
 
-// TODO: JK
-const buildExclude = (rule: Rule.Internal.Exclude): IncludeExclude => {
-  return (transaction: Transaction.Internal.t) => "NoMatch";
+const buildClause = (clause: Rule.Internal.Clause): Predicate => {
+  switch (clause._type) {
+    case "And":
+      const left = buildClause(clause.left);
+      const right = buildClause(clause.right);
+      return (transaction: Transaction.Internal.t) => left(transaction) && right(transaction);
+    case "Not":
+      const inner = buildClause(clause.clause);
+      return (transaction: Transaction.Internal.t) => !inner(transaction);
+    case "Match":
+      const match = buildMatch(clause)
+      return (transaction: Transaction.Internal.t) => match(transaction);
+  }
+}
+
+const buildInclude = (rule: Rule.Internal.Include): Predicate => {
+  return buildClause(rule.clause);
 }
 
 const buildStage = (stage: Plan.Stage): Materializer => {
   const includeMaterializers = A.map(buildInclude)(stage.include);
-  const excludeMaterializers = A.map(buildExclude)(stage.exclude);
-
-  const include = (transaction: Transaction.Internal.t): Result => {
-    for (let mat of includeMaterializers) {
-      if (mat(transaction) === "Include") {
-        return "Include"
-      }
-    }
-    return "NoMatch"
-  }
-
-  const exclude = (transaction: Transaction.Internal.t): Result => {
-    for (let mat of includeMaterializers) {
-      if (mat(transaction) === "Exclude") {
-        return "Exclude"
-      }
-    }
-    return "NoMatch"
-  }
-
-  return (transaction: Transaction.Internal.t) => {
-    const includeResult = include(transaction);
-    const excludeResult = include(transaction);
-    // TODO: JK conflict
-
-    if (includeResult === "Include") {
-      return O.some(transaction);
-    } else {
-      return O.none;
-    }
-  }
+  return (transaction: Transaction.Internal.t) => pipe(
+      includeMaterializers
+    , A.reduce(O.none, (out: O.Option<Transaction.Internal.t>, materializer) => O.match( // JK: construct an "or" of includes (a DNF)
+          () => {
+            if (materializer(transaction)) {
+              return O.some(transaction);
+            } else {
+              return O.none;
+            }
+          }
+        , (_) => O.some(transaction)
+      )(out))
+  );
 }
 
 export const build = (plan: Plan.t): Materializer => {
