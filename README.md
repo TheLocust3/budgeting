@@ -54,6 +54,13 @@ Start:
 ### materialize account
 `curl -XGET http://localhost:3000/accounts/69a008d6-2083-43b2-959a-5aa3d12dd5b3/materialize`  
 
+## test
+Make sure the server is running (for system tests):
+`yarn start`
+
+Run the test suite:
+`yarn test`
+
 ## todo
 
 ### next
