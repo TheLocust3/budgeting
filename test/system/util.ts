@@ -31,8 +31,61 @@ export namespace RuleBuilder {
   }
 }
 
+export namespace MetadataBuilder {
+  export const plaid = { _type: "Plaid", };
+}
+
 export class System {
   constructor(readonly host: string = 'localhost', readonly port: string = '3000') {}
+
+  addTransaction(
+      sourceId: string
+    , amount: number
+    , merchantName: string
+    , description: string
+    , authorizedAt: Date
+    , capturedAt: O.Option<Date>
+    , metadata: any
+  ): TE.TaskEither<Error, any> {
+    const resolvedCapturedAt = O.match(
+        () => { return {}; }
+      , (capturedAt: Date) => { return { capturedAt: capturedAt.getTime() }; }
+    )(capturedAt);
+
+    return pipe(
+        this.fetchTask('/transactions/')('POST')(O.some({
+            sourceId: sourceId
+          , amount: amount
+          , merchantName: merchantName
+          , description: description
+          , authorizedAt: authorizedAt.getTime()
+          , ...resolvedCapturedAt
+          , metadata: metadata
+        }))
+      , TE.chain(this.json)
+    );
+  }
+
+  getTransaction(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/transactions/${id}`)('GET')()
+      , TE.chain(this.json)
+    );
+  }
+
+  listTransactions(): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/transactions/`)('GET')()
+      , TE.chain(this.json)
+    );
+  }
+
+  deleteTransaction(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/transactions/${id}`)('DELETE')()
+      , TE.chain(this.json)
+    );
+  }
 
   addGroup(name: string): TE.TaskEither<Error, any> {
     return pipe(

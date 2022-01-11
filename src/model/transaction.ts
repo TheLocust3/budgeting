@@ -3,7 +3,7 @@ import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
 import * as types from 'io-ts-types';
-import camelcaseKeys from 'camelcase-keys'
+import camelcaseKeys from 'camelcase-keys';
 
 export namespace Internal {
   export type PlaidMetadata = {
@@ -32,8 +32,8 @@ export namespace Json {
     , amount: iot.number
     , merchantName: iot.string
     , description: iot.string
-    , authorizedAt: types.DateFromUnixTime
-    , capturedAt: types.optionFromNullable(types.DateFromUnixTime)
+    , authorizedAt: iot.number
+    , capturedAt: types.optionFromNullable(iot.number)
     , metadata: PlaidMetadata
   });
 
@@ -41,7 +41,10 @@ export namespace Json {
     return pipe(
         transaction
       , Request.decode
-      , E.map(transaction => { return { ...transaction, id: O.none }; })
+      , E.map(transaction => {
+          const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt);
+          return { ...transaction, id: O.none, authorizedAt: new Date(transaction.authorizedAt), capturedAt: capturedAt };
+        })
       , E.mapLeft(E.toError)
     );
   }

@@ -18,8 +18,8 @@ namespace Query {
       amount NUMERIC NOT NULL,
       merchant_name TEXT NOT NULL,
       description TEXT NOT NULL,
-      authorized_at DATE NOT NULL,
-      captured_at DATE,
+      authorized_at TIMESTAMP NOT NULL,
+      captured_at TIMESTAMP,
       metadata JSONB NOT NULL
     )
   `;
