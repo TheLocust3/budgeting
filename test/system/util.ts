@@ -13,6 +13,24 @@ import * as Transaction from '../../src/model/transaction';
 
 export const uuid = (): string => crypto.randomUUID()
 
+export namespace RuleBuilder {
+  export const and = (left: any, right: any) => {
+    return { _type: "And", left: left, right: right };
+  }
+
+  export const not = (clause: any) => {
+    return { _type: "Not", clause: clause };
+  }
+
+  export const match = (field: string, operator: string, value: string) => {
+    return { _type: "Match", field: field, operator: operator, value: value };
+  }
+
+  export const include = (clause: any) => {
+    return { _type: "Include", clause: clause };
+  }
+}
+
 export class System {
   constructor(readonly host: string = 'localhost', readonly port: string = '3000') {}
 
@@ -40,6 +58,62 @@ export class System {
   deleteGroup(id: string): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask(`/groups/${id}`)('DELETE')()
+      , TE.chain(this.json)
+    );
+  }
+
+  addAccount(groupId: string, name: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask('/accounts/')('POST')(O.some({ groupId: groupId, name: name }))
+      , TE.chain(this.json)
+    );
+  }
+
+  getAccount(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/accounts/${id}`)('GET')()
+      , TE.chain(this.json)
+    );
+  }
+
+  listAccounts(groupId: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/accounts?groupId=${groupId}`)('GET')()
+      , TE.chain(this.json)
+    );
+  }
+
+  deleteAccount(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/accounts/${id}`)('DELETE')()
+      , TE.chain(this.json)
+    );
+  }
+
+  addRule(accountId: string, rule: any): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask('/rules/')('POST')(O.some({ accountId: accountId, rule: rule }))
+      , TE.chain(this.json)
+    );
+  }
+
+  getRule(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/rules/${id}`)('GET')()
+      , TE.chain(this.json)
+    );
+  }
+
+  listRules(accountId: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/rules?accountId=${accountId}`)('GET')()
+      , TE.chain(this.json)
+    );
+  }
+
+  deleteRule(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/rules/${id}`)('DELETE')()
       , TE.chain(this.json)
     );
   }

@@ -16,7 +16,7 @@ it('can add group', async () => {
   await pipe(
       system.addGroup(name)
     , TE.match(
-          (error) => fail(`Failed with ${error}`)
+          (error) => { throw new Error(`Failed with ${error}`); }
         , (group: any) => {
             expect(group).toEqual(expect.objectContaining({ name: name }));
             expect(typeof group.id).toBe('string');
@@ -31,7 +31,7 @@ it('can get group', async () => {
       system.addGroup(name)
     , TE.chain((group) => system.getGroup(group.id))
     , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`) }
+          (error) => { throw new Error(`Failed with ${error}`); }
         , (_group) => {
             const group = _group.group
             expect(group).toEqual(expect.objectContaining({ name: name }));
@@ -47,7 +47,7 @@ it('can list groups', async () => {
       system.addGroup(name)
     , TE.chain((_) => system.listGroups())
     , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`) }
+          (error) => { throw new Error(`Failed with ${error}`); }
         , (groups) => {
             const group = groups.groups.filter((group: any) => group.name === name)[0]
 
@@ -65,7 +65,7 @@ it('can delete group', async () => {
     , TE.chain((group) => system.deleteGroup(group.id))
     , TE.chain((_) => system.listGroups())
     , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`) }
+          (error) => { throw new Error(`Failed with ${error}`); }
         , (groups) => {
             const group = groups.groups.filter((group: any) => group.name === name)
 
