@@ -40,7 +40,7 @@ Start:
 `curl -XGET "http://localhost:3000/transactions/"`  
 
 ### get
-`curl -XGET http://localhost:3000/groups/f58d8fa8-0f23-423c-b0ca-0b6259aa52b9`  
+`curl -XGET http://localhost:3000/groups/bb741ad0-f746-4f25-8847-7c1d1730acfc`  
 `curl -XGET http://localhost:3000/accounts/9f9cb6ef-1406-49e8-bce0-9f4a911cbf38`  
 `curl -XGET http://localhost:3000/rules/883ecc47-d225-4d92-9efb-a49d5abf024c`  
 `curl -XGET http://localhost:3000/transactions/d72e3fd4-0477-46d9-bab5-307aab6568d2`  
