@@ -30,15 +30,23 @@ it('can add rule', async () => {
       system.addRule(accountId, ruleBody)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (account: any) => {
-            expect(account).toEqual(expect.objectContaining({ accountId: accountId, rule: ruleBody }));
-            expect(typeof account.id).toBe('string');
+        , (rule: any) => {
+            expect(rule).toEqual(expect.objectContaining({ accountId: accountId, rule: ruleBody }));
+            expect(typeof rule.id).toBe('string');
           }
       )
   )();
 });
 
-// TODO: JK invalid accountId
+it('can\'t add rule with invalid accountId', async () => {
+  await pipe(
+      system.addRule("test", ruleBody)
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (res) => { expect(res.message).toBe('failed') }
+      )
+  )();
+});
 
 it('can get rule', async () => {
   await pipe(

@@ -36,7 +36,16 @@ it('can add account', async () => {
   )();
 });
 
-// TODO: JK invalid groupId
+it('can\t add rule with invalid groupId', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      system.addAccount("test", name)
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (res) => { expect(res.message).toBe('failed') }
+      )
+  )();
+});
 
 it('can get account', async () => {
   const name = `test-${uuid()}`;
