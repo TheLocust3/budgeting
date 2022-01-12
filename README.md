@@ -78,6 +78,7 @@ Run the test suite:
   - Materialize sub-accounts through global account
  - Complete rules
    - Exists operator, regex operator
+   - Don't build plan/stages for every transaction
    - Some way of adding/updating metadata based on Select query + with ability to reference existing metadata
  - Complete conflict resolution
 

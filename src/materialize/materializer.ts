@@ -9,6 +9,7 @@ import * as Plan from './plan';
 
 type Materializer = (transaction: Transaction.Internal.t) => O.Option<Transaction.Internal.t>;
 type Predicate = (transaction: Transaction.Internal.t) => Boolean
+type Update = (transaction: Transaction.Internal.t) => Transaction.Internal.t;
 
 const getField = (field: string) => (transaction: Transaction.Internal.t): string => {
   if (field == "id") {
@@ -57,8 +58,15 @@ const buildInclude = (rule: Rule.Internal.Include): Predicate => {
   return buildClause(rule.clause);
 }
 
+const buildUpdate = (rule: Rule.Internal.Update): Update => {
+  return (transaction: Transaction.Internal.t) => transaction; // TODO: JK
+}
+
 const buildStage = (stage: Plan.Stage): Materializer => {
   const includeMaterializers = A.map(buildInclude)(stage.include);
+  const updateMaterializers = A.map(buildUpdate)(stage.update);
+
+  // TODO: JK this could all be a bit more clear
   return (transaction: Transaction.Internal.t) => pipe(
       includeMaterializers
     , A.reduce(O.none, (out: O.Option<Transaction.Internal.t>, materializer) => O.match( // JK: construct an "or" of includes (a DNF)
@@ -71,6 +79,11 @@ const buildStage = (stage: Plan.Stage): Materializer => {
           }
         , (_) => O.some(transaction)
       )(out))
+    , O.map((transaction) => 
+        A.reduce(transaction, (transaction: Transaction.Internal.t, materializer: Update) =>
+          materializer(transaction)
+        )(updateMaterializers)
+      )
   );
 }
 

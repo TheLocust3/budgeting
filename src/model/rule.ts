@@ -102,6 +102,15 @@ export namespace Internal {
     }
   }
 
+  export const collectUpdate = (rule: Rule): O.Option<Update> => {
+    switch (rule._type) {
+      case "Include":
+        return O.none;
+      case "Update":
+        return O.some(rule);
+    }
+  }
+
   export type t = {
     id: O.Option<string>;
     accountId: string;
