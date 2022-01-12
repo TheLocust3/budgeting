@@ -7,6 +7,7 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import { PathReporter } from 'io-ts/PathReporter';
 
 import * as Account from '../model/account';
+import * as Transaction from '../model/transaction';
 import * as AccountsTable from '../db/accounts';
 import * as RulesTable from '../db/rules';
 import { materialize } from '../materialize/index';
@@ -70,7 +71,7 @@ router
         ))
       , TE.chain(O.match(
             () => TE.right(O.none)
-          , (account) => pipe(account, materialize(ctx.db), TE.map(O.some))
+          , (account) => pipe(account, materialize(ctx.db), TE.map(A.map(Transaction.Json.to)), TE.map(O.some))
         ))
       , TE.match(
           (_) => {

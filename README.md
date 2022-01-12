@@ -64,7 +64,6 @@ Run the test suite:
 ## todo
 
 ### next
- - Finish tests
  - Update rule
    - where, field, expression
    - expression: Add | Sub | Mul | Div | Exp | Reference | Concat | Value
@@ -73,6 +72,7 @@ Run the test suite:
    - all pure functions
    - scrub errors before returning to route
  - Schema validation
+   - on rule add only?
  - Accounts hierarchy
   - 1 global account per user
   - Materialize sub-accounts through global account

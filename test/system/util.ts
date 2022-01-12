@@ -35,14 +35,6 @@ export namespace MetadataBuilder {
   export const plaid = { _type: "Plaid", };
 }
 
-// akin to a war crime
-export const unwrap = (task: TE.TaskEither<Error, any>): Promise<any> => {
-  return TE.match(
-      (err) => { throw new Error(String(err)) }
-    , (obj) => obj
-  )(task)()
-}
-
 export class System {
   constructor(readonly host: string = 'localhost', readonly port: string = '3000') {}
 
