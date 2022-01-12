@@ -64,14 +64,14 @@ Run the test suite:
 ## todo
 
 ### next
- - system tests
-   - run tests against the api
+ - Finish tests
+ - Update rule
+   - where, field, expression
+   - expression: Add | Sub | Mul | Div | Exp | Reference | Concat | Value
  - frontends
    - move route logic to frontend module
    - all pure functions
    - scrub errors before returning to route
- - basic select conflict resolution
-   - If two select clauses both include and excluse, this is a conflict
  - Schema validation
  - Accounts hierarchy
   - 1 global account per user

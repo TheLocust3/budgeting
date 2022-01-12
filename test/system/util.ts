@@ -35,6 +35,14 @@ export namespace MetadataBuilder {
   export const plaid = { _type: "Plaid", };
 }
 
+// akin to a war crime
+export const unwrap = (task: TE.TaskEither<Error, any>): Promise<any> => {
+  return TE.match(
+      (err) => { throw new Error(String(err)) }
+    , (obj) => obj
+  )(task)()
+}
+
 export class System {
   constructor(readonly host: string = 'localhost', readonly port: string = '3000') {}
 
@@ -167,6 +175,13 @@ export class System {
   deleteRule(id: string): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask(`/rules/${id}`)('DELETE')()
+      , TE.chain(this.json)
+    );
+  }
+
+  materialize(accountId: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/accounts/${accountId}/materialize`)('GET')()
       , TE.chain(this.json)
     );
   }
