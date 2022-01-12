@@ -21,7 +21,7 @@ const getField = (field: string) => (transaction: Transaction.Internal.t): strin
   }
 }
 
-const buildMatch = (rule: Rule.Internal.Match): Predicate => {
+const buildMatch = (rule: Rule.Internal.Clause.Match): Predicate => {
   switch (rule.operator) {
     case "Eq":
       return (transaction) => getField(rule.field)(transaction) === rule.value;
@@ -38,7 +38,7 @@ const buildMatch = (rule: Rule.Internal.Match): Predicate => {
   }
 }
 
-const buildClause = (clause: Rule.Internal.Clause): Predicate => {
+const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
   switch (clause._type) {
     case "And":
       const left = buildClause(clause.left);
