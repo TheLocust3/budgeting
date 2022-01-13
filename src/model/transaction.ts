@@ -22,7 +22,10 @@ export namespace Internal {
   }
 
   export namespace Field {
-    export type t = "id" | "sourceId" | "amount" | "merchantName" | "description" | "authorizedAt" | "capturedAt";
+    export type NumberField = "amount"
+    export type StringField = "id" | "sourceId" | "merchantName" | "description" | "authorizedAt" | "capturedAt";
+
+    export type t = NumberField | StringField
   }
 }
 
@@ -42,14 +45,20 @@ export namespace Json {
   });
 
   export namespace Field {
-    export const t: iot.Type<Internal.Field.t> = iot.union([
+    export const NumberField: iot.Type<Internal.Field.NumberField> = iot.literal("amount")
+
+    export const StringField: iot.Type<Internal.Field.StringField> = iot.union([
         iot.literal("id")
       , iot.literal("sourceId")
-      , iot.literal("amount")
       , iot.literal("merchantName")
       , iot.literal("description")
       , iot.literal("authorizedAt")
       , iot.literal("capturedAt")
+    ]);
+
+    export const t: iot.Type<Internal.Field.t> = iot.union([
+        NumberField
+      , StringField
     ]);
   }
 

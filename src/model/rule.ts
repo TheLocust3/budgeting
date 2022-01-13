@@ -8,7 +8,9 @@ import * as Transaction from '../model/transaction';
 
 export namespace Internal {
   export namespace Clause {
-    export type Operator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte"
+    export type StringOperator = "Eq" | "Neq"
+    export type NumberOperator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte"
+    export type Operator = StringOperator | NumberOperator
 
     export type And = { 
       _type: "And";
@@ -21,14 +23,21 @@ export namespace Internal {
       clause: t;
     }
 
-    export type Match = { 
-      _type: "Match";
-      field: Transaction.Internal.Field.t;
-      operator: Operator;
+    export type StringMatch = { 
+      _type: "StringMatch";
+      field: Transaction.Internal.Field.StringField;
+      operator: StringOperator;
       value: string;
     }
 
-    export type t = And | Not | Match
+    export type NumberMatch = { 
+      _type: "NumberMatch";
+      field: Transaction.Internal.Field.NumberField;
+      operator: NumberOperator;
+      value: number;
+    }
+
+    export type t = And | Not | StringMatch | NumberMatch
   }
 
   export namespace Expression {
@@ -127,13 +136,23 @@ export namespace Internal {
 
 export namespace Json {
   export namespace Clause {
-    export const Operator = iot.union([
+    export const StringOperator = iot.union([
+        iot.literal("Eq")
+      , iot.literal("Neq")
+    ]);
+
+    export const NumberOperator = iot.union([
         iot.literal("Eq")
       , iot.literal("Neq")
       , iot.literal("Gt")
       , iot.literal("Lt")
       , iot.literal("Gte")
       , iot.literal("Lte")
+    ]);
+
+    export const Operator = iot.union([
+        StringOperator
+      , NumberOperator
     ]);
 
     export const And: iot.Type<Internal.Clause.And> = iot.recursion("t", () => iot.type({
@@ -147,14 +166,21 @@ export namespace Json {
       , clause: t
     }));
 
-    export const Match: iot.Type<Internal.Clause.Match> = iot.type({
-        _type: iot.literal("Match")
-      , field: Transaction.Json.Field.t
-      , operator: Operator
+    export const StringMatch: iot.Type<Internal.Clause.StringMatch> = iot.type({
+        _type: iot.literal("StringMatch")
+      , field: Transaction.Json.Field.StringField
+      , operator: StringOperator
       , value: iot.string
     });
 
-    export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, Match]));
+    export const NumberMatch: iot.Type<Internal.Clause.NumberMatch> = iot.type({
+        _type: iot.literal("NumberMatch")
+      , field: Transaction.Json.Field.NumberField
+      , operator: NumberOperator
+      , value: iot.number
+    });
+
+    export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, StringMatch, NumberMatch]));
   }
 
   export namespace Expression {

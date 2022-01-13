@@ -13,28 +13,44 @@ type Update = (transaction: Transaction.Internal.t) => Transaction.Internal.t;
 type Predicate = (transaction: Transaction.Internal.t) => Boolean
 type EvaluateTo<T> = (transaction: Transaction.Internal.t) => T
 
-const buildPredicate = (field: Transaction.Internal.Field.t) => (pred: (value: string) => Boolean): Predicate => {
+const buildStringPredicate = (field: Transaction.Internal.Field.StringField) => (pred: (value: string) => Boolean): Predicate => {
   if (field == "id") {
-    return (transaction) => pred(O.getOrElse(() => "")(transaction.id));
+    return (transaction) => O.match(
+        () => false
+      , (id: string) => pred(id)
+    )(transaction.id);
   } else {
-    return (transaction) => pred(String(transaction[field]));
+    return (transaction) => pred(String(transaction[field])); // TODO: JK need further refinement to get rid of this toString (string | Date | Option<Date>)
   }
 }
 
-const buildMatch = (rule: Rule.Internal.Clause.Match): Predicate => {
+const buildNumberPredicate = (field: Transaction.Internal.Field.NumberField) => (pred: (value: number) => Boolean): Predicate => {
+  return (transaction) => pred(transaction[field]);
+}
+
+const buildStringMatch = (rule: Rule.Internal.Clause.StringMatch): Predicate => {
   switch (rule.operator) {
     case "Eq":
-      return buildPredicate(rule.field)((value) => value === rule.value);
+      return buildStringPredicate(rule.field)((value) => value === rule.value);
     case "Neq":
-      return buildPredicate(rule.field)((value) => value !== rule.value);
+      return buildStringPredicate(rule.field)((value) => value !== rule.value);
+  }
+}
+
+const buildNumberMatch = (rule: Rule.Internal.Clause.NumberMatch): Predicate => {
+  switch (rule.operator) {
+    case "Eq":
+      return buildNumberPredicate(rule.field)((value) => value === rule.value);
+    case "Neq":
+      return buildNumberPredicate(rule.field)((value) => value !== rule.value);
     case "Gt":
-      return buildPredicate(rule.field)((value) => Number(value) > Number(rule.value));
+      return buildNumberPredicate(rule.field)((value) => value > rule.value);
     case "Lt":
-      return buildPredicate(rule.field)((value) => Number(value) < Number(rule.value));
+      return buildNumberPredicate(rule.field)((value) => value < rule.value);
     case "Gte":
-    return buildPredicate(rule.field)((value) => Number(value) >= Number(rule.value));
+      return buildNumberPredicate(rule.field)((value) => value >= rule.value);
     case "Lte":
-      return buildPredicate(rule.field)((value) => Number(value) <= Number(rule.value));
+      return buildNumberPredicate(rule.field)((value) => value <= rule.value);
   }
 }
 
@@ -47,9 +63,12 @@ const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
     case "Not":
       const inner = buildClause(clause.clause);
       return (transaction: Transaction.Internal.t) => !inner(transaction);
-    case "Match":
-      const match = buildMatch(clause)
-      return (transaction: Transaction.Internal.t) => match(transaction);
+    case "StringMatch":
+      const stringMatch = buildStringMatch(clause)
+      return (transaction: Transaction.Internal.t) => stringMatch(transaction);
+    case "NumberMatch":
+      const numberMatch = buildNumberMatch(clause)
+      return (transaction: Transaction.Internal.t) => numberMatch(transaction);
   }
 }
 

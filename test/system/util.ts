@@ -22,8 +22,12 @@ export namespace RuleBuilder {
     return { _type: "Not", clause: clause };
   }
 
-  export const match = (field: string, operator: string, value: string) => {
-    return { _type: "Match", field: field, operator: operator, value: value };
+  export const stringMatch = (field: string, operator: string, value: string) => {
+    return { _type: "StringMatch", field: field, operator: operator, value: value };
+  }
+
+  export const numberMatch = (field: string, operator: string, value: number) => {
+    return { _type: "NumberMatch", field: field, operator: operator, value: value };
   }
 
   export const include = (clause: any) => {

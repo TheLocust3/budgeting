@@ -83,7 +83,7 @@ it('can materialize bad rule', async () => {
       TE.Do
     , TE.bind('account', () => system.addAccount(groupId, name))
     , TE.bind('rule', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.match("id", "Eq", "nonesense")))
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", "nonesense")))
       })
     , TE.chain(({ account, rule }) => system.materialize(account.id))
     , TE.match(
@@ -102,7 +102,7 @@ it('can materialize for specific transaction', async () => {
     , TE.bind('account', () => system.addAccount(groupId, name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.match("id", "Eq", transaction.id)));
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
       })
     , TE.bind('rows', ({ account }) => system.materialize(account.id))
     , TE.match(
@@ -122,10 +122,10 @@ it('can materialize for two transactions via two rules', async () => {
     , TE.bind('transaction1', () => addTransaction())
     , TE.bind('transaction2', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction1 }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.match("id", "Eq", transaction1.id)));
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction1.id)));
       })
     , TE.bind('rule2', ({ account, transaction2 }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.match("id", "Eq", transaction2.id)));
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction2.id)));
       })
     , TE.bind('rows', ({ account }) => system.materialize(account.id))
     , TE.match(
@@ -147,8 +147,8 @@ it('can materialize over two transactions only one included', async () => {
     , TE.bind('rule1', ({ account, transaction1, transaction2 }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.match("id", "Neq", transaction1.id)
-            , RuleBuilder.match("id", "Eq", transaction2.id)
+              RuleBuilder.stringMatch("id", "Neq", transaction1.id)
+            , RuleBuilder.stringMatch("id", "Eq", transaction2.id)
           )
         ));
       })
@@ -172,8 +172,8 @@ it('can materialize over two transactions only one included (not)', async () => 
     , TE.bind('rule1', ({ account, transaction1, transaction2 }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.not(RuleBuilder.match("id", "Eq", transaction1.id))
-            , RuleBuilder.match("id", "Eq", transaction2.id)
+              RuleBuilder.not(RuleBuilder.stringMatch("id", "Eq", transaction1.id))
+            , RuleBuilder.stringMatch("id", "Eq", transaction2.id)
           )
         ));
       })
@@ -198,8 +198,8 @@ it('can materialize for specific transaction operating on amount (eq)', async ()
     , TE.bind('rule1', ({ account }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.match("merchantName", "Eq", merchantName)
-            , RuleBuilder.match("amount", "Eq", "10")
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.numberMatch("amount", "Eq", 10)
           )
         ));
       })
@@ -224,8 +224,8 @@ it('can materialize for specific transaction operating on amount (neq)', async (
     , TE.bind('rule1', ({ account }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.match("merchantName", "Eq", merchantName)
-            , RuleBuilder.match("amount", "Neq", "10")
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.numberMatch("amount", "Neq", 10)
           )
         ));
       })
@@ -250,8 +250,8 @@ it('can materialize for specific transaction operating on amount (lt)', async ()
     , TE.bind('rule1', ({ account }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.match("merchantName", "Eq", merchantName)
-            , RuleBuilder.match("amount", "Lt", "10")
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.numberMatch("amount", "Lt", 10)
           )
         ));
       })
@@ -276,8 +276,8 @@ it('can materialize for specific transaction operating on amount (lte)', async (
     , TE.bind('rule1', ({ account }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.match("merchantName", "Eq", merchantName)
-            , RuleBuilder.match("amount", "Lte", "10")
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.numberMatch("amount", "Lte", 10)
           )
         ));
       })
@@ -302,8 +302,8 @@ it('can materialize for specific transaction operating on amount (gt)', async ()
     , TE.bind('rule1', ({ account }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.match("merchantName", "Eq", merchantName)
-            , RuleBuilder.match("amount", "Gt", "5")
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.numberMatch("amount", "Gt", 5)
           )
         ));
       })
@@ -328,8 +328,8 @@ it('can materialize for specific transaction operating on amount (gte)', async (
     , TE.bind('rule1', ({ account }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.and(
-              RuleBuilder.match("merchantName", "Eq", merchantName)
-            , RuleBuilder.match("amount", "Gte", "5")
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.numberMatch("amount", "Gte", 5)
           )
         ));
       })

@@ -74,6 +74,7 @@ Run the test suite:
    - only string results?
  - Complete rules
    - Exists operator, regex operator
+   - Properly handle dates
    - Don't build plan/stages for every transaction
  - Update conflict resolution
  - Accounts hierarchy

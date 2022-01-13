@@ -6,7 +6,7 @@ import * as TE from 'fp-ts/TaskEither';
 
 import { System, uuid, RuleBuilder } from './util';
 
-const ruleBody = RuleBuilder.include(RuleBuilder.match("id", "Eq", "nonesense"));
+const ruleBody = RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", "nonesense"));
 
 let system: System;
 let accountId: string;
@@ -50,7 +50,7 @@ it('can\'t add rule with invalid accountId', async () => {
 
 it('can\'t add rule with made up field', async () => {
   await pipe(
-      system.addRule("test", RuleBuilder.include(RuleBuilder.match("test", "Eq", "nonesense")))
+      system.addRule("test", RuleBuilder.include(RuleBuilder.stringMatch("test", "Eq", "nonesense")))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (res) => { expect(res.message).toBe('failed') }
