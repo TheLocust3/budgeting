@@ -48,6 +48,16 @@ it('can\'t add rule with invalid accountId', async () => {
   )();
 });
 
+it('can\'t add rule with made up field', async () => {
+  await pipe(
+      system.addRule("test", RuleBuilder.include(RuleBuilder.match("test", "Eq", "nonesense")))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (res) => { expect(res.message).toBe('failed') }
+      )
+  )();
+});
+
 it('can get rule', async () => {
   await pipe(
       system.addRule(accountId, ruleBody)

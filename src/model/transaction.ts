@@ -20,6 +20,10 @@ export namespace Internal {
     capturedAt: O.Option<Date>;
     metadata: PlaidMetadata;
   }
+
+  export namespace Field {
+    export type t = "id" | "sourceId" | "amount" | "merchantName" | "description" | "authorizedAt" | "capturedAt";
+  }
 }
 
 export namespace Json {
@@ -36,6 +40,18 @@ export namespace Json {
     , capturedAt: types.optionFromNullable(iot.number)
     , metadata: PlaidMetadata
   });
+
+  export namespace Field {
+    export const t: iot.Type<Internal.Field.t> = iot.union([
+        iot.literal("id")
+      , iot.literal("sourceId")
+      , iot.literal("amount")
+      , iot.literal("merchantName")
+      , iot.literal("description")
+      , iot.literal("authorizedAt")
+      , iot.literal("capturedAt")
+    ]);
+  }
 
   export const from = (transaction: any): E.Either<Error, Internal.t> => {
     return pipe(

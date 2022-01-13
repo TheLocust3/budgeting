@@ -67,20 +67,24 @@ Run the test suite:
  - Update rule
    - where, field, expression
    - expression: Add | Sub | Mul | Div | Exp | Reference | Concat | Value
- - frontends
-   - move route logic to frontend module
-   - all pure functions
-   - scrub errors before returning to route
  - Schema validation
    - on rule add only?
- - Accounts hierarchy
-  - 1 global account per user
-  - Materialize sub-accounts through global account
+ - Add new fields via Update
+   - need a clever way of modelling arbitrary fields
+   - only string results?
  - Complete rules
    - Exists operator, regex operator
    - Don't build plan/stages for every transaction
-   - Some way of adding/updating metadata based on Select query + with ability to reference existing metadata
- - Complete conflict resolution
+ - Update conflict resolution
+ - Accounts hierarchy
+   - 1 global account per user
+   - Materialize sub-accounts through global account
+
+### future
+  - frontends
+    - move route logic to frontend module
+    - all pure functions
+    - scrub errors before returning to route
 
 ### miscellaneous
  - unit tests against frontends/components

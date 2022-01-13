@@ -4,6 +4,8 @@ import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
 import camelcaseKeys from 'camelcase-keys'
 
+import * as Transaction from '../model/transaction';
+
 export namespace Internal {
   export namespace Clause {
     export type Operator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte"
@@ -21,7 +23,7 @@ export namespace Internal {
 
     export type Match = { 
       _type: "Match";
-      field: string;
+      field: Transaction.Internal.Field.t;
       operator: Operator;
       value: string;
     }
@@ -68,15 +70,20 @@ export namespace Internal {
 
     export type Reference = {
       _type: "Reference";
-      field: string;
+      field: Transaction.Internal.Field.t;
     }
 
-    export type Literal = {
-      _type: "Literal";
+    export type StringLiteral = {
+      _type: "StringLiteral";
       value: string;
     }
 
-    export type t = Add | Sub | Mul | Div | Exp | Reference | Concat | Literal
+    export type NumberLiteral = {
+      _type: "NumberLiteral";
+      value: number;
+    }
+
+    export type t = Add | Sub | Mul | Div | Exp | Reference | Concat | StringLiteral | NumberLiteral
   }
 
   export type Include = {
@@ -87,7 +94,7 @@ export namespace Internal {
   export type Update = {
     _type: "Update";
     where: Clause.t;
-    field: string;
+    field: Transaction.Internal.Field.t;
     expression: Expression.t;
   }
 
@@ -142,7 +149,7 @@ export namespace Json {
 
     export const Match: iot.Type<Internal.Clause.Match> = iot.type({
         _type: iot.literal("Match")
-      , field: iot.string
+      , field: Transaction.Json.Field.t
       , operator: Operator
       , value: iot.string
     });
@@ -189,16 +196,21 @@ export namespace Json {
 
     export const Reference = iot.type({
         _type: iot.literal("Reference")
-      , field: iot.string
+      , field: Transaction.Json.Field.t
     });
 
-    export const Literal = iot.type({
-        _type: iot.literal("Literal")
+    export const StringLiteral = iot.type({
+        _type: iot.literal("StringLiteral")
       , value: iot.string
     });
 
+    export const NumberLiteral = iot.type({
+        _type: iot.literal("NumberLiteral")
+      , value: iot.number
+    });
+
     export const t = iot.recursion<Internal.Expression.t>("t", () => {
-      return iot.union([Add, Sub, Mul, Div, Exp, Reference, Concat, Literal])
+      return iot.union([Add, Sub, Mul, Div, Exp, Reference, Concat, StringLiteral, NumberLiteral])
     });
   }
 
@@ -210,7 +222,7 @@ export namespace Json {
   export const Update = iot.type({
       _type: iot.literal("Update")
     , where: Clause.t
-    , field: iot.string
+    , field: Transaction.Json.Field.t
     , expression: Expression.t
   });
 

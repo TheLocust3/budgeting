@@ -8,34 +8,33 @@ import * as Rule from '../model/rule';
 import * as Plan from './plan';
 
 type Materializer = (transaction: Transaction.Internal.t) => O.Option<Transaction.Internal.t>;
-type Predicate = (transaction: Transaction.Internal.t) => Boolean
 type Update = (transaction: Transaction.Internal.t) => Transaction.Internal.t;
 
-const getField = (field: string) => (transaction: Transaction.Internal.t): string => {
+type Predicate = (transaction: Transaction.Internal.t) => Boolean
+type EvaluateTo<T> = (transaction: Transaction.Internal.t) => T
+
+const buildPredicate = (field: Transaction.Internal.Field.t) => (pred: (value: string) => Boolean): Predicate => {
   if (field == "id") {
-    return O.getOrElse(() => "")(transaction.id) // TODO: JK not the best solution
-  } else if (field.startsWith("metadata.")) {
-    const newField = field.replace("metadata.", "")
-    return String((transaction.metadata as any)[newField]) // JK: yeehaw
+    return (transaction) => pred(O.getOrElse(() => "")(transaction.id));
   } else {
-    return String((transaction as any)[field]) // JK: yeehaw
+    return (transaction) => pred(String(transaction[field]));
   }
 }
 
 const buildMatch = (rule: Rule.Internal.Clause.Match): Predicate => {
   switch (rule.operator) {
     case "Eq":
-      return (transaction) => getField(rule.field)(transaction) === rule.value;
+      return buildPredicate(rule.field)((value) => value === rule.value);
     case "Neq":
-      return (transaction) => getField(rule.field)(transaction) !== rule.value;
+      return buildPredicate(rule.field)((value) => value !== rule.value);
     case "Gt":
-      return (transaction) => Number(getField(rule.field)(transaction)) > Number(rule.value);
+      return buildPredicate(rule.field)((value) => Number(value) > Number(rule.value));
     case "Lt":
-      return (transaction) => Number(getField(rule.field)(transaction)) < Number(rule.value);
+      return buildPredicate(rule.field)((value) => Number(value) < Number(rule.value));
     case "Gte":
-      return (transaction) => Number(getField(rule.field)(transaction)) >= Number(rule.value);
+    return buildPredicate(rule.field)((value) => Number(value) >= Number(rule.value));
     case "Lte":
-      return (transaction) => Number(getField(rule.field)(transaction)) <= Number(rule.value);
+      return buildPredicate(rule.field)((value) => Number(value) <= Number(rule.value));
   }
 }
 
@@ -54,12 +53,18 @@ const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
   }
 }
 
+const buildExpression = (rule: Rule.Internal.Expression.t): EvaluateTo<string> => {
+  return (transaction: Transaction.Internal.t) => ""; // TODO: JK
+}
+
 const buildInclude = (rule: Rule.Internal.Include): Predicate => {
   return buildClause(rule.clause);
 }
 
 const buildUpdate = (rule: Rule.Internal.Update): Update => {
-  return (transaction: Transaction.Internal.t) => transaction; // TODO: JK
+  const where = buildClause(rule.where);
+  const expression = buildExpression(rule.expression);
+  return (transaction: Transaction.Internal.t) => transaction;
 }
 
 const buildStage = (stage: Plan.Stage): Materializer => {
