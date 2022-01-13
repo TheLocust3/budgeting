@@ -342,3 +342,29 @@ it('can materialize for specific transaction operating on amount (gte)', async (
       )
   )();
 });
+
+it('can update a specific transaction', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateNumber(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , "amount"
+          , RuleBuilder.numberLit(11)
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, amount: 11 }] });
+          }
+      )
+  )();
+});

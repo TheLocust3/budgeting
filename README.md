@@ -64,9 +64,7 @@ Run the test suite:
 ## todo
 
 ### next
- - Update rule
-   - where, field, expression
-   - expression: Add | Sub | Mul | Div | Exp | Reference | Concat | Value
+ - Fully test update
  - Add new fields via Update
    - need a clever way of modelling arbitrary fields
    - only string results?
@@ -75,6 +73,7 @@ Run the test suite:
    - Properly handle dates
    - Don't build plan/stages for every transaction
    - Allow metadata access
+   - Prevent updates to `id`
  - Update conflict resolution
  - Accounts hierarchy
    - 1 global account per user
