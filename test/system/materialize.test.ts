@@ -343,7 +343,7 @@ it('can materialize for specific transaction operating on amount (gte)', async (
   )();
 });
 
-it('can update a specific transaction', async () => {
+it('can update a specific transaction 1', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
@@ -364,6 +364,84 @@ it('can update a specific transaction', async () => {
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ transaction, rows }) => {
             expect(rows).toEqual({ transactions: [{ ...transaction, amount: 11 }] });
+          }
+      )
+  )();
+});
+
+it('can update a specific transaction 2', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateString(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , "merchantName"
+          , RuleBuilder.stringLit("test")
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, merchantName: "test" }] });
+          }
+      )
+  )();
+});
+
+it('can update a specific transaction 3', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction({ ...defaultTransaction, merchantName: "test" }))
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateString(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , "merchantName"
+          , RuleBuilder.concat(RuleBuilder.stringRef("merchantName"), RuleBuilder.stringLit("test"))
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, merchantName: "testtest" }] });
+          }
+      )
+  )();
+});
+
+it('can update a specific transaction 4', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateNumber(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , "amount"
+          , RuleBuilder.add(RuleBuilder.numberRef("amount"), RuleBuilder.numberLit(11))
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, amount: 21 }] });
           }
       )
   )();

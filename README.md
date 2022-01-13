@@ -64,7 +64,6 @@ Run the test suite:
 ## todo
 
 ### next
- - Fully test update
  - Add new fields via Update
    - need a clever way of modelling arbitrary fields
    - only string results?

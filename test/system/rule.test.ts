@@ -25,13 +25,37 @@ beforeAll(async () => {
   )();
 })
 
-it('can add rule', async () => {
+it('can add rule 1', async () => {
   await pipe(
       system.addRule(accountId, ruleBody)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rule: any) => {
             expect(rule).toEqual(expect.objectContaining({ accountId: accountId, rule: ruleBody }));
+            expect(typeof rule.id).toBe('string');
+          }
+      )
+  )();
+});
+
+it('can add rule 2', async () => {
+  await pipe(
+      system.addRule(accountId, RuleBuilder.updateString(
+          RuleBuilder.stringMatch("id", "Neq", "")
+        , "merchantName"
+        , RuleBuilder.concat(RuleBuilder.stringRef("merchantName"), RuleBuilder.stringLit("test"))
+      ))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (rule: any) => {
+            expect(rule).toEqual(expect.objectContaining({
+                accountId: accountId
+              , rule: RuleBuilder.updateString(
+                    RuleBuilder.stringMatch("id", "Neq", "")
+                  , "merchantName"
+                  , RuleBuilder.concat(RuleBuilder.stringRef("merchantName"), RuleBuilder.stringLit("test"))
+                )
+            }));
             expect(typeof rule.id).toBe('string');
           }
       )
@@ -50,7 +74,35 @@ it('can\'t add rule with invalid accountId', async () => {
 
 it('can\'t add rule with made up field', async () => {
   await pipe(
-      system.addRule("test", RuleBuilder.include(RuleBuilder.stringMatch("test", "Eq", "nonesense")))
+      system.addRule(accountId, RuleBuilder.include(RuleBuilder.stringMatch("test", "Eq", "nonesense")))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (res) => { expect(res.message).toBe('failed') }
+      )
+  )();
+});
+
+it('can\'t add rule with bad types (number)', async () => {
+  await pipe(
+      system.addRule(accountId, RuleBuilder.updateString(
+          RuleBuilder.stringMatch("id", "Neq", "")
+        , "amount"
+        , RuleBuilder.add(RuleBuilder.numberRef("amount"), RuleBuilder.numberLit(11))
+      ))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (res) => { expect(res.message).toBe('failed') }
+      )
+  )();
+});
+
+it('can\'t add rule with bad types (string)', async () => {
+  await pipe(
+      system.addRule(accountId, RuleBuilder.updateString(
+          RuleBuilder.stringMatch("id", "Neq", "")
+        , "merchantName"
+        , RuleBuilder.add(RuleBuilder.numberRef("amount"), RuleBuilder.numberLit(11))
+      ))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (res) => { expect(res.message).toBe('failed') }
