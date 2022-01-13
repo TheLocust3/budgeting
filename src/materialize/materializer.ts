@@ -72,18 +72,93 @@ const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
   }
 }
 
-const buildExpression = (rule: Rule.Internal.Expression.t): EvaluateTo<string> => {
-  return (transaction: Transaction.Internal.t) => ""; // TODO: JK
+const buildStringExpression = (expression: Rule.Internal.Expression.StringExpression): EvaluateTo<string> => {
+  switch (expression._type) {
+    case "Concat":
+      const left = buildExpression(expression.left);
+      const right = buildExpression(expression.right);
+      return (transaction: Transaction.Internal.t) => String(left(transaction)) + String(right(transaction));
+    case "StringReference":
+      return (transaction: Transaction.Internal.t) => String(transaction[expression.field]); // TODO: JK we'd like to remove the toString here
+    case "StringLiteral":
+      return (transaction: Transaction.Internal.t) => expression.value;
+  }
+}
+
+const buildNumberExpression = (expression: Rule.Internal.Expression.NumberExpression): EvaluateTo<number> => {
+  switch (expression._type) {
+    case "Add":
+      const addLeft = buildNumberExpression(expression.left);
+      const addRight = buildNumberExpression(expression.right);
+      return (transaction: Transaction.Internal.t) => addLeft(transaction) + addRight(transaction);
+    case "Sub":
+      const subLeft = buildNumberExpression(expression.left);
+      const subRight = buildNumberExpression(expression.right);
+      return (transaction: Transaction.Internal.t) => subLeft(transaction) - subRight(transaction);
+    case "Mul":
+      const mulLeft = buildNumberExpression(expression.left);
+      const mulRight = buildNumberExpression(expression.right);
+      return (transaction: Transaction.Internal.t) => mulLeft(transaction) * mulRight(transaction);
+    case "Div":
+      const divLeft = buildNumberExpression(expression.left);
+      const divRight = buildNumberExpression(expression.right);
+      return (transaction: Transaction.Internal.t) => divLeft(transaction) / divRight(transaction);
+    case "Exp":
+      const expTerm = buildNumberExpression(expression.term);
+      const expPower = buildNumberExpression(expression.power);
+      return (transaction: Transaction.Internal.t) => Math.pow(expTerm(transaction), expPower(transaction));
+    case "NumberReference":
+      return (transaction: Transaction.Internal.t) => transaction[expression.field];
+    case "NumberLiteral":
+      return (transaction: Transaction.Internal.t) => expression.value;
+  }
+}
+
+const buildExpression = (expression: Rule.Internal.Expression.t): EvaluateTo<string> => {
+  switch (expression._type) {
+    case "Add":
+    case "Sub":
+    case "Mul":
+    case "Div":
+    case "Exp":
+    case "NumberReference":
+    case "NumberLiteral":
+      const numberExpression = buildNumberExpression(expression);
+      return (transaction: Transaction.Internal.t) => String(numberExpression(transaction));
+    case "Concat":
+    case "StringReference":
+    case "StringLiteral":
+      return buildStringExpression(expression);
+  }
 }
 
 const buildInclude = (rule: Rule.Internal.Include): Predicate => {
   return buildClause(rule.clause);
 }
 
-const buildUpdate = (rule: Rule.Internal.Update): Update => {
+const buildUpdateString = (rule: Rule.Internal.UpdateString): Update => {
   const where = buildClause(rule.where);
-  const expression = buildExpression(rule.expression);
-  return (transaction: Transaction.Internal.t) => transaction;
+  const expression = buildStringExpression(rule.expression);
+  return (transaction: Transaction.Internal.t) => {
+    return { ...transaction, [rule.field]: expression(transaction) }
+  };
+}
+
+const buildUpdateNumber = (rule: Rule.Internal.UpdateNumber): Update => {
+  const where = buildClause(rule.where);
+  const expression = buildNumberExpression(rule.expression);
+  return (transaction: Transaction.Internal.t) => {
+    return { ...transaction, [rule.field]: expression(transaction) }
+  };
+}
+
+const buildUpdate = (rule: Rule.Internal.Update): Update => {
+  switch (rule._type) {
+    case "UpdateString":
+      return buildUpdateString(rule);
+    case "UpdateNumber":
+      return buildUpdateNumber(rule);
+  }
 }
 
 const buildStage = (stage: Plan.Stage): Materializer => {

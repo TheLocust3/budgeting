@@ -43,32 +43,32 @@ export namespace Internal {
   export namespace Expression {
     export type Add = {
       _type: "Add";
-      left: t;
-      right: t;
+      left: NumberExpression;
+      right: NumberExpression;
     }
 
     export type Sub = {
       _type: "Sub";
-      left: t;
-      right: t;
+      left: NumberExpression;
+      right: NumberExpression;
     }
 
     export type Mul = {
       _type: "Mul";
-      left: t;
-      right: t;
+      left: NumberExpression;
+      right: NumberExpression;
     }
 
     export type Div = {
       _type: "Div";
-      left: t;
-      right: t;
+      left: NumberExpression;
+      right: NumberExpression;
     }
 
     export type Exp = {
       _type: "Exp";
-      term: t;
-      power: t;
+      term: NumberExpression;
+      power: NumberExpression;
     }
 
     export type Concat = {
@@ -77,9 +77,14 @@ export namespace Internal {
       right: t;
     }
 
-    export type Reference = {
-      _type: "Reference";
-      field: Transaction.Internal.Field.t;
+    export type StringReference = {
+      _type: "StringReference";
+      field: Transaction.Internal.Field.StringField;
+    }
+
+    export type NumberReference = {
+      _type: "NumberReference";
+      field: Transaction.Internal.Field.NumberField;
     }
 
     export type StringLiteral = {
@@ -92,7 +97,10 @@ export namespace Internal {
       value: number;
     }
 
-    export type t = Add | Sub | Mul | Div | Exp | Reference | Concat | StringLiteral | NumberLiteral
+    export type NumberExpression = Add | Sub | Mul | Div | Exp | NumberReference | NumberLiteral
+    export type StringExpression = Concat | StringReference | StringLiteral
+
+    export type t = NumberExpression | StringExpression
   }
 
   export type Include = {
@@ -100,12 +108,21 @@ export namespace Internal {
     clause: Clause.t;
   }
 
-  export type Update = {
-    _type: "Update";
+  export type UpdateString = {
+    _type: "UpdateString";
     where: Clause.t;
-    field: Transaction.Internal.Field.t;
-    expression: Expression.t;
+    field: Transaction.Internal.Field.StringField;
+    expression: Expression.StringExpression;
   }
+
+  export type UpdateNumber = {
+    _type: "UpdateNumber";
+    where: Clause.t;
+    field: Transaction.Internal.Field.NumberField;
+    expression: Expression.NumberExpression;
+  }
+
+  export type Update = UpdateString | UpdateNumber
 
   export type Rule = Include | Update
 
@@ -113,7 +130,9 @@ export namespace Internal {
     switch (rule._type) {
       case "Include":
         return O.some(rule);
-      case "Update":
+      case "UpdateString":
+        return O.none;
+      case "UpdateNumber":
         return O.none;
     }
   }
@@ -122,7 +141,9 @@ export namespace Internal {
     switch (rule._type) {
       case "Include":
         return O.none;
-      case "Update":
+      case "UpdateString":
+        return O.some(rule);
+      case "UpdateNumber":
         return O.some(rule);
     }
   }
@@ -184,34 +205,34 @@ export namespace Json {
   }
 
   export namespace Expression {
-    export const Add: iot.Type<Internal.Expression.Add> = iot.recursion("t", () => iot.type({
+    export const Add: iot.Type<Internal.Expression.Add> = iot.recursion("NumberExpression", () => iot.type({
         _type: iot.literal("Add")
-      , left: t
-      , right: t
+      , left: NumberExpression
+      , right: NumberExpression
     }));
 
-    export const Sub: iot.Type<Internal.Expression.Sub> = iot.recursion("t", () => iot.type({
+    export const Sub: iot.Type<Internal.Expression.Sub> = iot.recursion("NumberExpression", () => iot.type({
         _type: iot.literal("Sub")
-      , left: t
-      , right: t
+      , left: NumberExpression
+      , right: NumberExpression
     }));
 
-    export const Mul: iot.Type<Internal.Expression.Mul> = iot.recursion("t", () => iot.type({
+    export const Mul: iot.Type<Internal.Expression.Mul> = iot.recursion("NumberExpression", () => iot.type({
         _type: iot.literal("Mul")
-      , left: t
-      , right: t
+      , left: NumberExpression
+      , right: NumberExpression
     }));
 
-    export const Div: iot.Type<Internal.Expression.Div> = iot.recursion("t", () => iot.type({
+    export const Div: iot.Type<Internal.Expression.Div> = iot.recursion("NumberExpression", () => iot.type({
         _type: iot.literal("Div")
-      , left: t
-      , right: t
+      , left: NumberExpression
+      , right: NumberExpression
     }));
 
-    export const Exp: iot.Type<Internal.Expression.Exp> = iot.recursion("t", () => iot.type({
+    export const Exp: iot.Type<Internal.Expression.Exp> = iot.recursion("NumberExpression", () => iot.type({
         _type: iot.literal("Exp")
-      , term: t
-      , power: t
+      , term: NumberExpression
+      , power: NumberExpression
     }));
 
     export const Concat: iot.Type<Internal.Expression.Concat> = iot.recursion("t", () => iot.type({
@@ -220,9 +241,14 @@ export namespace Json {
       , right: t
     }));
 
-    export const Reference = iot.type({
-        _type: iot.literal("Reference")
-      , field: Transaction.Json.Field.t
+    export const StringReference = iot.type({
+        _type: iot.literal("StringReference")
+      , field: Transaction.Json.Field.StringField
+    });
+
+    export const NumberReference = iot.type({
+        _type: iot.literal("NumberReference")
+      , field: Transaction.Json.Field.NumberField
     });
 
     export const StringLiteral = iot.type({
@@ -235,8 +261,16 @@ export namespace Json {
       , value: iot.number
     });
 
+    export const NumberExpression = iot.recursion<Internal.Expression.NumberExpression>("NumberExpression", () => {
+      return iot.union([Add, Sub, Mul, Div, Exp, NumberReference, NumberLiteral])
+    });
+
+    export const StringExpression = iot.recursion<Internal.Expression.StringExpression>("StringExpression", () => {
+      return iot.union([Concat, StringReference, StringLiteral])
+    });
+
     export const t = iot.recursion<Internal.Expression.t>("t", () => {
-      return iot.union([Add, Sub, Mul, Div, Exp, Reference, Concat, StringLiteral, NumberLiteral])
+      return iot.union([NumberExpression, StringExpression])
     });
   }
 
@@ -245,12 +279,21 @@ export namespace Json {
     , clause: Clause.t
   });
 
-  export const Update = iot.type({
-      _type: iot.literal("Update")
+  export const UpdateString = iot.type({
+      _type: iot.literal("UpdateString")
     , where: Clause.t
-    , field: Transaction.Json.Field.t
-    , expression: Expression.t
+    , field: Transaction.Json.Field.StringField
+    , expression: Expression.StringExpression
   });
+
+  export const UpdateNumber = iot.type({
+      _type: iot.literal("UpdateNumber")
+    , where: Clause.t
+    , field: Transaction.Json.Field.NumberField
+    , expression: Expression.NumberExpression
+  });
+
+  export const Update = iot.union([UpdateString, UpdateNumber])
 
   export const Rule = iot.union([Include, Update])
 

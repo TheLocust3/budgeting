@@ -67,8 +67,6 @@ Run the test suite:
  - Update rule
    - where, field, expression
    - expression: Add | Sub | Mul | Div | Exp | Reference | Concat | Value
- - Schema validation
-   - on rule add only?
  - Add new fields via Update
    - need a clever way of modelling arbitrary fields
    - only string results?
@@ -76,6 +74,7 @@ Run the test suite:
    - Exists operator, regex operator
    - Properly handle dates
    - Don't build plan/stages for every transaction
+   - Allow metadata access
  - Update conflict resolution
  - Accounts hierarchy
    - 1 global account per user
