@@ -7,24 +7,22 @@ import * as Transaction from '../model/transaction';
 import * as Rule from '../model/rule';
 import * as Plan from './plan';
 
-type Materializer = (transaction: Transaction.Internal.t) => O.Option<Transaction.Internal.t>;
-type Update = (transaction: Transaction.Internal.t) => Transaction.Internal.t;
+type Materializer = (transaction: Transaction.Materialize.t) => O.Option<Transaction.Materialize.t>;
+type Update = (transaction: Transaction.Materialize.t) => Transaction.Materialize.t;
 
-type Predicate = (transaction: Transaction.Internal.t) => Boolean
-type EvaluateTo<T> = (transaction: Transaction.Internal.t) => T
+type Predicate = (transaction: Transaction.Materialize.t) => Boolean
+type EvaluateTo<T> = (transaction: Transaction.Materialize.t) => T
 
 const withString = (
-    transaction: Transaction.Internal.t
-  , field: Transaction.Internal.Field.UpdateStringField
+    transaction: Transaction.Materialize.t
+  , field: Transaction.Materialize.Field.UpdateStringField
   , value: string
-): Transaction.Internal.t => {
+): Transaction.Materialize.t => {
   switch (field) {
     case "id":
     case "sourceId":
     case "merchantName":
     case "description":
-    case "authorizedAt":
-    case "capturedAt":
       return { ...transaction, [field]: value };
     default:
       switch (field._type) {
@@ -35,12 +33,14 @@ const withString = (
 }
 
 const withNumber = (
-    transaction: Transaction.Internal.t
-  , field: Transaction.Internal.Field.UpdateNumberField
+    transaction: Transaction.Materialize.t
+  , field: Transaction.Materialize.Field.UpdateNumberField
   , value: number
-): Transaction.Internal.t => {
+): Transaction.Materialize.t => {
   switch (field) {
     case "amount":
+    case "authorizedAt":
+    case "capturedAt":
       return { ...transaction, [field]: value };
     default:
       switch (field._type) {
@@ -50,19 +50,19 @@ const withNumber = (
   }
 }
 
-const buildStringPredicate = (field: Transaction.Internal.Field.StringField) => (pred: (value: string) => Boolean): Predicate => {
-  if (field == "id") {
-    return (transaction) => O.match(
-        () => false
-      , (id: string) => pred(id)
-    )(transaction.id);
-  } else {
-    return (transaction) => pred(String(transaction[field])); // TODO: JK need further refinement to get rid of this toString (string | Date | Option<Date>)
-  }
+const buildStringPredicate = (field: Transaction.Materialize.Field.StringField) => (pred: (value: string) => Boolean): Predicate => {
+  return (transaction) => pred(transaction[field]); // TODO: JK need further refinement to get rid of this toString (string | Date | Option<Date>)
 }
 
-const buildNumberPredicate = (field: Transaction.Internal.Field.NumberField) => (pred: (value: number) => Boolean): Predicate => {
-  return (transaction) => pred(transaction[field]);
+const buildNumberPredicate = (field: Transaction.Materialize.Field.NumberField) => (pred: (value: number) => Boolean): Predicate => {
+  if (field == "capturedAt") {
+    return (transaction) => O.match(
+        () => false
+      , (capturedAt: number) => pred(capturedAt)
+    )(transaction.capturedAt);
+  } else {
+    return (transaction) => pred(transaction[field]);
+  }
 }
 
 const buildStringMatch = (rule: Rule.Internal.Clause.StringMatch): Predicate => {
@@ -96,16 +96,16 @@ const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
     case "And":
       const left = buildClause(clause.left);
       const right = buildClause(clause.right);
-      return (transaction: Transaction.Internal.t) => left(transaction) && right(transaction);
+      return (transaction: Transaction.Materialize.t) => left(transaction) && right(transaction);
     case "Not":
       const inner = buildClause(clause.clause);
-      return (transaction: Transaction.Internal.t) => !inner(transaction);
+      return (transaction: Transaction.Materialize.t) => !inner(transaction);
     case "StringMatch":
       const stringMatch = buildStringMatch(clause)
-      return (transaction: Transaction.Internal.t) => stringMatch(transaction);
+      return (transaction: Transaction.Materialize.t) => stringMatch(transaction);
     case "NumberMatch":
       const numberMatch = buildNumberMatch(clause)
-      return (transaction: Transaction.Internal.t) => numberMatch(transaction);
+      return (transaction: Transaction.Materialize.t) => numberMatch(transaction);
   }
 }
 
@@ -114,11 +114,11 @@ const buildStringExpression = (expression: Rule.Internal.Expression.StringExpres
     case "Concat":
       const left = buildExpression(expression.left);
       const right = buildExpression(expression.right);
-      return (transaction: Transaction.Internal.t) => String(left(transaction)) + String(right(transaction));
+      return (transaction: Transaction.Materialize.t) => String(left(transaction)) + String(right(transaction));
     case "StringReference":
-      return (transaction: Transaction.Internal.t) => String(transaction[expression.field]); // TODO: JK we'd like to remove the toString here
+      return (transaction: Transaction.Materialize.t) => String(transaction[expression.field]); // TODO: JK we'd like to remove the toString here
     case "StringLiteral":
-      return (transaction: Transaction.Internal.t) => expression.value;
+      return (transaction: Transaction.Materialize.t) => expression.value;
   }
 }
 
@@ -127,27 +127,27 @@ const buildNumberExpression = (expression: Rule.Internal.Expression.NumberExpres
     case "Add":
       const addLeft = buildNumberExpression(expression.left);
       const addRight = buildNumberExpression(expression.right);
-      return (transaction: Transaction.Internal.t) => addLeft(transaction) + addRight(transaction);
+      return (transaction: Transaction.Materialize.t) => addLeft(transaction) + addRight(transaction);
     case "Sub":
       const subLeft = buildNumberExpression(expression.left);
       const subRight = buildNumberExpression(expression.right);
-      return (transaction: Transaction.Internal.t) => subLeft(transaction) - subRight(transaction);
+      return (transaction: Transaction.Materialize.t) => subLeft(transaction) - subRight(transaction);
     case "Mul":
       const mulLeft = buildNumberExpression(expression.left);
       const mulRight = buildNumberExpression(expression.right);
-      return (transaction: Transaction.Internal.t) => mulLeft(transaction) * mulRight(transaction);
+      return (transaction: Transaction.Materialize.t) => mulLeft(transaction) * mulRight(transaction);
     case "Div":
       const divLeft = buildNumberExpression(expression.left);
       const divRight = buildNumberExpression(expression.right);
-      return (transaction: Transaction.Internal.t) => divLeft(transaction) / divRight(transaction);
+      return (transaction: Transaction.Materialize.t) => divLeft(transaction) / divRight(transaction);
     case "Exp":
       const expTerm = buildNumberExpression(expression.term);
       const expPower = buildNumberExpression(expression.power);
-      return (transaction: Transaction.Internal.t) => Math.pow(expTerm(transaction), expPower(transaction));
+      return (transaction: Transaction.Materialize.t) => Math.pow(expTerm(transaction), expPower(transaction));
     case "NumberReference":
-      return (transaction: Transaction.Internal.t) => transaction[expression.field];
+      return (transaction: Transaction.Materialize.t) => Number(transaction[expression.field]); // TODO: JK fix this for Option<number>
     case "NumberLiteral":
-      return (transaction: Transaction.Internal.t) => expression.value;
+      return (transaction: Transaction.Materialize.t) => expression.value;
   }
 }
 
@@ -161,7 +161,7 @@ const buildExpression = (expression: Rule.Internal.Expression.t): EvaluateTo<str
     case "NumberReference":
     case "NumberLiteral":
       const numberExpression = buildNumberExpression(expression);
-      return (transaction: Transaction.Internal.t) => String(numberExpression(transaction));
+      return (transaction: Transaction.Materialize.t) => String(numberExpression(transaction));
     case "Concat":
     case "StringReference":
     case "StringLiteral":
@@ -176,7 +176,7 @@ const buildInclude = (rule: Rule.Internal.Include): Predicate => {
 const buildUpdateString = (rule: Rule.Internal.UpdateString): Update => {
   const where = buildClause(rule.where);
   const expression = buildStringExpression(rule.expression);
-  return (transaction: Transaction.Internal.t) => {
+  return (transaction: Transaction.Materialize.t) => {
     return withString(transaction, rule.field, expression(transaction));
   };
 }
@@ -184,7 +184,7 @@ const buildUpdateString = (rule: Rule.Internal.UpdateString): Update => {
 const buildUpdateNumber = (rule: Rule.Internal.UpdateNumber): Update => {
   const where = buildClause(rule.where);
   const expression = buildNumberExpression(rule.expression);
-  return (transaction: Transaction.Internal.t) => {
+  return (transaction: Transaction.Materialize.t) => {
     return withNumber(transaction, rule.field, expression(transaction));
   };
 }
@@ -203,9 +203,9 @@ const buildStage = (stage: Plan.Stage): Materializer => {
   const updateMaterializers = A.map(buildUpdate)(stage.update);
 
   // TODO: JK this could all be a bit more clear
-  return (transaction: Transaction.Internal.t) => pipe(
+  return (transaction: Transaction.Materialize.t) => pipe(
       includeMaterializers
-    , A.reduce(O.none, (out: O.Option<Transaction.Internal.t>, materializer) => O.match( // JK: construct an "or" of includes (a DNF)
+    , A.reduce(O.none, (out: O.Option<Transaction.Materialize.t>, materializer) => O.match( // JK: construct an "or" of includes (a DNF)
           () => {
             if (materializer(transaction)) {
               return O.some(transaction);
@@ -216,7 +216,7 @@ const buildStage = (stage: Plan.Stage): Materializer => {
         , (_) => O.some(transaction)
       )(out))
     , O.map((transaction) => 
-        A.reduce(transaction, (transaction: Transaction.Internal.t, materializer: Update) =>
+        A.reduce(transaction, (transaction: Transaction.Materialize.t, materializer: Update) =>
           materializer(transaction)
         )(updateMaterializers)
       )
@@ -224,7 +224,7 @@ const buildStage = (stage: Plan.Stage): Materializer => {
 }
 
 export const build = (plan: Plan.t): Materializer => {
-  return (transaction: Transaction.Internal.t) => pipe(
+  return (transaction: Transaction.Materialize.t) => pipe(
       plan.stages
     , A.map(buildStage)
     , A.reduce(O.some(transaction), (transaction, materializer) => pipe(transaction, O.map(materializer), O.flatten))

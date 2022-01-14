@@ -71,7 +71,13 @@ router
         ))
       , TE.chain(O.match(
             () => TE.right(O.none)
-          , (account) => pipe(account, materialize(ctx.db), TE.map(A.map(Transaction.Json.to)), TE.map(O.some))
+          , (account) => pipe(
+              account
+            , materialize(ctx.db)
+            , TE.map(A.map(Transaction.Materialize.to))
+            , TE.map(A.map(Transaction.Json.to))
+            , TE.map(O.some)
+          )
         ))
       , TE.match(
           (_) => {

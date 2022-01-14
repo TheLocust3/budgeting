@@ -64,27 +64,26 @@ Run the test suite:
 ## todo
 
 ### next
- - Complete rules
-   - Exists operator, regex operator (only glob operator)
-   - Properly handle dates
-   - Don't build plan/stages for every transaction
-   - Allow metadata access
-   - Prevent updates to `id`
  - Update conflict resolution
+ - Complete rules
+   - Properly handle dates
+   - Exists operator, regex operator (only glob operator)
  - Accounts hierarchy
    - 1 global account per user
    - Materialize sub-accounts through global account
 
 ### future
+  - request logging
+  - Don't build plan/stages for every transaction
+    - this is just silly
   - frontends
     - move route logic to frontend module
     - all pure functions
     - scrub errors before returning to route
+  - Allow metadata access via rules
 
 ### miscellaneous
  - unit tests against frontends/components
  - run linter
- - move db logic from routes to some sort of controller
- - request logging
  - no need for camelize if columns are renamed in select
  - abstract common db queries/operations

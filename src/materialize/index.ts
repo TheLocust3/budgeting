@@ -13,7 +13,7 @@ import * as Schema from './schema';
 import * as Materializer from './materializer';
 import { Array } from '../model/util';
 
-export const materialize = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Error, Transaction.Internal.t[]> => {
+export const materialize = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Error, Transaction.Materialize.t[]> => {
   // TODO: JK track materialize logs with id
   console.log(`materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   
@@ -26,7 +26,12 @@ export const materialize = (pool: Pool) => (account: Account.Internal.t): TE.Tas
     , E.map(Materializer.build)
     , TE.fromEither
     , TE.chain((materializer) => {
-        return pipe(TransactionsTable.all(pool)(), TE.map(A.map(materializer)), TE.map(Array.flattenOption))
+        return pipe(
+            TransactionsTable.all(pool)()
+          , TE.map(A.map(Transaction.Materialize.from))
+          , TE.map(A.map(materializer))
+          , TE.map(Array.flattenOption)
+        )
       })
   );
 }

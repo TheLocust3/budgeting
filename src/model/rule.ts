@@ -25,14 +25,14 @@ export namespace Internal {
 
     export type StringMatch = { 
       _type: "StringMatch";
-      field: Transaction.Internal.Field.StringField;
+      field: Transaction.Materialize.Field.StringField;
       operator: StringOperator;
       value: string;
     }
 
     export type NumberMatch = { 
       _type: "NumberMatch";
-      field: Transaction.Internal.Field.NumberField;
+      field: Transaction.Materialize.Field.NumberField;
       operator: NumberOperator;
       value: number;
     }
@@ -79,12 +79,12 @@ export namespace Internal {
 
     export type StringReference = {
       _type: "StringReference";
-      field: Transaction.Internal.Field.StringField;
+      field: Transaction.Materialize.Field.StringField;
     }
 
     export type NumberReference = {
       _type: "NumberReference";
-      field: Transaction.Internal.Field.NumberField;
+      field: Transaction.Materialize.Field.NumberField;
     }
 
     export type StringLiteral = {
@@ -111,14 +111,14 @@ export namespace Internal {
   export type UpdateString = {
     _type: "UpdateString";
     where: Clause.t;
-    field: Transaction.Internal.Field.UpdateStringField;
+    field: Transaction.Materialize.Field.UpdateStringField;
     expression: Expression.StringExpression;
   }
 
   export type UpdateNumber = {
     _type: "UpdateNumber";
     where: Clause.t;
-    field: Transaction.Internal.Field.UpdateNumberField;
+    field: Transaction.Materialize.Field.UpdateNumberField;
     expression: Expression.NumberExpression;
   }
 

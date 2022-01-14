@@ -19,6 +19,24 @@ export namespace Internal {
     authorizedAt: Date;
     capturedAt: O.Option<Date>;
     metadata: PlaidMetadata;
+    custom: object; // TODO: JK remove
+  }
+}
+
+export namespace Materialize {
+  export type PlaidMetadata = {
+    _type: "Plaid";
+  }
+
+  export type t = {
+    id: string;
+    sourceId: string;
+    amount: number;
+    merchantName: string;
+    description: string;
+    authorizedAt: number;
+    capturedAt: O.Option<number>;
+    metadata: PlaidMetadata;
     custom: object;
   }
 
@@ -33,13 +51,46 @@ export namespace Internal {
       field: string;
     }
 
-    export type NumberField = "amount";
-    export type StringField = "id" | "sourceId" | "merchantName" | "description" | "authorizedAt" | "capturedAt";
+    export type NumberField = "amount" | "authorizedAt" | "capturedAt";
+    export type StringField = "id" | "sourceId" | "merchantName" | "description";
 
     export type UpdateNumberField = NumberField | CustomNumberField;
     export type UpdateStringField = StringField | CustomStringField;
 
     export type t = NumberField | StringField;
+  }
+
+  export const from = (transaction: Internal.t): t => {
+    const id = pipe(
+        transaction.id
+      , O.getOrElse(() => "")
+    )
+
+    return {
+        id: id
+      , sourceId: transaction.sourceId
+      , amount: transaction.amount
+      , merchantName: transaction.merchantName
+      , description: transaction.description
+      , authorizedAt: transaction.authorizedAt.getTime()
+      , capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(transaction.capturedAt)
+      , metadata: transaction.metadata
+      , custom: {}
+    }
+  }
+
+  export const to = (transaction: t): Internal.t => {
+    return {
+        id: O.some(transaction.id)
+      , sourceId: transaction.sourceId
+      , amount: transaction.amount
+      , merchantName: transaction.merchantName
+      , description: transaction.description
+      , authorizedAt: new Date(transaction.authorizedAt)
+      , capturedAt: O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt)
+      , metadata: transaction.metadata
+      , custom: transaction.custom
+    }
   }
 }
 
@@ -59,38 +110,40 @@ export namespace Json {
   });
 
   export namespace Field {
-    export const CustomStringField: iot.Type<Internal.Field.CustomStringField> = iot.type({
+    export const CustomStringField: iot.Type<Materialize.Field.CustomStringField> = iot.type({
         _type: iot.literal("CustomStringField")
       , field: iot.string
     });
 
-    export const CustomNumberField: iot.Type<Internal.Field.CustomNumberField> = iot.type({
+    export const CustomNumberField: iot.Type<Materialize.Field.CustomNumberField> = iot.type({
         _type: iot.literal("CustomNumberField")
       , field: iot.string
     });
 
-    export const NumberField: iot.Type<Internal.Field.NumberField> = iot.literal("amount")
-
-    export const StringField: iot.Type<Internal.Field.StringField> = iot.union([
-        iot.literal("id")
-      , iot.literal("sourceId")
-      , iot.literal("merchantName")
-      , iot.literal("description")
+    export const NumberField: iot.Type<Materialize.Field.NumberField> = iot.union([
+        iot.literal("amount")
       , iot.literal("authorizedAt")
       , iot.literal("capturedAt")
     ]);
 
-    export const UpdateStringField: iot.Type<Internal.Field.UpdateStringField> = iot.union([
+    export const StringField: iot.Type<Materialize.Field.StringField> = iot.union([
+        iot.literal("id")
+      , iot.literal("sourceId")
+      , iot.literal("merchantName")
+      , iot.literal("description")
+    ]);
+
+    export const UpdateStringField: iot.Type<Materialize.Field.UpdateStringField> = iot.union([
         StringField
       , CustomStringField
     ]);
 
-    export const UpdateNumberField: iot.Type<Internal.Field.UpdateNumberField> = iot.union([
+    export const UpdateNumberField: iot.Type<Materialize.Field.UpdateNumberField> = iot.union([
         NumberField
       , CustomNumberField
     ]);
 
-    export const t: iot.Type<Internal.Field.t> = iot.union([
+    export const t: iot.Type<Materialize.Field.t> = iot.union([
         NumberField
       , StringField
     ]);
