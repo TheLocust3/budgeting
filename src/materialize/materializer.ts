@@ -13,6 +13,43 @@ type Update = (transaction: Transaction.Internal.t) => Transaction.Internal.t;
 type Predicate = (transaction: Transaction.Internal.t) => Boolean
 type EvaluateTo<T> = (transaction: Transaction.Internal.t) => T
 
+const withString = (
+    transaction: Transaction.Internal.t
+  , field: Transaction.Internal.Field.UpdateStringField
+  , value: string
+): Transaction.Internal.t => {
+  switch (field) {
+    case "id":
+    case "sourceId":
+    case "merchantName":
+    case "description":
+    case "authorizedAt":
+    case "capturedAt":
+      return { ...transaction, [field]: value };
+    default:
+      switch (field._type) {
+        case "CustomStringField":
+          return { ...transaction, custom: { ...transaction.custom, [field.field]: value } };
+      }
+  }
+}
+
+const withNumber = (
+    transaction: Transaction.Internal.t
+  , field: Transaction.Internal.Field.UpdateNumberField
+  , value: number
+): Transaction.Internal.t => {
+  switch (field) {
+    case "amount":
+      return { ...transaction, [field]: value };
+    default:
+      switch (field._type) {
+        case "CustomNumberField":
+          return { ...transaction, custom: { ...transaction.custom, [field.field]: value } };
+      }
+  }
+}
+
 const buildStringPredicate = (field: Transaction.Internal.Field.StringField) => (pred: (value: string) => Boolean): Predicate => {
   if (field == "id") {
     return (transaction) => O.match(
@@ -140,7 +177,7 @@ const buildUpdateString = (rule: Rule.Internal.UpdateString): Update => {
   const where = buildClause(rule.where);
   const expression = buildStringExpression(rule.expression);
   return (transaction: Transaction.Internal.t) => {
-    return { ...transaction, [rule.field]: expression(transaction) }
+    return withString(transaction, rule.field, expression(transaction));
   };
 }
 
@@ -148,7 +185,7 @@ const buildUpdateNumber = (rule: Rule.Internal.UpdateNumber): Update => {
   const where = buildClause(rule.where);
   const expression = buildNumberExpression(rule.expression);
   return (transaction: Transaction.Internal.t) => {
-    return { ...transaction, [rule.field]: expression(transaction) }
+    return withNumber(transaction, rule.field, expression(transaction));
   };
 }
 

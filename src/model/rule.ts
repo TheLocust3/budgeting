@@ -111,14 +111,14 @@ export namespace Internal {
   export type UpdateString = {
     _type: "UpdateString";
     where: Clause.t;
-    field: Transaction.Internal.Field.StringField;
+    field: Transaction.Internal.Field.UpdateStringField;
     expression: Expression.StringExpression;
   }
 
   export type UpdateNumber = {
     _type: "UpdateNumber";
     where: Clause.t;
-    field: Transaction.Internal.Field.NumberField;
+    field: Transaction.Internal.Field.UpdateNumberField;
     expression: Expression.NumberExpression;
   }
 
@@ -282,14 +282,14 @@ export namespace Json {
   export const UpdateString = iot.type({
       _type: iot.literal("UpdateString")
     , where: Clause.t
-    , field: Transaction.Json.Field.StringField
+    , field: Transaction.Json.Field.UpdateStringField
     , expression: Expression.StringExpression
   });
 
   export const UpdateNumber = iot.type({
       _type: iot.literal("UpdateNumber")
     , where: Clause.t
-    , field: Transaction.Json.Field.NumberField
+    , field: Transaction.Json.Field.UpdateNumberField
     , expression: Expression.NumberExpression
   });
 

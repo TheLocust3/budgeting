@@ -74,11 +74,19 @@ export namespace RuleBuilder {
     return { _type: "Include", clause: clause };
   }
 
-  export const updateString = (clause: any, field: string, expression: any) => {
+  export const customStringField = (field: string) => {
+    return { _type: "CustomStringField", field: field }
+  }
+
+  export const customNumberField = (field: string) => {
+    return { _type: "CustomNumberField", field: field }
+  }
+
+  export const updateString = (clause: any, field: string | object, expression: any) => {
     return { _type: "UpdateString", where: clause, field: field, expression: expression };
   }
 
-  export const updateNumber = (clause: any, field: string, expression: any) => {
+  export const updateNumber = (clause: any, field: string | object, expression: any) => {
     return { _type: "UpdateNumber", where: clause, field: field, expression: expression };
   }
 }

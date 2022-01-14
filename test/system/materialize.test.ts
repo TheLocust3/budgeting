@@ -446,3 +446,55 @@ it('can update a specific transaction 4', async () => {
       )
   )();
 });
+
+it('can add string field to a specific transaction', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateString(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , RuleBuilder.customStringField("comment")
+          , RuleBuilder.stringLit("test comment")
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, custom: { comment: "test comment" } }] });
+          }
+      )
+  )();
+});
+
+it('can add number field to a specific transaction', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateNumber(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , RuleBuilder.customNumberField("comment")
+          , RuleBuilder.add(RuleBuilder.numberLit(12), RuleBuilder.numberRef("amount"))
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, custom: { comment: 22 } }] });
+          }
+      )
+  )();
+});

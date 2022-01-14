@@ -19,13 +19,27 @@ export namespace Internal {
     authorizedAt: Date;
     capturedAt: O.Option<Date>;
     metadata: PlaidMetadata;
+    custom: object;
   }
 
   export namespace Field {
-    export type NumberField = "amount"
+    export type CustomStringField = {
+      _type: "CustomStringField";
+      field: string;
+    }
+
+    export type CustomNumberField = {
+      _type: "CustomNumberField";
+      field: string;
+    }
+
+    export type NumberField = "amount";
     export type StringField = "id" | "sourceId" | "merchantName" | "description" | "authorizedAt" | "capturedAt";
 
-    export type t = NumberField | StringField
+    export type UpdateNumberField = NumberField | CustomNumberField;
+    export type UpdateStringField = StringField | CustomStringField;
+
+    export type t = NumberField | StringField;
   }
 }
 
@@ -45,6 +59,16 @@ export namespace Json {
   });
 
   export namespace Field {
+    export const CustomStringField: iot.Type<Internal.Field.CustomStringField> = iot.type({
+        _type: iot.literal("CustomStringField")
+      , field: iot.string
+    });
+
+    export const CustomNumberField: iot.Type<Internal.Field.CustomNumberField> = iot.type({
+        _type: iot.literal("CustomNumberField")
+      , field: iot.string
+    });
+
     export const NumberField: iot.Type<Internal.Field.NumberField> = iot.literal("amount")
 
     export const StringField: iot.Type<Internal.Field.StringField> = iot.union([
@@ -54,6 +78,16 @@ export namespace Json {
       , iot.literal("description")
       , iot.literal("authorizedAt")
       , iot.literal("capturedAt")
+    ]);
+
+    export const UpdateStringField: iot.Type<Internal.Field.UpdateStringField> = iot.union([
+        StringField
+      , CustomStringField
+    ]);
+
+    export const UpdateNumberField: iot.Type<Internal.Field.UpdateNumberField> = iot.union([
+        NumberField
+      , CustomNumberField
     ]);
 
     export const t: iot.Type<Internal.Field.t> = iot.union([
@@ -68,7 +102,7 @@ export namespace Json {
       , Request.decode
       , E.map(transaction => {
           const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt);
-          return { ...transaction, id: O.none, authorizedAt: new Date(transaction.authorizedAt), capturedAt: capturedAt };
+          return { ...transaction, id: O.none, authorizedAt: new Date(transaction.authorizedAt), capturedAt: capturedAt, custom: {} };
         })
       , E.mapLeft(E.toError)
     );
@@ -91,6 +125,7 @@ export namespace Json {
       , authorizedAt: transaction.authorizedAt.getTime()
       , ...capturedAt
       , metadata: transaction.metadata
+      , custom: transaction.custom
     }
   }
 }
@@ -112,7 +147,7 @@ export namespace Database {
         transaction
       , t.decode
       , E.map(camelcaseKeys)
-      , E.map(transaction => { return { ...transaction, id: O.some(transaction.id) }; })
+      , E.map(transaction => { return { ...transaction, id: O.some(transaction.id), custom: {} }; })
       , E.mapLeft(E.toError)
     );
   }

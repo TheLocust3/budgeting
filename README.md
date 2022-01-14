@@ -64,11 +64,8 @@ Run the test suite:
 ## todo
 
 ### next
- - Add new fields via Update
-   - need a clever way of modelling arbitrary fields
-   - only string results?
  - Complete rules
-   - Exists operator, regex operator
+   - Exists operator, regex operator (only glob operator)
    - Properly handle dates
    - Don't build plan/stages for every transaction
    - Allow metadata access
