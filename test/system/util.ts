@@ -34,6 +34,10 @@ export namespace RuleBuilder {
     return { _type: "Exists", field: field };
   }
 
+  export const stringGlob = (field: string, value: string) => {
+    return { _type: "StringGlob", field: field, value: value };
+  }
+
   export const add = (left: any, right: any) => {
     return { _type: "Add", left: left, right: right };
   }

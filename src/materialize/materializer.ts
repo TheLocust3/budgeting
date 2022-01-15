@@ -95,6 +95,11 @@ const buildExists = (rule: Rule.Internal.Clause.Exists): Predicate => {
   return (transaction: Transaction.Materialize.t) => O.match(() => false, (_) => true)(transaction[rule.field]);
 }
 
+const buildStringGlob = (rule: Rule.Internal.Clause.StringGlob): Predicate => {
+  const matcher = new RegExp(rule.value.replaceAll("*", "(.*)")); // TODO: JK might need to escape some stuff
+  return (transaction: Transaction.Materialize.t) => matcher.test(transaction[rule.field]);
+}
+
 const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
   switch (clause._type) {
     case "And":
@@ -113,6 +118,9 @@ const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
     case "Exists":
       const exists = buildExists(clause)
       return (transaction: Transaction.Materialize.t) => exists(transaction);
+    case "StringGlob":
+      const stringGlob = buildStringGlob(clause)
+      return (transaction: Transaction.Materialize.t) => stringGlob(transaction);
   }
 }
 

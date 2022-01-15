@@ -65,8 +65,6 @@ Run the test suite:
 
 ### next
  - Update conflict resolution
- - Complete rules
-   - Exists operator, regex operator (only glob operator)
  - Accounts hierarchy
    - 1 global account per user
    - Materialize sub-accounts through global account

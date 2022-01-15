@@ -42,7 +42,13 @@ export namespace Internal {
       field: Transaction.Materialize.Field.OptionNumberField;
     }
 
-    export type t = And | Not | StringMatch | NumberMatch | Exists
+    export type StringGlob = { 
+      _type: "StringGlob";
+      field: Transaction.Materialize.Field.StringField;
+      value: string;
+    }
+
+    export type t = And | Not | StringMatch | NumberMatch | Exists | StringGlob
   }
 
   export namespace Expression {
@@ -211,7 +217,13 @@ export namespace Json {
       , field: Transaction.Json.Field.OptionNumberField
     });
 
-    export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, StringMatch, NumberMatch, Exists]));
+    export const StringGlob: iot.Type<Internal.Clause.StringGlob> = iot.type({
+        _type: iot.literal("StringGlob")
+      , field: Transaction.Json.Field.StringField
+      , value: iot.string
+    });
+
+    export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, StringMatch, NumberMatch, Exists, StringGlob]));
   }
 
   export namespace Expression {
