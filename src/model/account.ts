@@ -2,6 +2,7 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
+import * as types from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys'
 
 import * as Rule from './rule';
@@ -9,6 +10,7 @@ import * as Rule from './rule';
 export namespace Internal {
   export type t = {
       id: O.Option<string>
+    , parentId: O.Option<string>
     , groupId: string
     , name: string
     , rules: Rule.Internal.t[]
@@ -18,6 +20,7 @@ export namespace Internal {
 export namespace Json {
   export const Request = iot.type({
       groupId: iot.string
+    , parentId: types.optionFromNullable(iot.string)
     , name: iot.string
   });
 
@@ -44,6 +47,7 @@ export namespace Json {
 export namespace Database {
   export const t = iot.type({
       id: iot.string
+    , parent_id: types.optionFromNullable(iot.string)
     , group_id: iot.string
     , name: iot.string
   });

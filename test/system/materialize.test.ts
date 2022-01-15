@@ -710,3 +710,44 @@ it('can add number field to a specific transaction', async () => {
       )
   )();
 });
+
+it('can materialize through parent account', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('parent', () => system.addAccount(groupId, name))
+    , TE.bind('account', ({ parent }) => system.addAccount(groupId, name, O.some(parent.id)))
+    , TE.bind('transaction1', () => addTransaction())
+    , TE.bind('transaction2', () => addTransaction())
+    , TE.bind('parentRule1', ({ parent, transaction1 }) => {
+        return system.addRule(parent.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction1.id)));
+      })
+    , TE.bind('parentRule2', ({ parent, transaction2 }) => {
+        return system.addRule(parent.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction2.id)));
+      })
+    , TE.bind('parentRule3', ({ parent, transaction1 }) => {
+        return system.addRule(parent.id, RuleBuilder.updateString(
+            RuleBuilder.stringMatch("id", "Eq", transaction1.id)
+          , RuleBuilder.customStringField("comment")
+          , RuleBuilder.stringLit("test comment")
+        ));
+      })
+    , TE.bind('parentRule4', ({ parent, transaction2 }) => {
+        return system.addRule(parent.id, RuleBuilder.updateString(
+            RuleBuilder.stringMatch("id", "Eq", transaction2.id)
+          , RuleBuilder.customStringField("comment")
+          , RuleBuilder.stringLit("test comment 2")
+        ));
+      })
+    , TE.bind('rule1', ({ account, transaction1 }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction1.id)));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction1, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction1, custom: { comment: "test comment" } }] });
+          }
+      )
+  )();
+});

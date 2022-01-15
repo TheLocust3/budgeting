@@ -14,29 +14,31 @@ namespace Query {
   export const createTable = `
     CREATE TABLE accounts (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
+      parent_id TEXT,
       group_id TEXT NOT NULL,
       name TEXT NOT NULL,
-      FOREIGN KEY(group_id) REFERENCES groups(id)
+      FOREIGN KEY(group_id) REFERENCES groups(id),
+      FOREIGN KEY(parent_id) REFERENCES accounts(id)
     )
   `;
 
   export const dropTable = `DROP TABLE accounts`
 
-  export const create = (groupId: string, name: string) => {
+  export const create = (parentId: string | null, groupId: string, name: string) => {
     return {
       text: `
-        INSERT INTO accounts (group_id, name)
-        VALUES ($1, $2)
+        INSERT INTO accounts (parent_id, group_id, name)
+        VALUES ($1, $2, $3)
         RETURNING *
       `,
-      values: [groupId, name]
+      values: [parentId, groupId, name]
     }
   }
 
   export const byGroupId = (groupId: string) => {
     return {
       text: `
-        SELECT id, group_id, name
+        SELECT id, parent_id, group_id, name
         FROM accounts
         WHERE group_id = $1
       `,
@@ -47,7 +49,7 @@ namespace Query {
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, group_id, name
+        SELECT id, parent_id, group_id, name
         FROM accounts
         WHERE id = $1
         LIMIT 1
@@ -129,7 +131,11 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, vo
 export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEither<Error, Account.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(account.groupId, account.name)),
+        () => pool.query(Query.create(
+            pipe(account.parentId, O.match(() => null, (parentId) => parentId))
+          , account.groupId
+          , account.name
+        )),
         E.toError
       )
     , expectOne

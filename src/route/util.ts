@@ -15,4 +15,3 @@ type ErrorMessage = {
   message: 'failed';
   error: string;
 }
-

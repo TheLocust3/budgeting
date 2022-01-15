@@ -183,9 +183,14 @@ export class System {
     );
   }
 
-  addAccount(groupId: string, name: string): TE.TaskEither<Error, any> {
+  addAccount(groupId: string, name: string, parentId: O.Option<string> = O.none): TE.TaskEither<Error, any> {
+    const resolvedParentId = O.match(
+        () => { return {}; }
+      , (parentId: string) => { return { parentId: parentId }; }
+    )(parentId);
+
     return pipe(
-        this.fetchTask('/accounts/')('POST')(O.some({ groupId: groupId, name: name }))
+        this.fetchTask('/accounts/')('POST')(O.some({ groupId: groupId, name: name, ...resolvedParentId }))
       , TE.chain(this.json)
     );
   }

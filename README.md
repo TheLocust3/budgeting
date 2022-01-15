@@ -64,11 +64,9 @@ Run the test suite:
 ## todo
 
 ### next
- - Accounts hierarchy
-   - 1 global account per user
-   - Materialize sub-accounts through global account
  - Update conflict resolution
    - needs to be done on materialization
+ - put together demo
 
 ### future
   - request logging
