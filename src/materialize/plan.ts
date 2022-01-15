@@ -27,6 +27,6 @@ const buildStage = (rulesWrapper: Rule.Internal.t[]): Stage => {
   };
 }
 
-export const build = (account: Account.Internal.t): t => {
-  return { stages: [buildStage(account.rules)] };
+export const build = (accounts: Account.Internal.t[]): t => {
+  return { stages: A.map((account: Account.Internal.t) => buildStage(account.rules))(accounts) };
 }
