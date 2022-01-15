@@ -6,7 +6,6 @@ import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 
-import * as Group from '../../src/model/group';
 import * as Account from '../../src/model/account';
 import * as Rule from '../../src/model/rule';
 import * as Transaction from '../../src/model/transaction';
@@ -195,42 +194,14 @@ export class System {
     );
   }
 
-  addGroup(name: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask('/groups/')('POST')(O.some({ name: name }))
-      , TE.chain(this.json)
-    );
-  }
-
-  getGroup(id: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/groups/${id}`)('GET')()
-      , TE.chain(this.json)
-    );
-  }
-
-  listGroups(): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/groups/`)('GET')()
-      , TE.chain(this.json)
-    );
-  }
-
-  deleteGroup(id: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/groups/${id}`)('DELETE')()
-      , TE.chain(this.json)
-    );
-  }
-
-  addAccount(groupId: string, name: string, parentId: O.Option<string> = O.none): TE.TaskEither<Error, any> {
+  addAccount(name: string, parentId: O.Option<string> = O.none): TE.TaskEither<Error, any> {
     const resolvedParentId = O.match(
         () => { return {}; }
       , (parentId: string) => { return { parentId: parentId }; }
     )(parentId);
 
     return pipe(
-        this.fetchTask('/accounts/')('POST')(O.some({ groupId: groupId, name: name, ...resolvedParentId }))
+        this.fetchTask('/accounts/')('POST')(O.some({ name: name, ...resolvedParentId }))
       , TE.chain(this.json)
     );
   }
@@ -242,9 +213,9 @@ export class System {
     );
   }
 
-  listAccounts(groupId: string): TE.TaskEither<Error, any> {
+  listAccounts(): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/accounts?groupId=${groupId}`)('GET')()
+        this.fetchTask(`/accounts`)('GET')()
       , TE.chain(this.json)
     );
   }

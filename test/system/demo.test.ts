@@ -11,19 +11,8 @@ const addTransaction = (transaction: JsonTransaction = defaultTransaction): TE.T
 }
 
 let system: System;
-let groupId: string;
 beforeAll(async () => {
   system = new System();
-
-  await pipe(
-      system.addGroup(`test-${uuid()}`)
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (group: any) => {
-            groupId = group.id
-          }
-      )
-  )();
 })
 
 it('can demo', async () => {
@@ -32,7 +21,7 @@ it('can demo', async () => {
   await pipe(
       TE.Do
       // setup global transaction environment
-    , TE.bind('globalAccount', () => system.addAccount(groupId, name))
+    , TE.bind('globalAccount', () => system.addAccount(name))
       // include all transactions _for this test_ in the global environment
     , TE.bind('globalRule', ({ globalAccount }) => {
         return system.addRule(globalAccount.id, RuleBuilder.include(RuleBuilder.stringMatch("merchantName", "Eq", merchantName)));
@@ -49,7 +38,7 @@ it('can demo', async () => {
         ));
       })
       // setup my bank account
-    , TE.bind('account', ({ globalAccount }) => system.addAccount(groupId, name, O.some(globalAccount.id)))
+    , TE.bind('account', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
       // add "Ally Bank" transactions into my bank account
     , TE.bind('rule1', ({ account, transaction1 }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("sourceId", "Eq", "Ally Bank")));

@@ -11,25 +11,14 @@ const addTransaction = (transaction: JsonTransaction = defaultTransaction): TE.T
 }
 
 let system: System;
-let groupId: string;
 beforeAll(async () => {
   system = new System();
-
-  await pipe(
-      system.addGroup(`test-${uuid()}`)
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (group: any) => {
-            groupId = group.id
-          }
-      )
-  )();
 })
 
 it('can materialize empty', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(groupId, name)
+      system.addAccount(name)
     , TE.chain((account) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -45,7 +34,7 @@ it('can materialize bad rule', async () => {
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('rule', ({ account }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", "nonesense")))
       })
@@ -63,7 +52,7 @@ it('can materialize for specific transaction', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -82,7 +71,7 @@ it('can materialize for two transactions via two rules', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction())
     , TE.bind('transaction2', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction1 }) => {
@@ -105,7 +94,7 @@ it('can materialize over two transactions only one included', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction())
     , TE.bind('transaction2', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction1, transaction2 }) => {
@@ -130,7 +119,7 @@ it('can materialize over two transactions only one included (not)', async () => 
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction())
     , TE.bind('transaction2', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction1, transaction2 }) => {
@@ -156,7 +145,7 @@ it('can materialize for specific transaction operating on amount (eq)', async ()
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
     , TE.bind('rule1', ({ account }) => {
@@ -182,7 +171,7 @@ it('can materialize for specific transaction operating on amount (neq)', async (
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
     , TE.bind('rule1', ({ account }) => {
@@ -208,7 +197,7 @@ it('can materialize for specific transaction operating on amount (lt)', async ()
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
     , TE.bind('rule1', ({ account }) => {
@@ -234,7 +223,7 @@ it('can materialize for specific transaction operating on amount (lte)', async (
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
     , TE.bind('rule1', ({ account }) => {
@@ -260,7 +249,7 @@ it('can materialize for specific transaction operating on amount (gt)', async ()
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
     , TE.bind('rule1', ({ account }) => {
@@ -286,7 +275,7 @@ it('can materialize for specific transaction operating on amount (gte)', async (
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
     , TE.bind('rule1', ({ account }) => {
@@ -312,7 +301,7 @@ it('can materialize for specific transaction operating on amount (glob) 1', asyn
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
     , TE.bind('rule1', ({ account }) => {
@@ -338,7 +327,7 @@ it('can materialize for specific transaction operating on amount (glob) 2', asyn
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
     , TE.bind('rule1', ({ account }) => {
@@ -364,7 +353,7 @@ it('can materialize for specific transaction operating on amount (glob) 3', asyn
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
     , TE.bind('rule1', ({ account }) => {
@@ -391,7 +380,7 @@ it('can materialize for specific transaction with exists', async () => {
   const capturedAt = new Date()
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
     , TE.bind('rule1', ({ account }) => {
@@ -418,7 +407,7 @@ it('can materialize for specific transaction with exists (not)', async () => {
   const capturedAt = new Date()
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
     , TE.bind('rule1', ({ account }) => {
@@ -443,7 +432,7 @@ it('can update a specific transaction 1', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -469,7 +458,7 @@ it('can update a specific transaction 2', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -495,7 +484,7 @@ it('can update a specific transaction 3', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction({ ...defaultTransaction, merchantName: "test" }))
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -521,7 +510,7 @@ it('can update a specific transaction 4', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -548,7 +537,7 @@ it('can update a specific transaction 5', async () => {
   const authorizedAt = new Date();
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction({ ... defaultTransaction, authorizedAt: authorizedAt }))
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -574,7 +563,7 @@ it('can update a specific transaction (update none capturedAt)', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -601,7 +590,7 @@ it('can update a specific transaction (update some capturedAt)', async () => {
   const capturedAt = new Date()
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction({ ...defaultTransaction, capturedAt: O.some(capturedAt) }))
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -627,7 +616,7 @@ it('can add string field to a specific transaction', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -653,7 +642,7 @@ it('can add number field to a specific transaction', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -679,8 +668,8 @@ it('can materialize through parent account', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('parent', () => system.addAccount(groupId, name))
-    , TE.bind('account', ({ parent }) => system.addAccount(groupId, name, O.some(parent.id)))
+    , TE.bind('parent', () => system.addAccount(name))
+    , TE.bind('account', ({ parent }) => system.addAccount(name, O.some(parent.id)))
     , TE.bind('transaction1', () => addTransaction())
     , TE.bind('transaction2', () => addTransaction())
     , TE.bind('parentRule1', ({ parent, transaction1 }) => {

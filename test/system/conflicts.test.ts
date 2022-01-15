@@ -11,25 +11,14 @@ const addTransaction = (transaction: JsonTransaction = defaultTransaction): TE.T
 }
 
 let system: System;
-let groupId: string;
 beforeAll(async () => {
   system = new System();
-
-  await pipe(
-      system.addGroup(`test-${uuid()}`)
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (group: any) => {
-            groupId = group.id
-          }
-      )
-  )();
 })
 
 it('can materialize empty without conflicts', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(groupId, name)
+      system.addAccount(name)
     , TE.chain((account) => system.materializeFull(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -44,7 +33,7 @@ it('can raise simple conflict', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction())
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -81,7 +70,7 @@ it('can raise conflict on different fields', async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction', () => addTransaction({ ...defaultTransaction, merchantName: merchantName }))
     , TE.bind('rule1', ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
@@ -118,7 +107,7 @@ it('can raise conflict on different fields on two transactions', async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('account', () => system.addAccount(name))
     , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName }))
     , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName }))
     , TE.bind('rule1', ({ account }) => {

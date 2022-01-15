@@ -10,10 +10,9 @@ import * as AccountsTable from '../db/accounts';
 import { throwNotFound, throwInternalError, Exception } from '../exception';
 
 export namespace AccountFrontend {
-  export const getByGroupId = (pool: Pool) => (groupId: string): TE.TaskEither<Exception, Account.Internal.t[]> => {
+  export const all = (pool: Pool) => (): TE.TaskEither<Exception, Account.Internal.t[]> => {
     return pipe(
-        groupId
-      , AccountsTable.byGroupId(pool)
+        AccountsTable.all(pool)()
       , TE.mapLeft((_) => throwInternalError)
     );
   }

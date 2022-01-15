@@ -15,41 +15,33 @@ namespace Query {
     CREATE TABLE accounts (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       parent_id TEXT,
-      group_id TEXT NOT NULL,
       name TEXT NOT NULL,
-      FOREIGN KEY(group_id) REFERENCES groups(id),
       FOREIGN KEY(parent_id) REFERENCES accounts(id)
     )
   `;
 
   export const dropTable = `DROP TABLE accounts`
 
-  export const create = (parentId: string | null, groupId: string, name: string) => {
+  export const create = (parentId: string | null, name: string) => {
     return {
       text: `
-        INSERT INTO accounts (parent_id, group_id, name)
-        VALUES ($1, $2, $3)
+        INSERT INTO accounts (parent_id, name)
+        VALUES ($1, $2)
         RETURNING *
       `,
-      values: [parentId, groupId, name]
+      values: [parentId, name]
     }
   }
 
-  export const byGroupId = (groupId: string) => {
-    return {
-      text: `
-        SELECT id, parent_id, group_id, name
-        FROM accounts
-        WHERE group_id = $1
-      `,
-      values: [groupId]
-    }
-  }
+  export const all = `
+    SELECT id, parent_id, name
+    FROM accounts
+  `
 
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, parent_id, group_id, name
+        SELECT id, parent_id, name
         FROM accounts
         WHERE id = $1
         LIMIT 1
@@ -89,10 +81,10 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
   }
 }
 
-export const byGroupId = (pool: Pool) => (groupId: string) : TE.TaskEither<Error, Account.Internal.t[]> => {
+export const all = (pool: Pool) => () : TE.TaskEither<Error, Account.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.byGroupId(groupId)),
+        () => pool.query(Query.all),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
@@ -133,7 +125,6 @@ export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEit
       TE.tryCatch(
         () => pool.query(Query.create(
             pipe(account.parentId, O.match(() => null, (parentId) => parentId))
-          , account.groupId
           , account.name
         )),
         E.toError

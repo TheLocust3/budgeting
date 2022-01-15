@@ -33,7 +33,6 @@ Run the test suite:
 ## todo
 
 ### next
- - remove group id
  - frontends
    - move route logic to frontend module
    - all pure functions

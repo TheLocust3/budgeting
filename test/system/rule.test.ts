@@ -14,8 +14,7 @@ beforeAll(async () => {
   system = new System();
 
   await pipe(
-      system.addGroup(`test-${uuid()}`)
-    , TE.chain(group => system.addAccount(group.id, `test-${uuid()}`))
+      system.addAccount(`test-${uuid()}`)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account: any) => {

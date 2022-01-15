@@ -22,10 +22,7 @@ export const router = new Router();
 router
   .get('/', async (ctx, next) => {
     await pipe(
-        ctx.query.groupId
-      , fromQuery
-      , TE.fromEither
-      , TE.chain(AccountFrontend.getByGroupId(ctx.db))
+        AccountFrontend.all(ctx.db)()
       , TE.map(A.map(Account.Json.to))
       , TE.match(
             Message.respondWithError(ctx)

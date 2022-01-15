@@ -113,7 +113,7 @@ it('can list transactions', async () => {
   )();
 });
 
-it('can delete group', async () => {
+it('can delete transaction', async () => {
   const merchantName = `test-${uuid()}`;
   const authorizedAt = new Date();
   const capturedAt = new Date();

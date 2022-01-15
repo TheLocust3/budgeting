@@ -7,42 +7,20 @@ import * as TE from 'fp-ts/TaskEither';
 import { System, uuid } from './util';
 
 let system: System;
-let groupId: string;
 beforeAll(async () => {
   system = new System();
-
-  await pipe(
-      system.addGroup(`test-${uuid()}`)
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (group: any) => {
-            groupId = group.id
-          }
-      )
-  )();
 })
 
 it('can add account', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(groupId, name)
+      system.addAccount(name)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account: any) => {
-            expect(account).toEqual(expect.objectContaining({ groupId: groupId, name: name }));
+            expect(account).toEqual(expect.objectContaining({ name: name }));
             expect(typeof account.id).toBe('string');
           }
-      )
-  )();
-});
-
-it('can\t add rule with invalid groupId', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      system.addAccount("test", name)
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (res) => { expect(res.message).toBe('failed') }
       )
   )();
 });
@@ -50,13 +28,13 @@ it('can\t add rule with invalid groupId', async () => {
 it('can get account', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(groupId, name)
+      system.addAccount(name)
     , TE.chain((account) => system.getAccount(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (_account) => {
             const account = _account.account
-            expect(account).toEqual(expect.objectContaining({ groupId: groupId, name: name }));
+            expect(account).toEqual(expect.objectContaining({ name: name }));
             expect(typeof account.id).toBe('string');
           }
       )
@@ -66,14 +44,14 @@ it('can get account', async () => {
 it('can list accounts', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(groupId, name)
-    , TE.chain((_) => system.listAccounts(groupId))
+      system.addAccount(name)
+    , TE.chain((_) => system.listAccounts())
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
             const account = accounts.accounts.filter((account: any) => account.name === name)[0]
 
-            expect(account).toEqual(expect.objectContaining({ groupId: groupId, name: name }));
+            expect(account).toEqual(expect.objectContaining({ name: name }));
             expect(typeof account.id).toBe('string');
           }
       )
@@ -83,9 +61,9 @@ it('can list accounts', async () => {
 it('can delete account', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(groupId, name)
+      system.addAccount(name)
     , TE.chain((account) => system.deleteAccount(account.id))
-    , TE.chain((_) => system.listAccounts(groupId))
+    , TE.chain((_) => system.listAccounts())
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
