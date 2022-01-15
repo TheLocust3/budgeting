@@ -6,10 +6,6 @@ import * as types from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys';
 
 export namespace Internal {
-  export type PlaidMetadata = {
-    _type: "Plaid";
-  }
-
   export type t = {
     id: O.Option<string>;
     sourceId: string;
@@ -18,16 +14,12 @@ export namespace Internal {
     description: string;
     authorizedAt: Date;
     capturedAt: O.Option<Date>;
-    metadata: PlaidMetadata;
+    metadata: object;
     custom: object; // TODO: JK remove
   }
 }
 
 export namespace Materialize {
-  export type PlaidMetadata = {
-    _type: "Plaid";
-  }
-
   export type t = {
     id: string;
     sourceId: string;
@@ -36,7 +28,7 @@ export namespace Materialize {
     description: string;
     authorizedAt: number;
     capturedAt: O.Option<number>;
-    metadata: PlaidMetadata;
+    metadata: object;
     custom: object;
   }
 
@@ -97,9 +89,6 @@ export namespace Materialize {
 }
 
 export namespace Json {
-  export const PlaidMetadata = iot.type({
-    _type: iot.literal("Plaid")
-  })
 
   export const Request = iot.type({
       sourceId: iot.string
@@ -108,7 +97,7 @@ export namespace Json {
     , description: iot.string
     , authorizedAt: iot.number
     , capturedAt: types.optionFromNullable(iot.number)
-    , metadata: PlaidMetadata
+    , metadata: iot.object
   });
 
   export namespace Field {
@@ -197,7 +186,7 @@ export namespace Database {
     , description: iot.string
     , authorized_at: types.date
     , captured_at: types.optionFromNullable(types.date)
-    , metadata: Json.PlaidMetadata
+    , metadata: iot.object
   })
 
   export const from = (transaction: any): E.Either<Error, Internal.t> => {

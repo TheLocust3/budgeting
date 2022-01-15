@@ -114,7 +114,7 @@ export type JsonTransaction = {
 }
 
 export const defaultTransaction: JsonTransaction = {
-  sourceId: "sourceId"
+    sourceId: "sourceId"
   , amount: 10
   , merchantName: "merchant name"
   , description: "description"
