@@ -57,6 +57,7 @@ export namespace Materialize {
 
     export type UpdateNumberField = NumberField | OptionNumberField | CustomNumberField;
     export type UpdateStringField = StringField | CustomStringField;
+    export type UpdateField = UpdateNumberField | UpdateStringField;
 
     export type t = NumberField | StringField;
   }

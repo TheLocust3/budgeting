@@ -7,8 +7,25 @@ import * as Transaction from '../model/transaction';
 import * as Rule from '../model/rule';
 import * as Plan from './plan';
 
+type Conflict = {
+  _type: "Conflict";
+  transaction: Transaction.Materialize.t;
+  rules: Rule.Internal.Update[];
+}
+
+type Wrapper = {
+  _type: "Wrapper";
+  transaction: Transaction.Materialize.t;
+}
+
+type Element = Conflict | Wrapper
+
 type Materializer = (transaction: Transaction.Materialize.t) => O.Option<Transaction.Materialize.t>;
+type MaterializerOrConflict = (transaction: Transaction.Materialize.t) => O.Option<Element>;
+
 type Update = (transaction: Transaction.Materialize.t) => Transaction.Materialize.t;
+type UpdateWithField = (transaction: Transaction.Materialize.t) => [Transaction.Materialize.t, O.Option<Transaction.Materialize.Field.UpdateField>];
+type UpdateOrConflict = (transaction: Transaction.Materialize.t) => Element;
 
 type Predicate = (transaction: Transaction.Materialize.t) => Boolean
 type EvaluateTo<T> = (transaction: Transaction.Materialize.t) => T
@@ -243,50 +260,87 @@ const buildInclude = (rule: Rule.Internal.Include): Predicate => {
   return buildClause(rule.clause);
 }
 
-const buildUpdateString = (rule: Rule.Internal.UpdateString): Update => {
+const buildUpdateString = (rule: Rule.Internal.UpdateString): UpdateWithField => {
   const where = buildClause(rule.where);
   const expression = buildStringExpression(rule.expression);
   return (transaction: Transaction.Materialize.t) => {
     if (where(transaction)) {
       return O.match(
-          () => transaction
-        , (value: string) => withString(transaction, rule.field, value)
+          () => <[Transaction.Materialize.t, O.Option<Transaction.Materialize.Field.UpdateField>]>[transaction, O.none]
+        , (value: string) => <[Transaction.Materialize.t, O.Option<Transaction.Materialize.Field.UpdateField>]>[withString(transaction, rule.field, value), O.some(rule.field)]
       )(expression(transaction))
     } else {
-      return transaction;
+      return [transaction, O.none];
     }
   };
 }
 
-const buildUpdateNumber = (rule: Rule.Internal.UpdateNumber): Update => {
+const buildUpdateNumber = (rule: Rule.Internal.UpdateNumber): UpdateWithField => {
   const where = buildClause(rule.where);
   const expression = buildNumberExpression(rule.expression);
-    return (transaction: Transaction.Materialize.t) => {
+  return (transaction: Transaction.Materialize.t) => {
     if (where(transaction)) {
       return O.match(
-          () => transaction
-        , (value: number) => withNumber(transaction, rule.field, value)
+          () => <[Transaction.Materialize.t, O.Option<Transaction.Materialize.Field.UpdateField>]>[transaction, O.none]
+        , (value: number) => <[Transaction.Materialize.t, O.Option<Transaction.Materialize.Field.UpdateField>]>[withNumber(transaction, rule.field, value), O.some(rule.field)]
       )(expression(transaction))
     } else {
-      return transaction;
+      return [transaction, O.none];
     }
   };
 }
 
-const buildUpdate = (rule: Rule.Internal.Update): Materializer => {
+const buildUpdate = (rule: Rule.Internal.Update): UpdateWithField => {
   switch (rule._type) {
     case "UpdateString":
-      return (transaction) => O.some(buildUpdateString(rule)(transaction));
+      return buildUpdateString(rule);
     case "UpdateNumber":
-      return (transaction) => O.some(buildUpdateNumber(rule)(transaction));
+      return buildUpdateNumber(rule);
   }
 }
 
-const buildStage = (stage: Plan.Stage): Materializer => {
-  const includeMaterializers = A.map(buildInclude)(stage.include);
-  const updateMaterializers = A.map(buildUpdate)(stage.update);
+const buildUpdateStage = (update: Rule.Internal.Update[]): UpdateOrConflict => {
+  return (transaction: Transaction.Materialize.t) => {
+    const updated = new Map();
+    const out = A.reduce(transaction, (inTransaction: Transaction.Materialize.t, update: Rule.Internal.Update) => {
+      const materializer = buildUpdate(update);
+      const [out, field] = materializer(inTransaction);
+      O.match(
+          () => {}
+        , (field: Transaction.Materialize.Field.UpdateField) => {
+            if (updated.has(field)) { // conflict
+              updated.set(field, updated.get(field).concat(update));
+            } else {
+              updated.set(field, [update])
+            }
+          }
+      )(field);
+      return out;
+    })(update);
 
-  // TODO: JK this could all be a bit more clear
+    const conflict: Conflict = pipe(
+        Array.from(updated.values())
+      , A.reduce({ _type: 'Conflict', transaction: transaction, rules: [] }, ({ transaction, rules }, updates) => {
+          if (updates.length > 1) {
+            return { _type: 'Conflict', transaction: transaction, rules: rules.concat(updates) }
+          } else {
+            return { _type: 'Conflict', transaction: transaction, rules: rules }
+          }
+        })
+    );
+
+    if (conflict.rules.length > 0) {
+      return conflict;
+    } else {
+      return { _type: 'Wrapper', transaction: out };
+    }
+  };
+}
+
+const buildStage = (stage: Plan.Stage): MaterializerOrConflict => {
+  const includeMaterializers = A.map(buildInclude)(stage.include);
+  const update = buildUpdateStage(stage.update)
+
   return (transaction: Transaction.Materialize.t) => pipe(
       includeMaterializers
     , A.reduce(O.none, (out: O.Option<Transaction.Materialize.t>, materializer) => O.match( // JK: construct an "or" of includes (a DNF)
@@ -299,18 +353,27 @@ const buildStage = (stage: Plan.Stage): Materializer => {
           }
         , (_) => O.some(transaction)
       )(out))
-    , O.chain((transaction) => 
-        A.reduce(O.some(transaction), (transaction: O.Option<Transaction.Materialize.t>, materializer: Materializer) =>
-          O.chain(materializer)(transaction)
-        )(updateMaterializers)
-      )
+    , O.map(update)
   );
 }
 
-export const build = (plan: Plan.t): Materializer => {
+export const build = (plan: Plan.t): MaterializerOrConflict => {
   return (transaction: Transaction.Materialize.t) => pipe(
       plan.stages
     , A.map(buildStage)
-    , A.reduce(O.some(transaction), (transaction, materializer) => pipe(transaction, O.map(materializer), O.flatten))
+    , A.reduce(<O.Option<Element>>O.some({ _type: 'Wrapper', transaction: transaction }), (transaction, materializer) => {
+        return pipe(
+            transaction
+          , O.map((transaction) => {
+              switch (transaction._type) {
+                case 'Conflict':
+                  return O.some(transaction); // short circuit conflicts
+                case 'Wrapper':
+                  return materializer(transaction.transaction)
+              }
+            })
+          , O.flatten
+        );
+      })
   );
 }

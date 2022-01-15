@@ -103,6 +103,46 @@ export namespace MetadataBuilder {
   export const plaid = { _type: "Plaid", };
 }
 
+export type JsonTransaction = {
+    sourceId: string
+  , amount: number
+  , merchantName: string
+  , description: string
+  , authorizedAt: Date
+  , capturedAt: O.Option<Date>
+  , metadata: any
+}
+
+export const defaultTransaction: JsonTransaction = {
+  sourceId: "sourceId"
+  , amount: 10
+  , merchantName: "merchant name"
+  , description: "description"
+  , authorizedAt: new Date()
+  , capturedAt: O.none
+  , metadata: MetadataBuilder.plaid
+}
+
+export const addTransaction = (system: System) => ({
+      sourceId
+    , amount
+    , merchantName
+    , description
+    , authorizedAt
+    , capturedAt
+    , metadata
+  }: JsonTransaction = defaultTransaction): TE.TaskEither<Error, any> => {
+  return system.addTransaction(
+      sourceId
+    , amount
+    , merchantName
+    , description
+    , authorizedAt
+    , capturedAt
+    , metadata
+  )
+}
+
 export class System {
   constructor(readonly host: string = 'localhost', readonly port: string = '3000') {}
 
@@ -245,6 +285,13 @@ export class System {
   }
 
   materialize(accountId: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.materializeFull(accountId)
+      , TE.map((res) => { return { transactions: res.transactions }; })
+    );
+  }
+
+  materializeFull(accountId: string): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask(`/accounts/${accountId}/materialize`)('GET')()
       , TE.chain(this.json)

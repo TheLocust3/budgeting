@@ -8,6 +8,7 @@ import { PathReporter } from 'io-ts/PathReporter';
 
 import * as Account from '../model/account';
 import * as Transaction from '../model/transaction';
+import * as Rule from '../model/rule';
 import * as AccountsTable from '../db/accounts';
 import * as RulesTable from '../db/rules';
 import { materialize } from '../materialize/index';
@@ -74,8 +75,17 @@ router
           , (account) => pipe(
               account
             , materialize(ctx.db)
-            , TE.map(A.map(Transaction.Materialize.to))
-            , TE.map(A.map(Transaction.Json.to))
+            , TE.map(({ transactions, conflicts }) => { // TODO: JK move this into some other place
+                return {
+                    transactions: pipe(transactions, A.map(Transaction.Materialize.to), A.map(Transaction.Json.to))
+                  , conflicts: A.map(({ transaction, rules }: { transaction: Transaction.Materialize.t, rules: Rule.Internal.Update[] }) => {
+                      return {
+                          transaction: pipe(transaction, Transaction.Materialize.to, Transaction.Json.to)
+                        , rules: rules
+                      };
+                    })(conflicts)
+                };
+              })
             , TE.map(O.some)
           )
         ))
@@ -90,7 +100,7 @@ router
               ctx.body = Message.error("Not found");
             },
             (transactions) => {
-              ctx.body = { transactions: transactions };
+              ctx.body = transactions;
             }
           )
         )

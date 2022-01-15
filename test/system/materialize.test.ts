@@ -4,46 +4,10 @@ import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 
-import { System, uuid, RuleBuilder, MetadataBuilder } from './util';
+import { System, uuid, RuleBuilder, MetadataBuilder, JsonTransaction, defaultTransaction, addTransaction as addTransaction2 } from './util';
 
-type Transaction = {
-    sourceId: string
-  , amount: number
-  , merchantName: string
-  , description: string
-  , authorizedAt: Date
-  , capturedAt: O.Option<Date>
-  , metadata: any
-}
-
-const defaultTransaction: Transaction = {
-  sourceId: "sourceId"
-  , amount: 10
-  , merchantName: "merchant name"
-  , description: "description"
-  , authorizedAt: new Date()
-  , capturedAt: O.none
-  , metadata: MetadataBuilder.plaid
-}
-
-const addTransaction = ({
-      sourceId
-    , amount
-    , merchantName
-    , description
-    , authorizedAt
-    , capturedAt
-    , metadata
-  }: Transaction = defaultTransaction): TE.TaskEither<Error, any> => {
-  return system.addTransaction(
-      sourceId
-    , amount
-    , merchantName
-    , description
-    , authorizedAt
-    , capturedAt
-    , metadata
-  )
+const addTransaction = (transaction: JsonTransaction = defaultTransaction): TE.TaskEither<Error, any> => {
+  return addTransaction2(system)(transaction);
 }
 
 let system: System;

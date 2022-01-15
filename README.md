@@ -64,22 +64,20 @@ Run the test suite:
 ## todo
 
 ### next
- - Update conflict resolution
-   - needs to be done on materialization
  - put together demo
+ - request logging
+ - Clean up TODO: JK's
+ - Don't build plan/stages for every transaction
+ - frontends
+   - move route logic to frontend module
+   - all pure functions
+   - scrub errors before returning to route
+ - run linter
 
 ### future
-  - request logging
-  - Don't build plan/stages for every transaction
-    - this is just silly
-  - frontends
-    - move route logic to frontend module
-    - all pure functions
-    - scrub errors before returning to route
-  - Allow metadata access via rules
+ - Allow metadata access via rules
 
 ### miscellaneous
  - unit tests against frontends/components
- - run linter
  - no need for camelize if columns are renamed in select
  - abstract common db queries/operations
