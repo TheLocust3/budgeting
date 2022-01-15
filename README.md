@@ -64,7 +64,7 @@ Run the test suite:
 ## todo
 
 ### next
- - put together demo
+ - expect unordered lists in tests
  - request logging
  - Clean up TODO: JK's
  - Don't build plan/stages for every transaction
