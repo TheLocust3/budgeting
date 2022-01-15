@@ -343,6 +343,60 @@ it('can materialize for specific transaction operating on amount (gte)', async (
   )();
 });
 
+it('can materialize for specific transaction with exists', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+  const capturedAt = new Date()
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind('rule1', ({ account }) => {
+        return system.addRule(account.id, RuleBuilder.include(
+          RuleBuilder.and(
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.exists("capturedAt")
+          )
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction1, transaction2, rows }) => {
+            expect(rows).toEqual({ transactions: [transaction1] });
+          }
+      )
+  )();
+});
+
+it('can materialize for specific transaction with exists (not)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+  const capturedAt = new Date()
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind('rule1', ({ account }) => {
+        return system.addRule(account.id, RuleBuilder.include(
+          RuleBuilder.and(
+              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+            , RuleBuilder.not(RuleBuilder.exists("capturedAt"))
+          )
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction1, transaction2, rows }) => {
+            expect(rows).toEqual({ transactions: [transaction2] });
+          }
+      )
+  )();
+});
+
 it('can update a specific transaction 1', async () => {
   const name = `test-${uuid()}`;
   await pipe(

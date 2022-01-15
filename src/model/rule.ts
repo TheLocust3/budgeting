@@ -37,7 +37,12 @@ export namespace Internal {
       value: number;
     }
 
-    export type t = And | Not | StringMatch | NumberMatch
+    export type Exists = { 
+      _type: "Exists";
+      field: Transaction.Materialize.Field.OptionNumberField;
+    }
+
+    export type t = And | Not | StringMatch | NumberMatch | Exists
   }
 
   export namespace Expression {
@@ -201,7 +206,12 @@ export namespace Json {
       , value: iot.number
     });
 
-    export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, StringMatch, NumberMatch]));
+    export const Exists: iot.Type<Internal.Clause.Exists> = iot.type({
+        _type: iot.literal("Exists")
+      , field: Transaction.Json.Field.OptionNumberField
+    });
+
+    export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, StringMatch, NumberMatch, Exists]));
   }
 
   export namespace Expression {

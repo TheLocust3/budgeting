@@ -51,7 +51,7 @@ const withNumber = (
 }
 
 const buildStringPredicate = (field: Transaction.Materialize.Field.StringField) => (pred: (value: string) => Boolean): Predicate => {
-  return (transaction) => pred(transaction[field]); // TODO: JK need further refinement to get rid of this toString (string | Date | Option<Date>)
+  return (transaction) => pred(transaction[field]);
 }
 
 const buildNumberPredicate = (field: Transaction.Materialize.Field.NumberField) => (pred: (value: number) => Boolean): Predicate => {
@@ -91,6 +91,10 @@ const buildNumberMatch = (rule: Rule.Internal.Clause.NumberMatch): Predicate => 
   }
 }
 
+const buildExists = (rule: Rule.Internal.Clause.Exists): Predicate => {
+  return (transaction: Transaction.Materialize.t) => O.match(() => false, (_) => true)(transaction[rule.field]);
+}
+
 const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
   switch (clause._type) {
     case "And":
@@ -106,6 +110,9 @@ const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
     case "NumberMatch":
       const numberMatch = buildNumberMatch(clause)
       return (transaction: Transaction.Materialize.t) => numberMatch(transaction);
+    case "Exists":
+      const exists = buildExists(clause)
+      return (transaction: Transaction.Materialize.t) => exists(transaction);
   }
 }
 

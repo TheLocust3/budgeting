@@ -30,6 +30,10 @@ export namespace RuleBuilder {
     return { _type: "NumberMatch", field: field, operator: operator, value: value };
   }
 
+  export const exists = (field: string) => {
+    return { _type: "Exists", field: field };
+  }
+
   export const add = (left: any, right: any) => {
     return { _type: "Add", left: left, right: right };
   }
