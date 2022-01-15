@@ -66,7 +66,6 @@ Run the test suite:
 ### next
  - Update conflict resolution
  - Complete rules
-   - Properly handle dates
    - Exists operator, regex operator (only glob operator)
  - Accounts hierarchy
    - 1 global account per user

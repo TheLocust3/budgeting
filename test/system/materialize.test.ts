@@ -447,6 +447,86 @@ it('can update a specific transaction 4', async () => {
   )();
 });
 
+it('can update a specific transaction 5', async () => {
+  const name = `test-${uuid()}`;
+  const authorizedAt = new Date();
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction({ ... defaultTransaction, authorizedAt: authorizedAt }))
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateNumber(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , "authorizedAt"
+          , RuleBuilder.add(RuleBuilder.numberRef("authorizedAt"), RuleBuilder.numberLit(1000))
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, authorizedAt: authorizedAt.getTime() + 1000 }] });
+          }
+      )
+  )();
+});
+
+it('can update a specific transaction (update none capturedAt)', async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateNumber(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , "capturedAt"
+          , RuleBuilder.add(RuleBuilder.numberRef("capturedAt"), RuleBuilder.numberLit(1000))
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [] });
+          }
+      )
+  )();
+});
+
+it('can update a specific transaction (update some capturedAt)', async () => {
+  const name = `test-${uuid()}`;
+  const capturedAt = new Date()
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(groupId, name))
+    , TE.bind('transaction', () => addTransaction({ ...defaultTransaction, capturedAt: O.some(capturedAt) }))
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.updateNumber(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , "capturedAt"
+          , RuleBuilder.add(RuleBuilder.numberRef("capturedAt"), RuleBuilder.numberLit(1000))
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual({ transactions: [{ ...transaction, capturedAt: capturedAt.getTime() + 1000 }] });
+          }
+      )
+  )();
+});
+
 it('can add string field to a specific transaction', async () => {
   const name = `test-${uuid()}`;
   await pipe(
