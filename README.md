@@ -33,10 +33,6 @@ Run the test suite:
 ## todo
 
 ### next
- - frontends
-   - move route logic to frontend module
-   - all pure functions
-   - scrub errors before returning to route
  - Attach Rule
    - To add metadata
    - Re-purpose update + restrict it

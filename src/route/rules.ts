@@ -9,7 +9,6 @@ import { PathReporter } from 'io-ts/PathReporter';
 import RuleFrontend from '../frontend/rule-frontend';
 
 import * as Rule from '../model/rule';
-import * as RulesTable from '../db/rules';
 import { Message } from './util';
 import { fromQuery } from '../model/util';
 

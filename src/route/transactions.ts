@@ -9,7 +9,6 @@ import { PathReporter } from 'io-ts/PathReporter';
 import TransactionFrontend from '../frontend/transaction-frontend';
 
 import * as Transaction from '../model/transaction';
-import * as TransactionsTable from '../db/transactions';
 import { Message } from './util';
 
 export const router = new Router();
