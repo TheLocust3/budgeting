@@ -626,7 +626,7 @@ it('can update a specific transaction (update none capturedAt)', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [] });
+            expect(rows).toEqual({ transactions: [transaction] });
           }
       )
   )();

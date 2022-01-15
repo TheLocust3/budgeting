@@ -8,6 +8,7 @@ import * as Rule from '../model/rule';
 import * as Plan from './plan';
 
 type Materializer = (transaction: Transaction.Materialize.t) => O.Option<Transaction.Materialize.t>;
+type Update = (transaction: Transaction.Materialize.t) => Transaction.Materialize.t;
 
 type Predicate = (transaction: Transaction.Materialize.t) => Boolean
 type EvaluateTo<T> = (transaction: Transaction.Materialize.t) => T
@@ -242,28 +243,42 @@ const buildInclude = (rule: Rule.Internal.Include): Predicate => {
   return buildClause(rule.clause);
 }
 
-const buildUpdateString = (rule: Rule.Internal.UpdateString): Materializer => {
+const buildUpdateString = (rule: Rule.Internal.UpdateString): Update => {
   const where = buildClause(rule.where);
   const expression = buildStringExpression(rule.expression);
   return (transaction: Transaction.Materialize.t) => {
-    return O.map((value: string) => withString(transaction, rule.field, value))(expression(transaction))
+    if (where(transaction)) {
+      return O.match(
+          () => transaction
+        , (value: string) => withString(transaction, rule.field, value)
+      )(expression(transaction))
+    } else {
+      return transaction;
+    }
   };
 }
 
-const buildUpdateNumber = (rule: Rule.Internal.UpdateNumber): Materializer => {
+const buildUpdateNumber = (rule: Rule.Internal.UpdateNumber): Update => {
   const where = buildClause(rule.where);
   const expression = buildNumberExpression(rule.expression);
-  return (transaction: Transaction.Materialize.t) => {
-    return O.map((value: number) => withNumber(transaction, rule.field, value))(expression(transaction))
+    return (transaction: Transaction.Materialize.t) => {
+    if (where(transaction)) {
+      return O.match(
+          () => transaction
+        , (value: number) => withNumber(transaction, rule.field, value)
+      )(expression(transaction))
+    } else {
+      return transaction;
+    }
   };
 }
 
 const buildUpdate = (rule: Rule.Internal.Update): Materializer => {
   switch (rule._type) {
     case "UpdateString":
-      return buildUpdateString(rule);
+      return (transaction) => O.some(buildUpdateString(rule)(transaction));
     case "UpdateNumber":
-      return buildUpdateNumber(rule);
+      return (transaction) => O.some(buildUpdateNumber(rule)(transaction));
   }
 }
 
