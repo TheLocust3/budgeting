@@ -6,6 +6,8 @@ import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { PathReporter } from 'io-ts/PathReporter';
 
+import AccountFrontend from '../frontend/account-frontend';
+
 import * as Account from '../model/account';
 import * as Transaction from '../model/transaction';
 import * as Rule from '../model/rule';
@@ -23,38 +25,27 @@ router
         ctx.query.groupId
       , fromQuery
       , TE.fromEither
-      , TE.chain(AccountsTable.byGroupId(ctx.db))
+      , TE.chain(AccountFrontend.getByGroupId(ctx.db))
       , TE.map(A.map(Account.Json.to))
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (accounts) => {
-            ctx.body = { accounts: accounts };
-          }
+            Message.respondWithError(ctx)
+          , (accounts) => {
+              ctx.body = { accounts: accounts };
+            }
         )
     )();
   })
   .get('/:accountId', async (ctx, next) => {
     const accountId = ctx.params.accountId
     await pipe(
-        AccountsTable.byId(ctx.db)(accountId)
-      , TE.map(O.map(Account.Json.to))
+        accountId
+      , AccountFrontend.getById(ctx.db)
+      , TE.map(Account.Json.to)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          O.match(
-            () => {
-              ctx.status = 404
-              ctx.body = Message.error("Not found");
-            },
-            (account) => {
+            Message.respondWithError(ctx)
+          , (account) => {
               ctx.body = { account: account };
             }
-          )
         )
     )();
   })
@@ -111,31 +102,26 @@ router
         ctx.request.body
       , Account.Json.from
       , TE.fromEither
-      , TE.chain(AccountsTable.create(ctx.db))
+      , TE.chain(AccountFrontend.create(ctx.db))
       , TE.map(Account.Json.to)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (account) => {
-            ctx.body = account;
-          }
+            Message.respondWithError(ctx)
+          , (account) => {
+              ctx.body = account;
+            }
         )
     )();
   })
   .delete('/:accountId', async (ctx, next) => {
     const accountId = ctx.params.accountId
     await pipe(
-        AccountsTable.deleteById(ctx.db)(accountId)
+        accountId
+      , AccountFrontend.deleteById(ctx.db)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (_) => {
-            ctx.body = Message.ok;
-          }
+            Message.respondWithError(ctx)
+          , (_) => {
+              ctx.body = Message.ok;
+            }
         )
     )();
   })

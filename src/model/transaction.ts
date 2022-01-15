@@ -5,6 +5,8 @@ import * as iot from 'io-ts';
 import * as types from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys';
 
+import { throwMalformedJson, Exception } from '../exception';
+
 export namespace Internal {
   export type t = {
     id: O.Option<string>;
@@ -143,7 +145,7 @@ export namespace Json {
     ]);
   }
 
-  export const from = (transaction: any): E.Either<Error, Internal.t> => {
+  export const from = (transaction: any): E.Either<Exception, Internal.t> => {
     return pipe(
         transaction
       , Request.decode
@@ -151,7 +153,7 @@ export namespace Json {
           const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt);
           return { ...transaction, id: O.none, authorizedAt: new Date(transaction.authorizedAt), capturedAt: capturedAt, custom: {} };
         })
-      , E.mapLeft(E.toError)
+      , E.mapLeft((_) => throwMalformedJson)
     );
   }
 

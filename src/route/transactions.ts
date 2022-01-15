@@ -6,6 +6,8 @@ import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { PathReporter } from 'io-ts/PathReporter';
 
+import TransactionFrontend from '../frontend/transaction-frontend';
+
 import * as Transaction from '../model/transaction';
 import * as TransactionsTable from '../db/transactions';
 import { Message } from './util';
@@ -15,38 +17,27 @@ export const router = new Router();
 router
   .get('/', async (ctx, next) => {
     await pipe(
-        TransactionsTable.all(ctx.db)()
+        TransactionFrontend.all(ctx.db)()
       , TE.map(A.map(Transaction.Json.to))
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (transactions) => {
-            ctx.body = { transactions: transactions };
-          }
+            Message.respondWithError(ctx)
+          , (transactions) => {
+              ctx.body = { transactions: transactions };
+            }
         )
     )();
   })
   .get('/:transactionId', async (ctx, next) => {
     const transactionId = ctx.params.transactionId
     await pipe(
-        TransactionsTable.byId(ctx.db)(transactionId)
-      , TE.map(O.map(Transaction.Json.to))
+        transactionId
+      , TransactionFrontend.getById(ctx.db)
+      , TE.map(Transaction.Json.to)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          O.match(
-            () => {
-              ctx.status = 404
-              ctx.body = Message.error("Not found");
-            },
-            (transaction) => {
+            Message.respondWithError(ctx)
+          , (transaction) => {
               ctx.body = { transaction: transaction };
             }
-          )
         )
     )();
   })
@@ -55,31 +46,26 @@ router
         ctx.request.body
       , Transaction.Json.from
       , TE.fromEither
-      , TE.chain(TransactionsTable.create(ctx.db))
+      , TE.chain(TransactionFrontend.create(ctx.db))
       , TE.map(Transaction.Json.to)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (transaction) => {
-            ctx.body = transaction;
-          }
+            Message.respondWithError(ctx)
+          , (transaction) => {
+              ctx.body = transaction;
+            }
         )
     )();
   })
   .delete('/:transactionId', async (ctx, next) => {
     const transactionId = ctx.params.transactionId
     await pipe(
-        TransactionsTable.deleteById(ctx.db)(transactionId)
+        transactionId
+      , TransactionFrontend.deleteById(ctx.db)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (_) => {
-            ctx.body = Message.ok;
-          }
+            Message.respondWithError(ctx)
+          , (_) => {
+              ctx.body = Message.ok;
+            }
         )
     )();
   });

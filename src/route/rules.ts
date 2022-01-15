@@ -6,6 +6,8 @@ import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { PathReporter } from 'io-ts/PathReporter';
 
+import RuleFrontend from '../frontend/rule-frontend';
+
 import * as Rule from '../model/rule';
 import * as RulesTable from '../db/rules';
 import { Message } from './util';
@@ -19,13 +21,10 @@ router
         ctx.query.accountId
       , fromQuery
       , TE.fromEither
-      , TE.chain(RulesTable.byAccountId(ctx.db))
+      , TE.chain(RuleFrontend.getByAccountId(ctx.db))
       , TE.map(A.map(Rule.Json.to))
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
+          Message.respondWithError(ctx),
           (rules) => {
             ctx.body = { rules: rules };
           }
@@ -35,22 +34,14 @@ router
   .get('/:ruleId', async (ctx, next) => {
     const ruleId = ctx.params.ruleId
     await pipe(
-        RulesTable.byId(ctx.db)(ruleId)
-      , TE.map(O.map(Rule.Json.to))
+        ruleId
+      , RuleFrontend.getById(ctx.db)
+      , TE.map(Rule.Json.to)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          O.match(
-            () => {
-              ctx.status = 404
-              ctx.body = Message.error("Not found");
-            },
-            (rule) => {
+            Message.respondWithError(ctx)
+          , (rule) => {
               ctx.body = { rule: rule };
             }
-          )
         )
     )();
   })
@@ -59,31 +50,26 @@ router
         ctx.request.body
       , Rule.Json.from
       , TE.fromEither
-      , TE.chain(RulesTable.create(ctx.db))
+      , TE.chain(RuleFrontend.create(ctx.db))
       , TE.map(Rule.Json.to)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (rule) => {
-            ctx.body = rule;
-          }
+            Message.respondWithError(ctx)
+          , (rule) => {
+              ctx.body = rule;
+            }
         )
     )();
   })
   .delete('/:ruleId', async (ctx, next) => {
     const ruleId = ctx.params.ruleId
     await pipe(
-        RulesTable.deleteById(ctx.db)(ruleId)
+        ruleId
+      , RuleFrontend.deleteById(ctx.db)
       , TE.match(
-          (_) => {
-            ctx.status = 400
-            ctx.body = Message.error("Bad request");
-          },
-          (_) => {
-            ctx.body = Message.ok;
-          }
+            Message.respondWithError(ctx)
+          , (_) => {
+              ctx.body = Message.ok;
+            }
         )
     )();
   });

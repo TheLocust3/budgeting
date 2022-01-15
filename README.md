@@ -33,27 +33,39 @@ Run the test suite:
 ## todo
 
 ### next
- - Rules are only splits between sub accounts
-   - Percentage splits only to start
-   - Splits only operate on amount
-   - On create, validate accounts are real + percents add up to 100%
- - Attach rule
-   - To add metadata
- - `materialize/:accountId`
-   - Transactions come out tagged with sub accounts and with uncategorized
-   - Still need conflicts if two rules match modifying the same field
- - Fully model splits
-   - Percentage (list of account + percent), numeric (list of account + value, remainder pointing to account)
- - expect unordered lists in tests
- - request logging
- - Clean up TODO: JK's
-
-### future
- - Don't build plan/stages for every transaction
+ - remove group id
  - frontends
    - move route logic to frontend module
    - all pure functions
    - scrub errors before returning to route
+ - Attach Rule
+   - To add metadata
+   - Re-purpose update + restrict it
+ - Percentage Split Rule
+   - \_type: "Percent"
+   - where: Clause
+   - field is always amount
+   - by: array of Percent ({ account, percent })
+   - must validate account ids + percent == 100
+ - Numeric Split Rule:
+   - \_type: "Percent"
+   - where: Clause
+   - field is always amount
+   - by: array of Value ({ account, value })
+   - remainder: account
+   - if amount < total, amounts are split in order
+   - must validate account ids
+ - `materialize/:accountId`
+   - Transactions come out tagged with sub accounts and with uncategorized
+   - Still need conflicts if two rules match modifying the same field
+ - Split-split conflicts + attach-attach conflicts
+   - Generalize update conflicts
+
+### future
+ - expect unordered lists in tests
+ - request logging
+ - Clean up TODO: JK's
+ - Don't build plan/stages for every transaction
  - run linter
  - Aggregations
 

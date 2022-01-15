@@ -6,6 +6,7 @@ import * as types from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys'
 
 import * as Rule from './rule';
+import { throwMalformedJson, Exception } from '../exception';
 
 export namespace Internal {
   export type t = {
@@ -24,12 +25,12 @@ export namespace Json {
     , name: iot.string
   });
 
-  export const from = (account: any): E.Either<Error, Internal.t> => {
+  export const from = (account: any): E.Either<Exception, Internal.t> => {
     return pipe(
         account
       , Request.decode
-      , E.map(account => { return { ...account, id: O.none, rules: [] }; })
-      , E.mapLeft(E.toError)
+      , E.map((account) => { return { ...account, id: O.none, rules: [] }; })
+      , E.mapLeft((_) => throwMalformedJson)
     );
   }
 

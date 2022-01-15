@@ -5,6 +5,7 @@ import * as iot from 'io-ts';
 import camelcaseKeys from 'camelcase-keys'
 
 import * as Transaction from '../model/transaction';
+import { throwMalformedJson, Exception } from '../exception';
 
 export namespace Internal {
   export namespace Clause {
@@ -324,12 +325,12 @@ export namespace Json {
     , rule: Rule
   });
 
-  export const from = (rule: any): E.Either<Error, Internal.t> => {
+  export const from = (rule: any): E.Either<Exception, Internal.t> => {
     return pipe(
         rule
       , Request.decode
       , E.map(rule => { return { ...rule, id: O.none }; })
-      , E.mapLeft(E.toError)
+      , E.mapLeft((_) => throwMalformedJson)
     );
   }
 
