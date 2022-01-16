@@ -10,7 +10,7 @@ import AccountFrontend from '../frontend/account-frontend';
 import * as Account from '../model/account';
 import * as Transaction from '../model/transaction';
 import * as Rule from '../model/rule';
-import { materialize } from '../materialize/index';
+import * as Materialize from '../materialize/index';
 import { Message } from './util';
 import { fromQuery } from '../model/util';
 
@@ -50,18 +50,8 @@ router
       , AccountFrontend.getByIdWithRules(ctx.db)
       , TE.chain((account) => pipe(
             account
-          , materialize(ctx.db)
-          , TE.map(({ transactions, conflicts }) => { // TODO: JK move this into some other place
-              return {
-                  transactions: pipe(transactions, A.map(Transaction.Materialize.to), A.map(Transaction.Json.to))
-                , conflicts: A.map(({ transaction, rules }: { transaction: Transaction.Materialize.t, rules: Rule.Internal.Update[] }) => {
-                    return {
-                        transaction: pipe(transaction, Transaction.Materialize.to, Transaction.Json.to)
-                      , rules: rules
-                    };
-                  })(conflicts)
-              };
-            })
+          , Materialize.execute(ctx.db)
+          , TE.map(Materialize.Json.to)
         ))
       , TE.match(
             Message.respondWithError(ctx)

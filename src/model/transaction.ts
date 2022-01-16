@@ -35,23 +35,9 @@ export namespace Materialize {
   }
 
   export namespace Field {
-    export type CustomStringField = {
-      _type: "CustomStringField";
-      field: string;
-    }
-
-    export type CustomNumberField = {
-      _type: "CustomNumberField";
-      field: string;
-    }
-
     export type NumberField = "amount" | "authorizedAt" | "capturedAt";
     export type OptionNumberField = "capturedAt";
     export type StringField = "id" | "sourceId" | "merchantName" | "description";
-
-    export type UpdateNumberField = NumberField | OptionNumberField | CustomNumberField;
-    export type UpdateStringField = StringField | CustomStringField;
-    export type UpdateField = UpdateNumberField | UpdateStringField;
 
     export type t = NumberField | StringField;
   }
@@ -103,16 +89,6 @@ export namespace Json {
   });
 
   export namespace Field {
-    export const CustomStringField: iot.Type<Materialize.Field.CustomStringField> = iot.type({
-        _type: iot.literal("CustomStringField")
-      , field: iot.string
-    });
-
-    export const CustomNumberField: iot.Type<Materialize.Field.CustomNumberField> = iot.type({
-        _type: iot.literal("CustomNumberField")
-      , field: iot.string
-    });
-
     export const NumberField: iot.Type<Materialize.Field.NumberField> = iot.union([
         iot.literal("amount")
       , iot.literal("authorizedAt")
@@ -126,17 +102,6 @@ export namespace Json {
       , iot.literal("sourceId")
       , iot.literal("merchantName")
       , iot.literal("description")
-    ]);
-
-    export const UpdateStringField: iot.Type<Materialize.Field.UpdateStringField> = iot.union([
-        StringField
-      , CustomStringField
-    ]);
-
-    export const UpdateNumberField: iot.Type<Materialize.Field.UpdateNumberField> = iot.union([
-        NumberField
-      , OptionNumberField
-      , CustomNumberField
     ]);
 
     export const t: iot.Type<Materialize.Field.t> = iot.union([

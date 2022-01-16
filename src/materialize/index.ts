@@ -20,12 +20,38 @@ import * as Materializer from './materializer';
 import { Array } from '../model/util';
 import { Exception } from '../exception';
 
-type Materialized = {
-    transactions: Transaction.Materialize.t[];
-    conflicts: {
-      transaction: Transaction.Materialize.t;
-      rules: Rule.Internal.Update[];
-    }[];
+export type t = {
+  conflicts: Materializer.Conflict[];
+  tagged: { tag: string, elements: Transaction.Materialize.t[] }[];
+  untagged: Transaction.Materialize.t[];
+};
+
+export namespace Json {
+  namespace Conflict {
+    export const to = (conflict: Materializer.Conflict): any => {
+      return {
+          element: pipe(conflict.element, Transaction.Materialize.to, Transaction.Json.to)
+        , rules: pipe(conflict.rules, A.map(Rule.Json.to))
+      };
+    }
+  }
+
+  namespace Tagged {
+    export const to = ({ tag, elements }: { tag: string, elements: Transaction.Materialize.t[] }): any => {
+      return {
+          tag: tag
+        , elements: pipe(elements, A.map(Transaction.Materialize.to), A.map(Transaction.Json.to))
+      };
+    }
+  }
+
+  export const to = (materialized: t): any => {
+    return {
+        conflicts: A.map(Conflict.to)(materialized.conflicts)
+      , tagged: A.map(Tagged.to)(materialized.tagged)
+      , untagged: pipe(materialized.untagged, A.map(Transaction.Materialize.to), A.map(Transaction.Json.to))
+    }
+  }
 }
 
 const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, Account.Internal.t[]> => {
@@ -40,7 +66,7 @@ const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEit
   )(account.parentId);
 }
 
-export const materialize = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, Materialized> => {
+export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, t> => {
   // TODO: JK track materialize logs with id
   console.log(`materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   
@@ -56,16 +82,22 @@ export const materialize = (pool: Pool) => (account: Account.Internal.t): TE.Tas
             TransactionFrontend.all(pool)()
           , TE.map(A.map(Transaction.Materialize.from))
           , TE.map(A.map(materializer))
-          , TE.map(Array.flattenOption)
-          , TE.map(A.reduce(<Materialized>{ transactions: [], conflicts: []}, ({ transactions, conflicts }, element) => {
+          , TE.map(A.reduce(<t>{ conflicts: [], tagged: [], untagged: [] }, ({ conflicts, tagged, untagged }, element) => { // TODO: JK need to initialize tagged array
               switch (element._type) {
-                case 'Conflict':
-                return {
-                    transactions: transactions
-                  , conflicts: conflicts.concat({ transaction: element.transaction, rules: element.rules })
-                };
-                case 'Wrapper':
-                  return { transactions: transactions.concat(element.transaction), conflicts: conflicts };
+                case "Conflict":
+                  return { conflicts: conflicts.concat(element), tagged: tagged, untagged: untagged };
+                case "Tagged":
+                  const newTagged = A.map(({ tag, elements }: { tag: string, elements: Transaction.Materialize.t[] }) => {
+                    if (tag == element.tag) {
+                      return { tag: tag, elements: elements.concat(element.element) };
+                    } else {
+                      return { tag: tag, elements: elements };
+                    }
+                  })(tagged)
+
+                  return { conflicts: conflicts, tagged: newTagged, untagged: untagged };
+                case "Untagged":
+                  return { conflicts: conflicts, tagged: tagged, untagged: untagged.concat(element.element) };
               }
             }))
         );

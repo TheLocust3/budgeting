@@ -52,110 +52,64 @@ export namespace Internal {
     export type t = And | Not | StringMatch | NumberMatch | Exists | StringGlob
   }
 
-  export namespace Expression {
-    export type Add = {
-      _type: "Add";
-      left: NumberExpression;
-      right: NumberExpression;
-    }
-
-    export type Sub = {
-      _type: "Sub";
-      left: NumberExpression;
-      right: NumberExpression;
-    }
-
-    export type Mul = {
-      _type: "Mul";
-      left: NumberExpression;
-      right: NumberExpression;
-    }
-
-    export type Div = {
-      _type: "Div";
-      left: NumberExpression;
-      right: NumberExpression;
-    }
-
-    export type Exp = {
-      _type: "Exp";
-      term: NumberExpression;
-      power: NumberExpression;
-    }
-
-    export type Concat = {
-      _type: "Concat";
-      left: t;
-      right: t;
-    }
-
-    export type StringReference = {
-      _type: "StringReference";
-      field: Transaction.Materialize.Field.StringField;
-    }
-
-    export type NumberReference = {
-      _type: "NumberReference";
-      field: Transaction.Materialize.Field.NumberField;
-    }
-
-    export type StringLiteral = {
-      _type: "StringLiteral";
+  export namespace Attach {
+    export type t = {
+      _type: "Attach";
+      where: Clause.t;
+      field: string;
       value: string;
     }
+  }
 
-    export type NumberLiteral = {
-      _type: "NumberLiteral";
+  export namespace Split {
+    export type Percent = {
+      _type: "Percent";
+      account: string;
+      percent: number;
+    }
+
+    export type Value = {
+      _type: "Value";
+      account: string;
       value: number;
     }
 
-    export type NumberExpression = Add | Sub | Mul | Div | Exp | NumberReference | NumberLiteral
-    export type StringExpression = Concat | StringReference | StringLiteral
+    export type SplitByPercent = {
+      _type: "SplitByPercent";
+      where: Clause.t;
+      splits: Percent[];
+    }
 
-    export type t = NumberExpression | StringExpression
+    export type SplitByValue = {
+      _type: "SplitByValue";
+      where: Clause.t;
+      splits: Value[];
+      remainder: Value;
+    }
+
+    export type t = SplitByPercent | SplitByValue
   }
 
-  export type Include = {
-    _type: "Include";
-    clause: Clause.t;
-  }
+  export type Rule = Attach.t | Split.t
 
-  export type UpdateString = {
-    _type: "UpdateString";
-    where: Clause.t;
-    field: Transaction.Materialize.Field.UpdateStringField;
-    expression: Expression.StringExpression;
-  }
-
-  export type UpdateNumber = {
-    _type: "UpdateNumber";
-    where: Clause.t;
-    field: Transaction.Materialize.Field.UpdateNumberField;
-    expression: Expression.NumberExpression;
-  }
-
-  export type Update = UpdateString | UpdateNumber
-
-  export type Rule = Include | Update
-
-  export const collectInclude = (rule: Rule): O.Option<Include> => {
+  export const collectAttach = (rule: Rule): O.Option<Attach.t> => {
     switch (rule._type) {
-      case "Include":
+      case "Attach":
         return O.some(rule);
-      case "UpdateString":
+      case "SplitByPercent":
         return O.none;
-      case "UpdateNumber":
+      case "SplitByValue":
         return O.none;
     }
   }
 
-  export const collectUpdate = (rule: Rule): O.Option<Update> => {
+  export const collectSplit = (rule: Rule): O.Option<Split.t> => {
     switch (rule._type) {
-      case "Include":
+      case "Attach":
         return O.none;
-      case "UpdateString":
+      case "SplitByPercent":
         return O.some(rule);
-      case "UpdateNumber":
+      case "SplitByValue":
         return O.some(rule);
     }
   }
@@ -227,98 +181,45 @@ export namespace Json {
     export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, StringMatch, NumberMatch, Exists, StringGlob]));
   }
 
-  export namespace Expression {
-    export const Add: iot.Type<Internal.Expression.Add> = iot.recursion("NumberExpression", () => iot.type({
-        _type: iot.literal("Add")
-      , left: NumberExpression
-      , right: NumberExpression
-    }));
-
-    export const Sub: iot.Type<Internal.Expression.Sub> = iot.recursion("NumberExpression", () => iot.type({
-        _type: iot.literal("Sub")
-      , left: NumberExpression
-      , right: NumberExpression
-    }));
-
-    export const Mul: iot.Type<Internal.Expression.Mul> = iot.recursion("NumberExpression", () => iot.type({
-        _type: iot.literal("Mul")
-      , left: NumberExpression
-      , right: NumberExpression
-    }));
-
-    export const Div: iot.Type<Internal.Expression.Div> = iot.recursion("NumberExpression", () => iot.type({
-        _type: iot.literal("Div")
-      , left: NumberExpression
-      , right: NumberExpression
-    }));
-
-    export const Exp: iot.Type<Internal.Expression.Exp> = iot.recursion("NumberExpression", () => iot.type({
-        _type: iot.literal("Exp")
-      , term: NumberExpression
-      , power: NumberExpression
-    }));
-
-    export const Concat: iot.Type<Internal.Expression.Concat> = iot.recursion("t", () => iot.type({
-        _type: iot.literal("Concat")
-      , left: t
-      , right: t
-    }));
-
-    export const StringReference = iot.type({
-        _type: iot.literal("StringReference")
-      , field: Transaction.Json.Field.StringField
-    });
-
-    export const NumberReference = iot.type({
-        _type: iot.literal("NumberReference")
-      , field: Transaction.Json.Field.NumberField
-    });
-
-    export const StringLiteral = iot.type({
-        _type: iot.literal("StringLiteral")
+  export namespace Attach {
+    export const t = iot.type({
+        _type: iot.literal("Attach")
+      , where: Clause.t
+      , field: iot.string
       , value: iot.string
-    });
-
-    export const NumberLiteral = iot.type({
-        _type: iot.literal("NumberLiteral")
-      , value: iot.number
-    });
-
-    export const NumberExpression = iot.recursion<Internal.Expression.NumberExpression>("NumberExpression", () => {
-      return iot.union([Add, Sub, Mul, Div, Exp, NumberReference, NumberLiteral])
-    });
-
-    export const StringExpression = iot.recursion<Internal.Expression.StringExpression>("StringExpression", () => {
-      return iot.union([Concat, StringReference, StringLiteral])
-    });
-
-    export const t = iot.recursion<Internal.Expression.t>("t", () => {
-      return iot.union([NumberExpression, StringExpression])
     });
   }
 
-  export const Include = iot.type({
-      _type: iot.literal("Include")
-    , clause: Clause.t
-  });
+  export namespace Split {
+    export const Percent = iot.type({
+        _type: iot.literal("Percent")
+      , account: iot.string
+      , percent: iot.number
+    });
 
-  export const UpdateString = iot.type({
-      _type: iot.literal("UpdateString")
-    , where: Clause.t
-    , field: Transaction.Json.Field.UpdateStringField
-    , expression: Expression.StringExpression
-  });
+    export const Value = iot.type({
+        _type: iot.literal("Value")
+      , account: iot.string
+      , value: iot.number
+    });
 
-  export const UpdateNumber = iot.type({
-      _type: iot.literal("UpdateNumber")
-    , where: Clause.t
-    , field: Transaction.Json.Field.UpdateNumberField
-    , expression: Expression.NumberExpression
-  });
+    export const SplitByPercent = iot.type({
+        _type: iot.literal("SplitByPercent")
+      , where: Clause.t
+      , splits: iot.array(Percent)
+    });
 
-  export const Update = iot.union([UpdateString, UpdateNumber])
+    export const SplitByValue = iot.type({
+        _type: iot.literal("SplitByValue")
+      , where: Clause.t
+      , splits: iot.array(Value)
+      , remainder: Value
+    });
 
-  export const Rule = iot.union([Include, Update])
+    export const t = iot.union([SplitByPercent, SplitByValue])
+  }
+
+  export const Rule = iot.union([Attach.t, Split.t])
 
   export const Request = iot.type({
       accountId: iot.string
