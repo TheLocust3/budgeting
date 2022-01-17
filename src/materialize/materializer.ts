@@ -10,7 +10,7 @@ import * as Plan from './plan';
 export type Conflict = {
   _type: "Conflict";
   element: Transaction.Materialize.t;
-  rules: Rule.Internal.t[];
+  rules: Rule.Internal.Rule[];
 };
 
 export type Tagged = {
@@ -199,25 +199,35 @@ const buildAttachStage = (attach: Rule.Internal.Attach.t[]): PassthroughFlow => 
 }
 
 const buildSplitStage = (split: Rule.Internal.Split.t[]): Flow => {
-  const splitFlows = A.map(buildSplit)(split);
+  const splitFlows: [Rule.Internal.Split.t, TagFlow][] = A.map((split: Rule.Internal.Split.t) => {
+    return <[Rule.Internal.Split.t, TagFlow]>[split, buildSplit(split)]
+  })(split);
 
-  return (transaction: Transaction.Materialize.t) => pipe(
-      splitFlows
-    , A.map((flow) => flow(transaction))
-    , A.reduce(<Element>{ _type: "Untagged", element: transaction }, (out: Element, maybeTagged: O.Option<TaggedSet>) => O.match(
-          () => out
-        , (tagged: TaggedSet) => {
-            switch (out._type) {
-              case "Conflict": // TODO: JK conflict resolution
-                return out;
-              case "TaggedSet": // TODO: JK conflict resolution
-                return tagged;
-              case "Untagged":
-                return <Element>tagged;
-            }
-          }
-      )(maybeTagged))
-  );
+  return (transaction: Transaction.Materialize.t) => {
+    const [_, out]: [O.Option<Rule.Internal.Split.t>, Element] = pipe(
+        splitFlows
+      , A.map(([split, flow]) => <[Rule.Internal.Split.t, O.Option<TaggedSet>]>[split, flow(transaction)])
+      , A.reduce(
+            <[O.Option<Rule.Internal.Split.t>, Element]>[O.none, { _type: "Untagged", element: transaction }]
+          , ([last, out]: [O.Option<Rule.Internal.Split.t>, Element], [split, maybeTagged]: [Rule.Internal.Split.t, O.Option<TaggedSet>]) => O.match(
+                () => <[O.Option<Rule.Internal.Split.t>, Element]>[last, out]
+              , (tagged: TaggedSet) => {
+                  switch (out._type) {
+                    case "Conflict":
+                      return <[O.Option<Rule.Internal.Split.t>, Element]>[O.some(split), { ...out, rules: out.rules.concat(split) }];
+                    case "TaggedSet":
+                      const rules = O.match(() => [], (last) => [last])(last).concat(split);
+                      return <[O.Option<Rule.Internal.Split.t>, Element]>[O.some(split), { _type: "Conflict", element: transaction, rules: rules }]
+                    case "Untagged":
+                      return <[O.Option<Rule.Internal.Split.t>, Element]>[O.some(split), tagged];
+                  }
+                }
+            )(maybeTagged)
+        )
+    );
+
+    return out;
+  }
 }
 
 export const build = (stage: Plan.Stage): Flow => {

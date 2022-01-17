@@ -30,7 +30,7 @@ export namespace Json {
     export const to = (conflict: Materializer.Conflict): any => {
       return {
           element: pipe(conflict.element, Transaction.Materialize.to, Transaction.Json.to)
-        , rules: pipe(conflict.rules, A.map(Rule.Json.to))
+        , rules: conflict.rules
       };
     }
   }

@@ -33,8 +33,7 @@ Run the test suite:
 ## todo
 
 ### next
- - Split-split conflicts + attach-attach conflicts
-   - Generalize update conflicts
+ - attach-attach conflicts
  - Validate rules
    - Only includes real subaccounts
    - Percent adds up 100
