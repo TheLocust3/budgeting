@@ -15,7 +15,7 @@ beforeAll(async () => {
   system = new System();
 })
 
-it('can demo', async () => {
+/*it('can demo', async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
   await pipe(
@@ -56,4 +56,4 @@ it('can demo', async () => {
           }
       )
   )();
-});
+});*/

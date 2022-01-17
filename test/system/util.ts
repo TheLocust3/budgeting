@@ -37,64 +37,24 @@ export namespace RuleBuilder {
     return { _type: "StringGlob", field: field, value: value };
   }
 
-  export const add = (left: any, right: any) => {
-    return { _type: "Add", left: left, right: right };
+  export const attach = (clause: any, field: string, value: string) => {
+    return { _type: "Attach", where: clause, field: field, value: value };
   }
 
-  export const sub = (left: any, right: any) => {
-    return { _type: "Sub", left: left, right: right };
+  export const percent = (account: string, percent: number) => {
+    return { _type: "Percent", account: account, percent: percent };
   }
 
-  export const mul = (left: any, right: any) => {
-    return { _type: "Mul", left: left, right: right };
+  export const value = (account: string, value: number) => {
+    return { _type: "Value", account: account, value: value };
   }
 
-  export const div = (left: any, right: any) => {
-    return { _type: "Div", left: left, right: right };
+  export const splitByPercent = (clause: any, splits: any[]) => {
+    return { _type: "SplitByPercent", where: clause, splits: splits };
   }
 
-  export const exp = (term: any, power: any) => {
-    return { _type: "Exp", term: term, power: power };
-  }
-
-  export const concat = (left: any, right: any) => {
-    return { _type: "Concat", left: left, right: right };
-  }
-
-  export const stringRef = (field: string) => {
-    return { _type: "StringReference", field: field };
-  }
-  
-  export const numberRef = (field: string) => {
-    return { _type: "NumberReference", field: field };
-  }
-
-  export const stringLit = (value: string) => {
-    return { _type: "StringLiteral", value: value };
-  }
-  
-  export const numberLit = (value: number) => {
-    return { _type: "NumberLiteral", value: value };
-  }
-
-  export const include = (clause: any) => {
-    return { _type: "Include", clause: clause };
-  }
-
-  export const customStringField = (field: string) => {
-    return { _type: "CustomStringField", field: field }
-  }
-
-  export const customNumberField = (field: string) => {
-    return { _type: "CustomNumberField", field: field }
-  }
-
-  export const updateString = (clause: any, field: string | object, expression: any) => {
-    return { _type: "UpdateString", where: clause, field: field, expression: expression };
-  }
-
-  export const updateNumber = (clause: any, field: string | object, expression: any) => {
-    return { _type: "UpdateNumber", where: clause, field: field, expression: expression };
+  export const splitByValue = (clause: any, splits: any[], remainder: any) => {
+    return { _type: "SplitByValue", where: clause, splits: splits, remainder: remainder };
   }
 }
 
@@ -256,13 +216,6 @@ export class System {
   }
 
   materialize(accountId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.materializeFull(accountId)
-      , TE.map((res) => { return { transactions: res.transactions }; })
-    );
-  }
-
-  materializeFull(accountId: string): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask(`/accounts/${accountId}/materialize`)('GET')()
       , TE.chain(this.json)

@@ -23,683 +23,763 @@ it('can materialize empty', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rows: any) => {
-            expect(rows).toEqual({ transactions: [] });
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {}
+            }));
+            expect(typeof rows.untagged.length).toBe('number'); // make sure untagged exists
           }
       )
   )();
 });
 
-it('can materialize bad rule', async () => {
+it('can materialize split with no matches', async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
     , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('rule', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", "nonesense")))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('rule', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Eq", "nonesense")
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
       })
     , TE.chain(({ account, rule }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rows: any) => {
-            expect(rows).toEqual({ transactions: [] });
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {}
+            }));
           }
       )
   )();
 });
 
-it('can materialize for specific transaction', async () => {
+it('can materialize split for specific transaction', async () => {
   const name = `test-${uuid()}`;
+
   await pipe(
       TE.Do
     , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
     , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
+    , TE.bind('rule', ({ account, child1, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
       })
     , TE.bind('rows', ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction] });
+        , ({ child1, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: { [child1.id]: [transaction] }
+            }));
           }
       )
   )();
 });
 
-it('can materialize for two transactions via two rules', async () => {
+it('can split transaction in two', async () => {
   const name = `test-${uuid()}`;
+
   await pipe(
       TE.Do
     , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule', ({ account, child1, child2, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.percent(child1.id, 0.3), RuleBuilder.percent(child2.id, 0.7)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction, amount: transaction.amount * 0.3 }]
+                  , [child2.id]: [{ ...transaction, amount: transaction.amount * 0.7 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split two transactions via two rules', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
     , TE.bind('transaction1', () => addTransaction())
     , TE.bind('transaction2', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction1 }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction1.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction2 }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction2.id)));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1, transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize over two transactions only one included', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction())
-    , TE.bind('transaction2', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction1, transaction2 }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("id", "Neq", transaction1.id)
-            , RuleBuilder.stringMatch("id", "Eq", transaction2.id)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize over two transactions only one included (not)', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction())
-    , TE.bind('transaction2', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction1, transaction2 }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.not(RuleBuilder.stringMatch("id", "Eq", transaction1.id))
-            , RuleBuilder.stringMatch("id", "Eq", transaction2.id)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (eq)', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.numberMatch("amount", "Eq", 10)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (neq)', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.numberMatch("amount", "Neq", 10)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (lt)', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.numberMatch("amount", "Lt", 10)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (lte)', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.numberMatch("amount", "Lte", 10)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1, transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (gt)', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.numberMatch("amount", "Gt", 5)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (gte)', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.numberMatch("amount", "Gte", 5)
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1, transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (glob) 1', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.stringGlob("description", "hello world")
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (glob) 2', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.stringGlob("description", "*world")
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction operating on amount (glob) 3', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.stringGlob("description", "*e*")
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1, transaction2] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction with exists', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  const capturedAt = new Date()
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.exists("capturedAt")
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction1] });
-          }
-      )
-  )();
-});
-
-it('can materialize for specific transaction with exists (not)', async () => {
-  const name = `test-${uuid()}`;
-  const merchantName = `test-${uuid()}`;
-  const capturedAt = new Date()
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
-    , TE.bind('rule1', ({ account }) => {
-        return system.addRule(account.id, RuleBuilder.include(
-          RuleBuilder.and(
-              RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
-            , RuleBuilder.not(RuleBuilder.exists("capturedAt"))
-          )
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, transaction2, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction2] });
-          }
-      )
-  )();
-});
-
-it('can update a specific transaction 1', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateNumber(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , "amount"
-          , RuleBuilder.numberLit(11)
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, amount: 11 }] });
-          }
-      )
-  )();
-});
-
-it('can update a specific transaction 2', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateString(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , "merchantName"
-          , RuleBuilder.stringLit("test")
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, merchantName: "test" }] });
-          }
-      )
-  )();
-});
-
-it('can update a specific transaction 3', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction({ ...defaultTransaction, merchantName: "test" }))
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateString(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , "merchantName"
-          , RuleBuilder.concat(RuleBuilder.stringRef("merchantName"), RuleBuilder.stringLit("test"))
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, merchantName: "testtest" }] });
-          }
-      )
-  )();
-});
-
-it('can update a specific transaction 4', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateNumber(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , "amount"
-          , RuleBuilder.add(RuleBuilder.numberRef("amount"), RuleBuilder.numberLit(11))
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, amount: 21 }] });
-          }
-      )
-  )();
-});
-
-it('can update a specific transaction 5', async () => {
-  const name = `test-${uuid()}`;
-  const authorizedAt = new Date();
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction({ ... defaultTransaction, authorizedAt: authorizedAt }))
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateNumber(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , "authorizedAt"
-          , RuleBuilder.add(RuleBuilder.numberRef("authorizedAt"), RuleBuilder.numberLit(1000))
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, authorizedAt: authorizedAt.getTime() + 1000 }] });
-          }
-      )
-  )();
-});
-
-it('can update a specific transaction (update none capturedAt)', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateNumber(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , "capturedAt"
-          , RuleBuilder.add(RuleBuilder.numberRef("capturedAt"), RuleBuilder.numberLit(1000))
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [transaction] });
-          }
-      )
-  )();
-});
-
-it('can update a specific transaction (update some capturedAt)', async () => {
-  const name = `test-${uuid()}`;
-  const capturedAt = new Date()
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction({ ...defaultTransaction, capturedAt: O.some(capturedAt) }))
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateNumber(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , "capturedAt"
-          , RuleBuilder.add(RuleBuilder.numberRef("capturedAt"), RuleBuilder.numberLit(1000))
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, capturedAt: capturedAt.getTime() + 1000 }] });
-          }
-      )
-  )();
-});
-
-it('can add string field to a specific transaction', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateString(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , RuleBuilder.customStringField("comment")
-          , RuleBuilder.stringLit("test comment")
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, custom: { comment: "test comment" } }] });
-          }
-      )
-  )();
-});
-
-it('can add number field to a specific transaction', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction.id)));
-      })
-    , TE.bind('rule2', ({ account, transaction }) => {
-        return system.addRule(account.id, RuleBuilder.updateNumber(
-            RuleBuilder.stringMatch("id", "Neq", "")
-          , RuleBuilder.customNumberField("comment")
-          , RuleBuilder.add(RuleBuilder.numberLit(12), RuleBuilder.numberRef("amount"))
-        ));
-      })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction, custom: { comment: 22 } }] });
-          }
-      )
-  )();
-});
-
-it('can materialize through parent account', async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      TE.Do
-    , TE.bind('parent', () => system.addAccount(name))
-    , TE.bind('account', ({ parent }) => system.addAccount(name, O.some(parent.id)))
-    , TE.bind('transaction1', () => addTransaction())
-    , TE.bind('transaction2', () => addTransaction())
-    , TE.bind('parentRule1', ({ parent, transaction1 }) => {
-        return system.addRule(parent.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction1.id)));
-      })
-    , TE.bind('parentRule2', ({ parent, transaction2 }) => {
-        return system.addRule(parent.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction2.id)));
-      })
-    , TE.bind('parentRule3', ({ parent, transaction1 }) => {
-        return system.addRule(parent.id, RuleBuilder.updateString(
+    , TE.bind('rule1', ({ account, child1, child2, transaction1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction1.id)
-          , RuleBuilder.customStringField("comment")
-          , RuleBuilder.stringLit("test comment")
+          , [RuleBuilder.percent(child1.id, 0.3), RuleBuilder.percent(child2.id, 0.7)]
         ));
       })
-    , TE.bind('parentRule4', ({ parent, transaction2 }) => {
-        return system.addRule(parent.id, RuleBuilder.updateString(
+    , TE.bind('rule2', ({ account, child1, child2, transaction2 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction2.id)
-          , RuleBuilder.customStringField("comment")
-          , RuleBuilder.stringLit("test comment 2")
+          , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
         ));
-      })
-    , TE.bind('rule1', ({ account, transaction1 }) => {
-        return system.addRule(account.id, RuleBuilder.include(RuleBuilder.stringMatch("id", "Eq", transaction1.id)));
       })
     , TE.bind('rows', ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ transaction1, rows }) => {
-            expect(rows).toEqual({ transactions: [{ ...transaction1, custom: { comment: "test comment" } }] });
+        , ({ child1, child2, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction1, amount: transaction1.amount * 0.3 }, { ...transaction2, amount: transaction2.amount * 0.5 }]
+                  , [child2.id]: [{ ...transaction1, amount: transaction1.amount * 0.7 }, { ...transaction2, amount: transaction2.amount * 0.5 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split one transactions via one rule against two transactions', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction())
+    , TE.bind('transaction2', () => addTransaction())
+    , TE.bind('rule1', ({ account, child1, child2, transaction1, transaction2 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("id", "Neq", transaction1.id)
+              , RuleBuilder.stringMatch("id", "Eq", transaction2.id)
+            )
+          , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction2, amount: transaction2.amount * 0.5 }]
+                  , [child2.id]: [{ ...transaction2, amount: transaction2.amount * 0.5 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split one transactions via one rule against two transactions (not)', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction())
+    , TE.bind('transaction2', () => addTransaction())
+    , TE.bind('rule1', ({ account, child1, child2, transaction1, transaction2 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.not(RuleBuilder.stringMatch("id", "Eq", transaction1.id))
+              , RuleBuilder.stringMatch("id", "Eq", transaction2.id)
+            )
+          , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction2, amount: transaction2.amount * 0.5 }]
+                  , [child2.id]: [{ ...transaction2, amount: transaction2.amount * 0.5 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split two transactions via one rule', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account, child1, child2 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+          , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction1, amount: transaction1.amount * 0.5 }, { ...transaction2, amount: transaction2.amount * 0.5 }]
+                  , [child2.id]: [{ ...transaction1, amount: transaction1.amount * 0.5 }, { ...transaction2, amount: transaction2.amount * 0.5 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can attach metadata to a transaction', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.attach(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , "comment"
+          , "test"
+        ));
+      })
+    , TE.bind('rule2', ({ account, child1, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [{ ...transaction, custom: { "comment": "test" }}]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can attach two pieces of metadata to a transaction', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.attach(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , "comment"
+          , "test"
+        ));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.attach(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , "comment2"
+          , "test2"
+        ));
+      })
+    , TE.bind('rule3', ({ account, child1, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [{ ...transaction, custom: { "comment": "test", "comment2": "test2" }}]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction operating on amount (eq)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("amount", "Eq", 10)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction operating on amount (neq)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("amount", "Neq", 10)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction2]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction operating on amount (lt)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("amount", "Lt", 10)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction2]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction operating on amount (lte)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("amount", "Lte", 10)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1, transaction2]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction operating on amount (gt)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("amount", "Gt", 5)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction operating on amount (gte)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("amount", "Gte", 5)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1, transaction2]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction (glob) 1', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.stringGlob("description", "hello world")
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction (glob) 2', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.stringGlob("description", "*world")
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction (glob) 3', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.stringGlob("description", "*e*")
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1, transaction2]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction with exists', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+  const capturedAt = new Date()
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.exists("capturedAt")
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction with exists (not)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+  const capturedAt = new Date()
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.not(RuleBuilder.exists("capturedAt"))
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction2]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction on capturedAt 1', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+  const now = new Date().getTime()
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(new Date(now)) }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("capturedAt", "Eq", now)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split a transaction on capturedAt 2', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+  const now = new Date().getTime()
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(new Date(now)) }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind('rule1', ({ account, child1 }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.and(
+                RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+              , RuleBuilder.numberMatch("capturedAt", "Lt", now + 60000)
+            )
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [transaction1]
+                }
+            }));
           }
       )
   )();

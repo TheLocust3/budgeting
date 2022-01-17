@@ -15,7 +15,7 @@ beforeAll(async () => {
   system = new System();
 })
 
-it('can materialize empty without conflicts', async () => {
+/*it('can materialize empty without conflicts', async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name)
@@ -138,4 +138,4 @@ it('can raise conflict on different fields on two transactions', async () => {
           }
       )
   )();
-});
+});*/

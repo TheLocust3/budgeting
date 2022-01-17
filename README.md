@@ -33,13 +33,20 @@ Run the test suite:
 ## todo
 
 ### next
+ - Implement split by value
  - Split-split conflicts + attach-attach conflicts
    - Generalize update conflicts
  - Validate rules
    - Only includes real subaccounts
    - Percent adds up 100
+   - >0 splits (for percent)
+ - Include rule
+   - add transaction to all subaccounts
+ - new demo
 
 ### future
+ - basic rule pushdowns
+   - maybe just on id?
  - expect unordered lists in tests
  - request logging
  - Clean up TODO: JK's
