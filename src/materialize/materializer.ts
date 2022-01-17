@@ -24,7 +24,12 @@ export type Untagged = {
   element: Transaction.Materialize.t;
 };
 
-export type Element = Conflict | Tagged | Untagged;
+export type TaggedSet = {
+  _type: "TaggedSet";
+  elements: Tagged[];
+};
+
+export type Element = Conflict | TaggedSet | Untagged;
 
 export type Flow = (transaction: Transaction.Materialize.t) => Element;
 
@@ -172,7 +177,7 @@ const buildSplitStage = (split: Rule.Internal.Split.t[]): Flow => {
             switch (out._type) {
               case "Conflict":
                 return out;
-              case "Tagged": // TODO: JK conflict resolution
+              case "TaggedSet": // TODO: JK conflict resolution
                 return out;
               case "Untagged":
                 return <Element>tagged;

@@ -78,13 +78,16 @@ const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
         switch (element._type) {
           case "Conflict":
             return { conflicts: conflicts.concat(element), tagged: tagged, untagged: untagged };
-          case "Tagged":
-            const maybeElements = tagged.get(element.tag);
-            if (maybeElements) {
-              tagged.set(element.tag, maybeElements.concat(element.element));
-            } else {
-              tagged.set(element.tag, [element.element]);
-            }
+          case "TaggedSet":
+            A.map((element: Materializer.Tagged) => {
+              const maybeElements = tagged.get(element.tag);
+              if (maybeElements) {
+                tagged.set(element.tag, maybeElements.concat(element.element));
+              } else {
+                tagged.set(element.tag, [element.element]);
+              }
+            })(element.elements)
+            
             return { conflicts: conflicts, tagged: tagged, untagged: untagged };
           case "Untagged":
             return { conflicts: conflicts, tagged: tagged, untagged: untagged.concat(element.element) };
