@@ -26,9 +26,7 @@ export type Untagged = {
 
 export type Element = Conflict | Tagged | Untagged;
 
-type Flow = (transaction: Transaction.Materialize.t) => Element;
-type Stream = (element: Element) => O.Option<Element>;
-type Materializer = (transaction: Transaction.Materialize.t) => O.Option<Element>;
+export type Flow = (transaction: Transaction.Materialize.t) => Element;
 
 type TagFlow = (transaction: Transaction.Materialize.t) => O.Option<Tagged>;
 type PassthroughFlow = (transaction: Transaction.Materialize.t) => Transaction.Materialize.t;
@@ -184,36 +182,15 @@ const buildSplitStage = (split: Rule.Internal.Split.t[]): Flow => {
   );
 }
 
-const buildStage = (stage: Plan.Stage): Stream => {
+export const build = (stage: Plan.Stage): Flow => {
   const attachFlow = buildAttachStage(stage.attach);
   const splitFlow = buildSplitStage(stage.split)
 
-  return (element: Element) => {
-    switch (element._type) {
-      case "Conflict":
-        return O.none;
-      case "Tagged":
-        if (stage.tag === element.tag) {
-          return O.some(splitFlow(attachFlow(element.element)));
-        } else {
-          return O.none;
-        }
-      case "Untagged":
-        return O.none;
-    }
-  };
-}
-
-export const build = (plan: Plan.t): Materializer => {
-  if (plan.stages.length > 0) {
-    const stages = pipe(plan.stages, A.map(buildStage));
-    return (transaction: Transaction.Materialize.t) => {
-      const base: O.Option<Element> = O.some({ _type: "Tagged", tag: "", element: transaction });
-      return A.reduce(base, (element: O.Option<Element>, stage: Stream) =>
-        O.chain((element: Element) => stage(element))(element)
-      )(stages);
-    };
-  } else {
-    return (transaction: Transaction.Materialize.t) => { return O.some({ _type: "Untagged", element: transaction }); };
+  return (transaction: Transaction.Materialize.t) => {
+    return pipe(
+        transaction
+      , attachFlow
+      , splitFlow
+    );
   }
 }
