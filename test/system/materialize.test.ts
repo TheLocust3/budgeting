@@ -784,3 +784,130 @@ it('can split a transaction on capturedAt 2', async () => {
       )
   )();
 });
+
+it('can split transaction in two by value', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule', ({ account, child1, child2, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByValue(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.value(child1.id, 7)]
+          , child2.id
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction, amount: 7 }]
+                  , [child2.id]: [{ ...transaction, amount: 3 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split transaction in three by value', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child3', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule', ({ account, child1, child2, child3, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByValue(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.value(child1.id, 3), RuleBuilder.value(child2.id, 5)]
+          , child3.id
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, child3, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction, amount: 3 }]
+                  , [child2.id]: [{ ...transaction, amount: 5 }]
+                  , [child3.id]: [{ ...transaction, amount: 2 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can split transaction in three by value without remainder', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child3', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule', ({ account, child1, child2, child3, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByValue(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.value(child1.id, 6), RuleBuilder.value(child2.id, 4)]
+          , child3.id
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, child3, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction, amount: 6 }]
+                  , [child2.id]: [{ ...transaction, amount: 4 }]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can materialize child with parent splitting for a specific transaction', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule', ({ account, child1, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ child1 }) => system.materialize(child1.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {}
+              , untagged: [transaction]
+            }));
+          }
+      )
+  )();
+});

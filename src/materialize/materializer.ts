@@ -131,7 +131,7 @@ const buildSplitByPercent = (rule: Rule.Internal.Split.SplitByPercent): TagFlow 
       const tagged = A.map((split: Rule.Internal.Split.Percent) => {
         const splitTransaction = { ...transaction, amount: transaction.amount * split.percent };
 
-        return { _type: "Tagged", tag: split.account, element: splitTransaction }
+        return { _type: "Tagged", tag: split.account, element: splitTransaction };
       })(rule.splits);
 
       return <O.Option<TaggedSet>>O.some({ _type: "TaggedSet", elements: tagged });
@@ -145,9 +145,36 @@ const buildSplitByValue = (rule: Rule.Internal.Split.SplitByValue): TagFlow => {
   const where = buildClause(rule.where);
   return (transaction: Transaction.Materialize.t) => {
     if (where(transaction)) {
-      return O.none; // TODO: JK
+      const [remaining, tagged]: [number, Tagged[]] = A.reduce(
+          <[number, Tagged[]]>[transaction.amount, []]
+        , ([remaining, tagged]: [number, Tagged[]], split: Rule.Internal.Split.Value) => {
+            if (remaining > 0) {
+              if (remaining >= split.value) {
+                const splitTransaction = { ...transaction, amount: split.value };
+
+                return <[number, Tagged[]]>[remaining - split.value, tagged.concat({ _type: "Tagged", tag: split.account, element: splitTransaction })];
+              } else {
+                const splitTransaction = { ...transaction, amount: remaining };
+
+                return <[number, Tagged[]]>[0, tagged.concat({ _type: "Tagged", tag: split.account, element: splitTransaction })];
+              }
+            } else {
+              return <[number, Tagged[]]>[0, tagged];
+            }
+          }
+      )(rule.splits)
+
+      if (remaining > 0) {
+        const splitTransaction = { ...transaction, amount: remaining };
+        return <O.Option<TaggedSet>>O.some({ 
+            _type: "TaggedSet"
+          , elements: tagged.concat({ _type: "Tagged", tag: rule.remainder, element: splitTransaction })
+        });
+      } else {
+        return <O.Option<TaggedSet>>O.some({ _type: "TaggedSet", elements: tagged });
+      }
     } else {
-      return O.none;
+      return <O.Option<TaggedSet>>O.none;
     }
   };
 }

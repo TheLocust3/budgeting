@@ -84,7 +84,7 @@ export namespace Internal {
       _type: "SplitByValue";
       where: Clause.t;
       splits: Value[];
-      remainder: Value;
+      remainder: string;
     }
 
     export type t = SplitByPercent | SplitByValue
@@ -213,7 +213,7 @@ export namespace Json {
         _type: iot.literal("SplitByValue")
       , where: Clause.t
       , splits: iot.array(Value)
-      , remainder: Value
+      , remainder: iot.string
     });
 
     export const t = iot.union([SplitByPercent, SplitByValue])

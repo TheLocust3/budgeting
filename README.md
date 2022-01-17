@@ -33,7 +33,6 @@ Run the test suite:
 ## todo
 
 ### next
- - Implement split by value
  - Split-split conflicts + attach-attach conflicts
    - Generalize update conflicts
  - Validate rules
