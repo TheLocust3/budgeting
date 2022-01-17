@@ -83,22 +83,27 @@ export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEit
           , TE.map(A.map(Transaction.Materialize.from))
           , TE.map(A.map(materializer))
           , TE.map(A.reduce(<t>{ conflicts: [], tagged: [], untagged: [] }, ({ conflicts, tagged, untagged }, element) => { // TODO: JK need to initialize tagged array
-              switch (element._type) {
-                case "Conflict":
-                  return { conflicts: conflicts.concat(element), tagged: tagged, untagged: untagged };
-                case "Tagged":
-                  const newTagged = A.map(({ tag, elements }: { tag: string, elements: Transaction.Materialize.t[] }) => {
-                    if (tag == element.tag) {
-                      return { tag: tag, elements: elements.concat(element.element) };
-                    } else {
-                      return { tag: tag, elements: elements };
-                    }
-                  })(tagged)
+              return O.match(
+                  () => { return { conflicts, tagged, untagged }; }
+                , (element: Materializer.Element) => {
+                    switch (element._type) {
+                      case "Conflict":
+                        return { conflicts: conflicts.concat(element), tagged: tagged, untagged: untagged };
+                      case "Tagged":
+                        const newTagged = A.map(({ tag, elements }: { tag: string, elements: Transaction.Materialize.t[] }) => {
+                          if (tag == element.tag) {
+                            return { tag: tag, elements: elements.concat(element.element) };
+                          } else {
+                            return { tag: tag, elements: elements };
+                          }
+                        })(tagged)
 
-                  return { conflicts: conflicts, tagged: newTagged, untagged: untagged };
-                case "Untagged":
-                  return { conflicts: conflicts, tagged: tagged, untagged: untagged.concat(element.element) };
-              }
+                        return { conflicts: conflicts, tagged: newTagged, untagged: untagged };
+                      case "Untagged":
+                        return { conflicts: conflicts, tagged: tagged, untagged: untagged.concat(element.element) };
+                    }
+                  }
+              )(element)
             }))
         );
       })
