@@ -47,7 +47,9 @@ router
     const accountId = ctx.params.accountId
     await pipe(
         accountId
-      , AccountFrontend.getByIdWithRules(ctx.db)
+      , AccountFrontend.getById(ctx.db)
+      , TE.chain(AccountFrontend.withRules(ctx.db))
+      , TE.chain(AccountFrontend.withChildren(ctx.db))
       , TE.chain((account) => pipe(
             account
           , Materialize.execute(ctx.db)

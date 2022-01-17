@@ -50,6 +50,17 @@ namespace Query {
     }
   }
 
+  export const childrenOf = (parent: string) => {
+    return {
+      text: `
+        SELECT id
+        FROM accounts
+        WHERE parent_id = $1
+      `,
+      values: [parent]
+    }
+  }
+
   export const deleteById = (id: string) => {
     return {
       text: `
@@ -107,6 +118,19 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
+  );
+}
+
+export const childrenOf = (pool: Pool) => (parent: string) : TE.TaskEither<Error, string[]> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.childrenOf(parent)),
+        E.toError
+      )
+    , TE.map(res => pipe(
+        res.rows
+      , A.map(row => String(row.parent_id))
+    ))
   );
 }
 

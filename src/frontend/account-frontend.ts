@@ -31,15 +31,21 @@ export namespace AccountFrontend {
     );
   }
 
-  export const getByIdWithRules = (pool: Pool) => (id: string): TE.TaskEither<Exception, Account.Internal.t> => {
+  export const withRules = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, Account.Internal.t> => {
     return pipe(
-        id
-      , AccountFrontend.getById(pool)
-      , TE.chain((account) => pipe(
-            id
-          , RuleFrontend.getByAccountId(pool)
-          , TE.map((rules) => { return { ...account, rules: rules }; })
-        ))
+        account.id
+      , O.match(() => <TE.TaskEither<Exception, string>>TE.throwError(throwInternalError), (id) => TE.of(id))
+      , TE.chain(RuleFrontend.getByAccountId(pool))
+      , TE.map((rules) => { return { ...account, rules: rules }; })
+    );
+  }
+
+  export const withChildren = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, Account.Internal.t> => {
+    return pipe(
+        account.id
+      , O.match(() => <TE.TaskEither<Exception, string>>TE.throwError(throwInternalError), (id) => TE.of(id))
+      , TE.chain((id) => pipe(id, AccountsTable.childrenOf(pool), TE.mapLeft((_) => throwInternalError)))
+      , TE.map((children) => { return { ...account, children: children }; })
     );
   }
 

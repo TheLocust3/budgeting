@@ -10,10 +10,11 @@ import { throwMalformedJson, Exception } from '../exception';
 
 export namespace Internal {
   export type t = {
-      id: O.Option<string>
-    , parentId: O.Option<string>
-    , name: string
-    , rules: Rule.Internal.t[]
+    id: O.Option<string>;
+    parentId: O.Option<string>;
+    name: string;
+    rules: Rule.Internal.t[];
+    children: string[];
   }
 }
 
@@ -27,7 +28,7 @@ export namespace Json {
     return pipe(
         account
       , Request.decode
-      , E.map((account) => { return { ...account, id: O.none, rules: [] }; })
+      , E.map((account) => { return { ...account, id: O.none, rules: [], children: [] }; })
       , E.mapLeft((_) => throwMalformedJson)
     );
   }
@@ -54,7 +55,7 @@ export namespace Database {
         account
       , t.decode
       , E.map(camelcaseKeys)
-      , E.map(account => { return { ...account, id: O.some(account.id), rules: [] }; })
+      , E.map(account => { return { ...account, id: O.some(account.id), rules: [], children: [] }; })
       , E.mapLeft(E.toError)
     );
   }

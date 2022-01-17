@@ -59,7 +59,7 @@ const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEit
       () => TE.of([])
     , (parentId: string) => pipe(
           TE.Do
-        , TE.bind('parent', () => AccountFrontend.getByIdWithRules(pool)(parentId))
+        , TE.bind('parent', () => pipe(parentId, AccountFrontend.getById(pool), TE.chain(AccountFrontend.withRules(pool))))
         , TE.bind('rest', ({ parent }) => linkedAccounts(pool)(parent))
         , TE.map(({ parent, rest }) => rest.concat(parent))
       )
@@ -78,11 +78,14 @@ export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEit
         console.log(`materialize - with plan ${JSON.stringify(plan, null, 2)}`);
 
         const materializer = Materializer.build(plan);
+        
+        const defaultTagged: { tag: string, elements: Transaction.Materialize.t[] }[] =
+          A.map((child: string) => { return { tag: child, elements: <Transaction.Materialize.t[]>[] }; })(account.children);
         return pipe(
             TransactionFrontend.all(pool)()
           , TE.map(A.map(Transaction.Materialize.from))
           , TE.map(A.map(materializer))
-          , TE.map(A.reduce(<t>{ conflicts: [], tagged: [], untagged: [] }, ({ conflicts, tagged, untagged }, element) => { // TODO: JK need to initialize tagged array
+          , TE.map(A.reduce(<t>{ conflicts: [], tagged: defaultTagged, untagged: [] }, ({ conflicts, tagged, untagged }, element) => { // TODO: JK need to initialize tagged array
               return O.match(
                   () => { return { conflicts, tagged, untagged }; }
                 , (element: Materializer.Element) => {
