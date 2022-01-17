@@ -33,7 +33,7 @@ export type Element = Conflict | TaggedSet | Untagged;
 
 export type Flow = (transaction: Transaction.Materialize.t) => Element;
 
-type TagFlow = (transaction: Transaction.Materialize.t) => O.Option<Tagged>;
+type TagFlow = (transaction: Transaction.Materialize.t) => O.Option<TaggedSet>;
 type PassthroughFlow = (transaction: Transaction.Materialize.t) => Transaction.Materialize.t;
 
 type Predicate = (transaction: Transaction.Materialize.t) => Boolean
@@ -128,9 +128,15 @@ const buildSplitByPercent = (rule: Rule.Internal.Split.SplitByPercent): TagFlow 
   const where = buildClause(rule.where);
   return (transaction: Transaction.Materialize.t) => {
     if (where(transaction)) {
-      return O.none; // TODO: JK
+      const tagged = A.map((split: Rule.Internal.Split.Percent) => {
+        const splitTransaction = { ...transaction, amount: transaction.amount * split.percent };
+
+        return { _type: "Tagged", tag: split.account, element: splitTransaction }
+      })(rule.splits);
+
+      return <O.Option<TaggedSet>>O.some({ _type: "TaggedSet", elements: tagged });
     } else {
-      return O.none;
+      return <O.Option<TaggedSet>>O.none;
     }
   };
 }
@@ -171,14 +177,14 @@ const buildSplitStage = (split: Rule.Internal.Split.t[]): Flow => {
   return (transaction: Transaction.Materialize.t) => pipe(
       splitFlows
     , A.map((flow) => flow(transaction))
-    , A.reduce(<Element>{ _type: "Untagged", element: transaction }, (out: Element, maybeTagged: O.Option<Tagged>) => O.match(
+    , A.reduce(<Element>{ _type: "Untagged", element: transaction }, (out: Element, maybeTagged: O.Option<TaggedSet>) => O.match(
           () => out
-        , (tagged) => {
+        , (tagged: TaggedSet) => {
             switch (out._type) {
-              case "Conflict":
+              case "Conflict": // TODO: JK conflict resolution
                 return out;
               case "TaggedSet": // TODO: JK conflict resolution
-                return out;
+                return tagged;
               case "Untagged":
                 return <Element>tagged;
             }

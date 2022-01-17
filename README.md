@@ -33,28 +33,11 @@ Run the test suite:
 ## todo
 
 ### next
- - Attach Rule
-   - To add metadata
-   - Re-purpose update + restrict it
- - Percentage Split Rule
-   - \_type: "Percent"
-   - where: Clause
-   - field is always amount
-   - by: array of Percent ({ account, percent })
-   - must validate account ids + percent == 100
- - Numeric Split Rule:
-   - \_type: "Percent"
-   - where: Clause
-   - field is always amount
-   - by: array of Value ({ account, value })
-   - remainder: account
-   - if amount < total, amounts are split in order
-   - must validate account ids
- - `materialize/:accountId`
-   - Transactions come out tagged with sub accounts and with uncategorized
-   - Still need conflicts if two rules match modifying the same field
  - Split-split conflicts + attach-attach conflicts
    - Generalize update conflicts
+ - Validate rules
+   - Only includes real subaccounts
+   - Percent adds up 100
 
 ### future
  - expect unordered lists in tests

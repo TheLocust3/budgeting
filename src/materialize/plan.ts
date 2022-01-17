@@ -31,7 +31,7 @@ const buildStage = (accountId: string) => (rulesWrapper: Rule.Internal.t[]): Sta
 
 export const build = (accounts: Account.Internal.t[]): t => {
   const stages = A.map((account: Account.Internal.t) => {
-    const accountId = O.match(() => "", (account: string) => account)(account.id)
+    const accountId = O.match(() => "", (account: string) => account)(account.id) // TODO: JK should really have a strict "Materialize" Account type
     return buildStage(accountId)(account.rules);
   })(accounts);
   

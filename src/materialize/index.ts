@@ -97,17 +97,25 @@ const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
 }
 
 const executePlan = (plan: Plan.t) => (transactions: Transaction.Materialize.t[]): t => {
-  const head = plan.stages[0]; // TODO: JK
+  if (plan.stages.length < 1) {
+    return {
+        conflicts: []
+      , tagged: new Map()
+      , untagged: transactions
+    };
+  } else {
+    const head = plan.stages[0];
 
-  const tagged = new Map();
-  tagged.set(head.tag, transactions);
-  return pipe(
-      plan.stages
-    , A.map(executeStage)
-    , A.reduce(<t>{ conflicts: [], tagged: tagged, untagged: [] }, (materialized, stage) => {
-        return stage(materialized);
-      })
-  );
+    const tagged = new Map();
+    tagged.set(head.tag, transactions);
+    return pipe(
+        plan.stages
+      , A.map(executeStage)
+      , A.reduce(<t>{ conflicts: [], tagged: tagged, untagged: [] }, (materialized, stage) => {
+          return stage(materialized);
+        })
+    );
+  }
 }
 
 export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, t> => {
