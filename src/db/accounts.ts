@@ -129,7 +129,7 @@ export const childrenOf = (pool: Pool) => (parent: string) : TE.TaskEither<Error
       )
     , TE.map(res => pipe(
         res.rows
-      , A.map(row => String(row.parent_id))
+      , A.map(row => String(row.id))
     ))
   );
 }

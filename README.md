@@ -33,10 +33,6 @@ Run the test suite:
 ## todo
 
 ### next
- - Validate rules
-   - Only includes real subaccounts
-   - Percent adds up 100
-   - >0 splits (for percent)
  - Include rule
    - add transaction to all subaccounts
  - new demo

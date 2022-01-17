@@ -19,6 +19,9 @@ export namespace Message {
 
   export const respondWithError = (ctx: any) => (exception: Exception): void => {
     switch (exception._type) {
+      case "InvalidRule":
+        ctx.status = 400;
+        ctx.body = error("Invalid rule");
       case "BadRequest":
         ctx.status = 400;
         ctx.body = error("Bad request");
