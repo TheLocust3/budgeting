@@ -287,7 +287,51 @@ it('can attach metadata to a transaction', async () => {
             expect(rows).toEqual(expect.objectContaining({
                 conflicts: []
               , tagged: {
-                  [child1.id]: [{ ...transaction, custom: { "comment": "test" }}]
+                  [child1.id]: [{ ...transaction, custom: { "comment": ["test"] }}]
+                }
+            }));
+          }
+      )
+  )();
+});
+
+it('can attach metadata to a transaction on the same field', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule1', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.attach(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , "comment"
+          , "test"
+        ));
+      })
+    , TE.bind('rule2', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.attach(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , "comment"
+          , "test2"
+        ));
+      })
+    , TE.bind('rule3', ({ account, child1, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Eq", transaction.id)
+          , [RuleBuilder.percent(child1.id, 1)]
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                  [child1.id]: [{ ...transaction, custom: { "comment": ["test", "test2"] }}]
                 }
             }));
           }
@@ -331,7 +375,7 @@ it('can attach two pieces of metadata to a transaction', async () => {
             expect(rows).toEqual(expect.objectContaining({
                 conflicts: []
               , tagged: {
-                  [child1.id]: [{ ...transaction, custom: { "comment": "test", "comment2": "test2" }}]
+                  [child1.id]: [{ ...transaction, custom: { "comment": ["test"], "comment2": ["test2"] }}]
                 }
             }));
           }

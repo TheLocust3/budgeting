@@ -33,7 +33,6 @@ Run the test suite:
 ## todo
 
 ### next
- - attach-attach conflicts
  - Validate rules
    - Only includes real subaccounts
    - Percent adds up 100

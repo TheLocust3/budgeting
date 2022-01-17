@@ -117,7 +117,17 @@ const buildAttach = (rule: Rule.Internal.Attach.t): PassthroughFlow => {
   const where = buildClause(rule.where);
   return (transaction: Transaction.Materialize.t) => {
     if (where(transaction)) {
-      return { ...transaction, custom: { ...transaction.custom, [rule.field]: rule.value } };
+      try {
+        return { 
+            ...transaction
+          , custom: { ...transaction.custom, [rule.field]: transaction.custom[rule.field].concat(rule.value) }
+        };
+      } catch (_) { // if [rule.field] key doesn't exist
+        return { 
+            ...transaction
+          , custom: { ...transaction.custom, [rule.field]: [rule.value] }
+        };
+      }
     } else {
       return transaction;
     }
@@ -191,7 +201,6 @@ const buildSplit = (rule: Rule.Internal.Split.t): TagFlow => {
 const buildAttachStage = (attach: Rule.Internal.Attach.t[]): PassthroughFlow => {
   const attachFlows = A.map(buildAttach)(attach);
 
-  // TODO: JK conflict resolution
   return (transaction: Transaction.Materialize.t) => pipe(
       attachFlows
     , A.reduce(transaction, (out: Transaction.Materialize.t, flow) => flow(out))

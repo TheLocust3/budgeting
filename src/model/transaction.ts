@@ -17,7 +17,7 @@ export namespace Internal {
     authorizedAt: Date;
     capturedAt: O.Option<Date>;
     metadata: object;
-    custom: object; // TODO: JK remove
+    custom: { [key: string]: string[] };
   }
 }
 
@@ -31,7 +31,7 @@ export namespace Materialize {
     authorizedAt: number;
     capturedAt: O.Option<number>;
     metadata: object;
-    custom: object;
+    custom: { [key: string]: string[] };
   }
 
   export namespace Field {
