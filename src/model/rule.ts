@@ -90,7 +90,14 @@ export namespace Internal {
     export type t = SplitByPercent | SplitByValue
   }
 
-  export type Rule = Attach.t | Split.t
+  export namespace Include {
+    export type t = {
+      _type: "Include";
+      where: Clause.t;
+    }
+  }
+
+  export type Rule = Attach.t | Split.t | Include.t
 
   export const collectAttach = (rule: Rule): O.Option<Attach.t> => {
     switch (rule._type) {
@@ -99,6 +106,8 @@ export namespace Internal {
       case "SplitByPercent":
         return O.none;
       case "SplitByValue":
+        return O.none;
+      case "Include":
         return O.none;
     }
   }
@@ -110,6 +119,21 @@ export namespace Internal {
       case "SplitByPercent":
         return O.some(rule);
       case "SplitByValue":
+        return O.some(rule);
+      case "Include":
+        return O.none;
+    }
+  }
+
+  export const collectInclude = (rule: Rule): O.Option<Include.t> => {
+    switch (rule._type) {
+      case "Attach":
+        return O.none;
+      case "SplitByPercent":
+        return O.none;
+      case "SplitByValue":
+        return O.none;
+      case "Include":
         return O.some(rule);
     }
   }
@@ -219,7 +243,14 @@ export namespace Json {
     export const t = iot.union([SplitByPercent, SplitByValue])
   }
 
-  export const Rule = iot.union([Attach.t, Split.t])
+  export namespace Include {
+    export const t = iot.type({
+        _type: iot.literal("Include")
+      , where: Clause.t
+    });
+  }
+
+  export const Rule = iot.union([Attach.t, Split.t, Include.t])
 
   export const Request = iot.type({
       accountId: iot.string

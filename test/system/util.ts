@@ -56,6 +56,10 @@ export namespace RuleBuilder {
   export const splitByValue = (clause: any, splits: any[], remainder: any) => {
     return { _type: "SplitByValue", where: clause, splits: splits, remainder: remainder };
   }
+
+  export const include = (clause: any) => {
+    return { _type: "Include", where: clause };
+  }
 }
 
 export namespace MetadataBuilder {

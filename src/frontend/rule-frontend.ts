@@ -41,6 +41,10 @@ export namespace RuleFrontend {
       return validAccounts && validRemainder;
     }
 
+    const include = (context: Context) => (body: Rule.Internal.Include.t): boolean => {
+      return !A.exists((rule: Rule.Internal.t) => rule.rule._type !== "Attach" && rule.rule._type !== "Include")(context.account.rules); // include cannot be used with splits
+    }
+
     const buildContext = (pool: Pool) => (body: Rule.Internal.t): TE.TaskEither<Exception, Context> => {
       return pipe(
           body.accountId
@@ -68,6 +72,12 @@ export namespace RuleFrontend {
                 }
               case "SplitByValue":
                 if (splitByValue(context)(inner)) {
+                  return TE.of(body);
+                } else {
+                  return TE.throwError(throwInvalidRule)
+                }
+              case "Include":
+                if (include(context)(inner)) {
                   return TE.of(body);
                 } else {
                   return TE.throwError(throwInvalidRule)

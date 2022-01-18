@@ -6,6 +6,7 @@ import * as O from 'fp-ts/Option';
 import * as Transaction from '../model/transaction';
 import * as Rule from '../model/rule';
 import * as Plan from './plan';
+import { Array } from '../model/util';
 
 export type Conflict = {
   _type: "Conflict";
@@ -35,6 +36,7 @@ export type Flow = (transaction: Transaction.Materialize.t) => Element;
 
 type TagFlow = (transaction: Transaction.Materialize.t) => O.Option<TaggedSet>;
 type PassthroughFlow = (transaction: Transaction.Materialize.t) => Transaction.Materialize.t;
+type FilterFlow = (transaction: Transaction.Materialize.t) => O.Option<Transaction.Materialize.t>;
 
 type Predicate = (transaction: Transaction.Materialize.t) => Boolean
 type EvaluateTo<T> = (transaction: Transaction.Materialize.t) => T
@@ -198,7 +200,11 @@ const buildSplit = (rule: Rule.Internal.Split.t): TagFlow => {
   }
 }
 
-const buildAttachStage = (attach: Rule.Internal.Attach.t[]): PassthroughFlow => {
+const buildInclude = (rule: Rule.Internal.Include.t): Predicate => {
+  return buildClause(rule.where);
+}
+
+const buildAttachFlow = (attach: Rule.Internal.Attach.t[]): PassthroughFlow => {
   const attachFlows = A.map(buildAttach)(attach);
 
   return (transaction: Transaction.Materialize.t) => pipe(
@@ -207,7 +213,7 @@ const buildAttachStage = (attach: Rule.Internal.Attach.t[]): PassthroughFlow => 
   );
 }
 
-const buildSplitStage = (split: Rule.Internal.Split.t[]): Flow => {
+const buildSplitFlow = (split: Rule.Internal.Split.t[]): Flow => {
   const splitFlows: [Rule.Internal.Split.t, TagFlow][] = A.map((split: Rule.Internal.Split.t) => {
     return <[Rule.Internal.Split.t, TagFlow]>[split, buildSplit(split)]
   })(split);
@@ -239,9 +245,26 @@ const buildSplitStage = (split: Rule.Internal.Split.t[]): Flow => {
   }
 }
 
-export const build = (stage: Plan.Stage): Flow => {
-  const attachFlow = buildAttachStage(stage.attach);
-  const splitFlow = buildSplitStage(stage.split)
+const buildIncludeFlow = (include: Rule.Internal.Include.t[]): FilterFlow => {
+  const includeFlows = A.map(buildInclude)(include);
+  return (transaction: Transaction.Materialize.t) => {
+    return pipe(
+        includeFlows
+      , A.map((flow) => flow(transaction))
+      , A.reduce(<O.Option<Transaction.Materialize.t>>O.none, (out, keep) => {
+          if (keep) {
+            return O.some(transaction);
+          } else {
+            return out;
+          }
+        })
+    );
+  }
+}
+
+const buildSplitStage = (stage: Plan.SplitStage): Flow => {
+  const attachFlow = buildAttachFlow(stage.attach);
+  const splitFlow = buildSplitFlow(stage.split)
 
   return (transaction: Transaction.Materialize.t) => {
     return pipe(
@@ -249,5 +272,40 @@ export const build = (stage: Plan.Stage): Flow => {
       , attachFlow
       , splitFlow
     );
+  }
+}
+
+const buildIncludeStage = (stage: Plan.IncludeStage): Flow => {
+  const attachFlow = buildAttachFlow(stage.attach);
+  const includeFlow = buildIncludeFlow(stage.include);
+
+  return (transaction: Transaction.Materialize.t) => {
+    return pipe(
+        transaction
+      , attachFlow
+      , includeFlow
+      , O.match(
+            () => {
+              return <Element>{ _type: "TaggedSet", elements: [] };
+            }
+          , (element) => {
+              return <Element>{
+                  _type: "TaggedSet"
+                , elements: A.map((child: string) => {
+                    return { _type: "Tagged", tag: child, element: element };
+                  })(stage.children)
+              };
+            }
+        )
+    );
+  }
+}
+
+export const build = (stage: Plan.Stage): Flow => {
+  switch (stage._type) {
+    case "SplitStage":
+      return buildSplitStage(stage);
+    case "IncludeStage":
+      return buildIncludeStage(stage);
   }
 }

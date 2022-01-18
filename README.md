@@ -33,18 +33,15 @@ Run the test suite:
 ## todo
 
 ### next
- - Include rule
-   - add transaction to all subaccounts
- - new demo
+ - expect unordered lists in tests
+ - Don't build plan/stages for every transaction
+ - request logging
+ - Clean up TODO: JK's
+ - run linter
 
 ### future
  - basic rule pushdowns
-   - maybe just on id?
- - expect unordered lists in tests
- - request logging
- - Clean up TODO: JK's
- - Don't build plan/stages for every transaction
- - run linter
+   - all include rules are up for grabs
  - Aggregations
 
 ### miscellaneous

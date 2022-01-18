@@ -955,3 +955,137 @@ it('can materialize child with parent splitting for a specific transaction', asy
       )
   )();
 });
+
+it('can materialize include for specific transaction', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(
+          RuleBuilder.stringMatch("id", "Eq", transaction.id)
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: { [child1.id]: [transaction] }
+              , untagged: []
+            }));
+          }
+      )
+  )();
+});
+
+it('can materialize include for specific transaction across multiple children', async () => {
+  const name = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('account', () => system.addAccount(name))
+    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind('transaction', () => addTransaction())
+    , TE.bind('rule', ({ account, transaction }) => {
+        return system.addRule(account.id, RuleBuilder.include(
+          RuleBuilder.stringMatch("id", "Eq", transaction.id)
+        ));
+      })
+    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, transaction, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: { [child1.id]: [transaction], [child2.id]: [transaction] }
+              , untagged: []
+            }));
+          }
+      )
+  )();
+});
+
+it('can materialize two transactions via include => split (1)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('globalAccount', () => system.addAccount(name))
+    , TE.bind('globalRule', ({ globalAccount }) => {
+        return system.addRule(globalAccount.id, RuleBuilder.include(
+          RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+        ));
+      })
+    , TE.bind('account1', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind('account2', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind('child1', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind('child2', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account1, child1, child2 }) => {
+        return system.addRule(account1.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
+        ));
+      })
+    , TE.bind('rows', ({ account1 }) => system.materialize(account1.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ child1, child2, transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {
+                    [child1.id]: [{ ...transaction1, amount: transaction1.amount * 0.5 }, { ...transaction2, amount: transaction2.amount * 0.5 }]
+                  , [child2.id]: [{ ...transaction1, amount: transaction1.amount * 0.5 }, { ...transaction2, amount: transaction2.amount * 0.5 }]
+                }
+              , untagged: []
+            }));
+          }
+      )
+  )();
+});
+
+it('can materialize two transactions via include => split (2)', async () => {
+  const name = `test-${uuid()}`;
+  const merchantName = `test-${uuid()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind('globalAccount', () => system.addAccount(name))
+    , TE.bind('globalRule', ({ globalAccount }) => {
+        return system.addRule(globalAccount.id, RuleBuilder.include(
+          RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
+        ));
+      })
+    , TE.bind('account1', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind('account2', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind('child1', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind('child2', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind('rule1', ({ account1, child1, child2 }) => {
+        return system.addRule(account1.id, RuleBuilder.splitByPercent(
+            RuleBuilder.stringMatch("id", "Neq", "")
+          , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
+        ));
+      })
+    , TE.bind('rows', ({ account2 }) => system.materialize(account2.id))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ transaction1, transaction2, rows }) => {
+            expect(rows).toEqual(expect.objectContaining({
+                conflicts: []
+              , tagged: {}
+              , untagged: [transaction1, transaction2]
+            }));
+          }
+      )
+  )();
+});

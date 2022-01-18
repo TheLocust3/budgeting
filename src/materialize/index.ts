@@ -59,7 +59,12 @@ const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEit
       () => TE.of([])
     , (parentId: string) => pipe(
           TE.Do
-        , TE.bind('parent', () => pipe(parentId, AccountFrontend.getById(pool), TE.chain(AccountFrontend.withRules(pool))))
+        , TE.bind('parent', () => pipe(
+              parentId
+            , AccountFrontend.getById(pool)
+            , TE.chain(AccountFrontend.withRules(pool))
+            , TE.chain(AccountFrontend.withChildren(pool))
+          ))
         , TE.bind('rest', ({ parent }) => linkedAccounts(pool)(parent))
         , TE.map(({ parent, rest }) => rest.concat(parent))
       )
