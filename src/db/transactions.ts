@@ -8,7 +8,7 @@ import * as TE from 'fp-ts/lib/TaskEither';
 import * as iot from 'io-ts';
 
 import * as Transaction from '../model/Transaction';
-import { expectOne } from './util';
+import { Db } from 'magic';
 
 namespace Query {
   export const createTable = `
@@ -146,7 +146,7 @@ export const create = (pool: Pool) => (transaction: Transaction.Internal.t) : TE
         )),
         E.toError
       )
-    , expectOne
+    , Db.expectOne
     , TE.chain(res => TE.fromEither(Transaction.Database.from(res.rows[0])))
   );
 }

@@ -8,7 +8,7 @@ import * as TE from 'fp-ts/lib/TaskEither';
 import * as iot from 'io-ts';
 
 import * as Account from '../model/Account';
-import { expectOne } from './util';
+import { Db } from 'magic';
 
 namespace Query {
   export const createTable = `
@@ -153,7 +153,7 @@ export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEit
         )),
         E.toError
       )
-    , expectOne
+    , Db.expectOne
     , TE.chain(res => TE.fromEither(Account.Database.from(res.rows[0])))
   );
 }
