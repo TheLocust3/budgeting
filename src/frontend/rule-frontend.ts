@@ -10,7 +10,7 @@ import AccountFrontend from './account-frontend';
 import * as Account from '../model/account';
 import * as Rule from '../model/rule';
 import * as RulesTable from '../db/rules';
-import { throwInvalidRule, throwNotFound, throwInternalError, Exception } from '../exception';
+import { Exception } from 'magic';
 
 export namespace RuleFrontend {
   namespace Validate {
@@ -45,7 +45,7 @@ export namespace RuleFrontend {
       return !A.exists((rule: Rule.Internal.t) => rule.rule._type !== "Attach" && rule.rule._type !== "Include")(context.account.rules); // include cannot be used with splits
     }
 
-    const buildContext = (pool: Pool) => (body: Rule.Internal.t): TE.TaskEither<Exception, Context> => {
+    const buildContext = (pool: Pool) => (body: Rule.Internal.t): TE.TaskEither<Exception.t, Context> => {
       return pipe(
           body.accountId
         , AccountFrontend.getById(pool)
@@ -55,7 +55,7 @@ export namespace RuleFrontend {
       );
     }
 
-    export const rule = (pool: Pool) => (body: Rule.Internal.t): TE.TaskEither<Exception, Rule.Internal.t> => {
+    export const rule = (pool: Pool) => (body: Rule.Internal.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
       const inner = body.rule;
       return pipe(
           body
@@ -68,19 +68,19 @@ export namespace RuleFrontend {
                 if (splitByPercent(context)(inner)) {
                   return TE.of(body);
                 } else {
-                  return TE.throwError(throwInvalidRule)
+                  return TE.throwError(Exception.throwInvalidRule)
                 }
               case "SplitByValue":
                 if (splitByValue(context)(inner)) {
                   return TE.of(body);
                 } else {
-                  return TE.throwError(throwInvalidRule)
+                  return TE.throwError(Exception.throwInvalidRule)
                 }
               case "Include":
                 if (include(context)(inner)) {
                   return TE.of(body);
                 } else {
-                  return TE.throwError(throwInvalidRule)
+                  return TE.throwError(Exception.throwInvalidRule)
                 }
             }
           })
@@ -88,39 +88,39 @@ export namespace RuleFrontend {
     }
   }
 
-  export const getByAccountId = (pool: Pool) => (accountId: string): TE.TaskEither<Exception, Rule.Internal.t[]> => {
+  export const getByAccountId = (pool: Pool) => (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
     return pipe(
         accountId
       , RulesTable.byAccountId(pool)
-      , TE.mapLeft((_) => throwInternalError)
+      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   }
 
-  export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception, Rule.Internal.t> => {
+  export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         id
       , RulesTable.byId(pool)
-      , TE.mapLeft((_) => throwInternalError)
+      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
-            (): TE.TaskEither<Exception, Rule.Internal.t> => TE.throwError(throwNotFound)
+            (): TE.TaskEither<Exception.t, Rule.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (rule) => TE.of(rule)
         ))
     );
   }
 
-  export const create = (pool: Pool) => (rule: Rule.Internal.t): TE.TaskEither<Exception, Rule.Internal.t> => {
+  export const create = (pool: Pool) => (rule: Rule.Internal.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         rule
       , Validate.rule(pool)
-      , TE.chain((rule) => pipe(rule, RulesTable.create(pool), TE.mapLeft((_) => throwInternalError)))
+      , TE.chain((rule) => pipe(rule, RulesTable.create(pool), TE.mapLeft((_) => Exception.throwInternalError)))
     );
   }
 
-  export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception, void> => {
+  export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
       , RulesTable.deleteById(pool)
-      , TE.mapLeft((_) => throwInternalError)
+      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   }
 }

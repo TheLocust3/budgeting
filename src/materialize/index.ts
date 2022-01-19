@@ -17,7 +17,7 @@ import * as Rule from '../model/rule';
 import * as Account from '../model/account';
 import * as Plan from './plan';
 import * as Materializer from './materializer';
-import { Exception } from '../exception';
+import { Exception } from 'magic';
 
 export type t = {
   conflicts: Materializer.Conflict[];
@@ -54,7 +54,7 @@ export namespace Json {
   }
 }
 
-const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, Account.Internal.t[]> => {
+const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
   return O.match(
       () => TE.of([])
     , (parentId: string) => pipe(
@@ -123,7 +123,7 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Materialize.t[]
   }
 }
 
-export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception, t> => {
+export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
   // TODO: JK track materialize logs with id
   console.log(`materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   

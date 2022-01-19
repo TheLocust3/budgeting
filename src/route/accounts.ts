@@ -11,8 +11,7 @@ import * as Account from '../model/account';
 import * as Transaction from '../model/transaction';
 import * as Rule from '../model/rule';
 import * as Materialize from '../materialize/index';
-import { Message } from './util';
-import { fromQuery } from '../model/util';
+import { Message } from 'magic';
 
 export const router = new Router();
 

@@ -9,8 +9,7 @@ import { PathReporter } from 'io-ts/PathReporter';
 import RuleFrontend from '../frontend/rule-frontend';
 
 import * as Rule from '../model/rule';
-import { Message } from './util';
-import { fromQuery } from '../model/util';
+import { Message, Route } from 'magic';
 
 export const router = new Router();
 
@@ -18,7 +17,7 @@ router
   .get('/', async (ctx, next) => {
     await pipe(
         ctx.query.accountId
-      , fromQuery
+      , Route.fromQuery
       , TE.fromEither
       , TE.chain(RuleFrontend.getByAccountId(ctx.db))
       , TE.map(A.map(Rule.Json.to))

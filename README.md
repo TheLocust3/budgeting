@@ -40,6 +40,7 @@ Run the test suite:
  - run linter
 
 ### future
+ - authenticate requests
  - basic rule pushdowns
    - all include rules are up for grabs
  - Aggregations

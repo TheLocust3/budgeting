@@ -6,7 +6,6 @@ import * as O from 'fp-ts/Option';
 import * as Transaction from '../model/transaction';
 import * as Rule from '../model/rule';
 import * as Plan from './plan';
-import { Array } from '../model/util';
 
 export type Conflict = {
   _type: "Conflict";

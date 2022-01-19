@@ -5,7 +5,7 @@ import * as iot from 'io-ts';
 import * as types from 'io-ts-types';
 import camelcaseKeys from 'camelcase-keys';
 
-import { throwMalformedJson, Exception } from '../exception';
+import { Exception } from 'magic';
 
 export namespace Internal {
   export type t = {
@@ -110,7 +110,7 @@ export namespace Json {
     ]);
   }
 
-  export const from = (transaction: any): E.Either<Exception, Internal.t> => {
+  export const from = (transaction: any): E.Either<Exception.t, Internal.t> => {
     return pipe(
         transaction
       , Request.decode
@@ -118,7 +118,7 @@ export namespace Json {
           const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt);
           return { ...transaction, id: O.none, authorizedAt: new Date(transaction.authorizedAt), capturedAt: capturedAt, custom: {} };
         })
-      , E.mapLeft((_) => throwMalformedJson)
+      , E.mapLeft((_) => Exception.throwMalformedJson)
     );
   }
 
