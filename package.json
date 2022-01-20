@@ -4,7 +4,7 @@
   "author": "TheLocust3 <jake.kinsella@gmail.com>",
   "license": "UNLICENSED",
   "scripts": {
-    "lint": "eslint \"**/*.{js,ts}\" --quiet --fix",
+    "lint": "eslint \"**/*.{js,ts}\" --quiet",
     "setup": "cd magic && yarn link && cd ../engine && yarn link magic && cd ../logic && yarn link magic",
     "test": "jest --forceExit --verbose",
     "start": "concurrently -k -p \"[{name}]\" -n \"engine,logic,magic\" -c \"cyan.bold,green.bold,purple.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd magic && yarn start\"",
@@ -16,5 +16,9 @@
     "concurrently": "^7.0.0",
     "jest": "^27.4.7",
     "ts-jest": "^27.1.2"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "eslint": "^8.7.0"
   }
 }
