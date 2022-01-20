@@ -6,9 +6,9 @@ import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 
-import * as Account from '../../src/model/account';
-import * as Rule from '../../src/model/rule';
-import * as Transaction from '../../src/model/transaction';
+import { Account } from 'model';
+import { Rule } from 'model';
+import { Transaction } from 'model';
 
 export const uuid = (): string => crypto.randomUUID()
 

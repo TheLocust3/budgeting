@@ -37,8 +37,8 @@
     "io-ts-types": "^0.5.16",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
-    "monocle-ts": "^2.3.11",
-    "newtype-ts": "^0.3.4",
+    "monocle-ts": "^2.3.12",
+    "newtype-ts": "^0.3.5",
     "nodemon": "^2.0.15",
     "pg": "^8.7.1"
   }

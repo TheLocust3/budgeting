@@ -4,7 +4,7 @@ import * as E from 'fp-ts/Either';
 import * as iot from 'io-ts';
 import camelcaseKeys from 'camelcase-keys'
 
-import * as Transaction from '../model/transaction';
+import * as Transaction from './transaction';
 import { Exception } from 'magic';
 
 export namespace Internal {

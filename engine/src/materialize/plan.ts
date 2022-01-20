@@ -2,8 +2,8 @@ import { pipe } from 'fp-ts/lib/pipeable';
 import * as A from 'fp-ts/Array';
 import * as O from 'fp-ts/Option';
 
-import * as Account from '../model/account';
-import * as Rule from '../model/rule';
+import { Account } from 'model';
+import { Rule } from 'model';
 import { Pipe } from 'magic';
 
 export type SplitStage = {

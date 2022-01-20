@@ -7,9 +7,9 @@ import { pipe } from 'fp-ts/lib/pipeable';
 
 import AccountFrontend from '../frontend/account-frontend';
 
-import * as Account from '../model/account';
-import * as Transaction from '../model/transaction';
-import * as Rule from '../model/rule';
+import { Account } from 'model';
+import { Transaction } from 'model';
+import { Rule } from 'model';
 import * as Materialize from '../materialize/index';
 import { Message } from 'magic';
 

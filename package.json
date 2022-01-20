@@ -5,9 +5,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "lint": "eslint \"**/*.{js,ts}\" --quiet",
-    "setup": "cd magic && yarn link && cd ../engine && yarn link magic && cd ../logic && yarn link magic",
+    "setup": "cd magic && yarn link && yarn build && cd ../model && yarn link magic && yarn link && yarn build && cd ../engine && yarn link magic && yarn link model && cd ../logic && yarn link magic && yarn link model",
     "test": "jest --forceExit --verbose",
-    "start": "concurrently -k -p \"[{name}]\" -n \"engine,logic,magic\" -c \"cyan.bold,green.bold,purple.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd magic && yarn start\"",
+    "start": "concurrently -k -p \"[{name}]\" -n \"engine,logic,magic,model\" -c \"cyan.bold,green.bold,purple.bold,yellow.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd magic && yarn start\" \"cd model && yarn start\"",
     "migrate": "cd engine && yarn migrate && cd ../logic && yarn migrate",
     "rollback": "cd logic && yarn rollback && cd ../engine && yarn rollback"
   },

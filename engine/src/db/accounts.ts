@@ -7,7 +7,7 @@ import * as T from 'fp-ts/lib/Task';
 import * as TE from 'fp-ts/lib/TaskEither';
 import * as iot from 'io-ts';
 
-import * as Account from '../model/Account';
+import { Account } from 'model';
 import { Db } from 'magic';
 
 namespace Query {

@@ -5,7 +5,7 @@ import * as E from 'fp-ts/Either';
 import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
 
-import * as Transaction from '../model/transaction';
+import { Transaction } from 'model';
 import * as TransactionsTable from '../db/transactions';
 import { Exception } from 'magic';
 

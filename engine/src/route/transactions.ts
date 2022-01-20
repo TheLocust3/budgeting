@@ -8,7 +8,7 @@ import { PathReporter } from 'io-ts/PathReporter';
 
 import TransactionFrontend from '../frontend/transaction-frontend';
 
-import * as Transaction from '../model/transaction';
+import { Transaction } from 'model';
 import { Message } from 'magic';
 
 export const router = new Router();

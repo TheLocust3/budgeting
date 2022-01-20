@@ -8,7 +8,7 @@ import { PathReporter } from 'io-ts/PathReporter';
 
 import RuleFrontend from '../frontend/rule-frontend';
 
-import * as Rule from '../model/rule';
+import { Rule } from 'model';
 import { Message, Route } from 'magic';
 
 export const router = new Router();
