@@ -1,8 +1,7 @@
-# budgeting
+# logic
 
 ## setup
 `yarn install`  
-`yarn setup`  
 `initdb data.db`  
 `pg_ctl -D data.db start`  
 `createdb budget`  
@@ -32,13 +31,15 @@ Run the test suite:
 `yarn test`
 
 ## todo
- - Business logic layer
-   - user management
-   - sources + puller orchestration
-   - manage business logic
- - Authenticate requests between components
 
-## future
- - split database in separate instances
- - move handling of write transaction requests away from engine
- - have pullers pull jobs from queue fed by some cron job
+### next
+ - user CRUD
+   - hash password with bcrypt
+   - JWT token to authenticate requests
+ - source CRUD
+
+### future
+ - N/A
+
+### miscellaneous
+ - N/A
