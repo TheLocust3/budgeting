@@ -12,6 +12,9 @@
     "rollback": "cd logic && yarn rollback && cd ../engine && yarn rollback"
   },
   "devDependencies": {
-    "concurrently": "^7.0.0"
+    "@types/jest": "^27.4.0",
+    "concurrently": "^7.0.0",
+    "jest": "^27.4.7",
+    "ts-jest": "^27.1.2"
   }
 }
