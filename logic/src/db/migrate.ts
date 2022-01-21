@@ -1,6 +1,9 @@
 import { Pool } from 'pg';
 
+import * as UsersTable from './users-table';
+
 const migrate = async (pool: Pool) => {
+  await UsersTable.migrate(pool)();
   console.log("Migrate complete");
   process.exit(0);
 }

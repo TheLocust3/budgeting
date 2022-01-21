@@ -42,4 +42,5 @@ Run the test suite:
  - N/A
 
 ### miscellaneous
- - N/A
+ - validate email
+   - both formatting + send email to user
