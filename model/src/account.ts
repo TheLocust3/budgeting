@@ -12,6 +12,7 @@ export namespace Internal {
   export type t = {
     id: O.Option<string>;
     parentId: O.Option<string>;
+    userId: string;
     name: string;
     rules: Rule.Internal.t[];
     children: string[];
@@ -21,6 +22,7 @@ export namespace Internal {
 export namespace Json {
   export const Request = iot.type({
       parentId: types.optionFromNullable(iot.string)
+    , userId: iot.string
     , name: iot.string
   });
 
@@ -38,6 +40,7 @@ export namespace Json {
 
     return {
         ...id
+      , userId: account.userId
       , name: account.name
     }
   }
@@ -47,6 +50,7 @@ export namespace Database {
   export const t = iot.type({
       id: iot.string
     , parent_id: types.optionFromNullable(iot.string)
+    , user_id: iot.string
     , name: iot.string
   });
 

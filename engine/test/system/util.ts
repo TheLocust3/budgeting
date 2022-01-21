@@ -164,14 +164,14 @@ export class System {
     );
   }
 
-  addAccount(name: string, parentId: O.Option<string> = O.none): TE.TaskEither<Error, any> {
+  addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = "user"): TE.TaskEither<Error, any> {
     const resolvedParentId = O.match(
         () => { return {}; }
       , (parentId: string) => { return { parentId: parentId }; }
     )(parentId);
 
     return pipe(
-        this.fetchTask('/accounts/')('POST')(O.some({ name: name, ...resolvedParentId }))
+        this.fetchTask('/accounts/')('POST')(O.some({ name: name, userId: userId, ...resolvedParentId }))
       , TE.chain(this.json)
     );
   }

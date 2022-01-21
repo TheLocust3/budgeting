@@ -14,11 +14,11 @@ beforeAll(async () => {
 it('can add account', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name)
+      system.addAccount(name, O.none, "user")
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account: any) => {
-            expect(account).toEqual(expect.objectContaining({ name: name }));
+            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
             expect(typeof account.id).toBe('string');
           }
       )
@@ -28,13 +28,13 @@ it('can add account', async () => {
 it('can get account', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name)
+      system.addAccount(name, O.none, "user")
     , TE.chain((account) => system.getAccount(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (_account) => {
             const account = _account.account
-            expect(account).toEqual(expect.objectContaining({ name: name }));
+            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
             expect(typeof account.id).toBe('string');
           }
       )
@@ -44,14 +44,14 @@ it('can get account', async () => {
 it('can list accounts', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name)
+      system.addAccount(name, O.none, "user")
     , TE.chain((_) => system.listAccounts())
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
             const account = accounts.accounts.filter((account: any) => account.name === name)[0]
 
-            expect(account).toEqual(expect.objectContaining({ name: name }));
+            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
             expect(typeof account.id).toBe('string');
           }
       )
@@ -61,7 +61,7 @@ it('can list accounts', async () => {
 it('can delete account', async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name)
+      system.addAccount(name, O.none, "user")
     , TE.chain((account) => system.deleteAccount(account.id))
     , TE.chain((_) => system.listAccounts())
     , TE.match(

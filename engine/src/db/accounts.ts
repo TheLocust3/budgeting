@@ -15,6 +15,7 @@ namespace Query {
     CREATE TABLE accounts (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       parent_id TEXT,
+      user_id TEXT NOT NULL,
       name TEXT NOT NULL,
       FOREIGN KEY(parent_id) REFERENCES accounts(id)
     )
@@ -22,26 +23,26 @@ namespace Query {
 
   export const dropTable = `DROP TABLE accounts`
 
-  export const create = (parentId: string | null, name: string) => {
+  export const create = (parentId: string | null, userId: string, name: string) => {
     return {
       text: `
-        INSERT INTO accounts (parent_id, name)
-        VALUES ($1, $2)
+        INSERT INTO accounts (parent_id, user_id, name)
+        VALUES ($1, $2, $3)
         RETURNING *
       `,
-      values: [parentId, name]
+      values: [parentId, userId, name]
     }
   }
 
   export const all = `
-    SELECT id, parent_id, name
+    SELECT id, parent_id, user_id, name
     FROM accounts
   `
 
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, parent_id, name
+        SELECT id, parent_id, user_id, name
         FROM accounts
         WHERE id = $1
         LIMIT 1
@@ -149,6 +150,7 @@ export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEit
       TE.tryCatch(
         () => pool.query(Query.create(
             pipe(account.parentId, O.match(() => null, (parentId) => parentId))
+          , account.userId
           , account.name
         )),
         E.toError
