@@ -15,6 +15,7 @@ namespace Query {
     CREATE TABLE transactions (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       source_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
       amount NUMERIC NOT NULL,
       merchant_name TEXT NOT NULL,
       description TEXT NOT NULL,
@@ -28,6 +29,7 @@ namespace Query {
 
   export const create = (
       sourceId: string
+    , userId: string
     , amount: number
     , merchantName: string
     , description: string
@@ -37,23 +39,23 @@ namespace Query {
   ) => {
     return {
       text: `
-        INSERT INTO transactions (source_id, amount, merchant_name, description, authorized_at, captured_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO transactions (source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `,
-      values: [sourceId, amount, merchantName, description, authorizedAt, capturedAt, metadata]
+      values: [sourceId, userId, amount, merchantName, description, authorizedAt, capturedAt, metadata]
     }
   }
 
   export const all = `
-    SELECT id, source_id, amount, merchant_name, description, authorized_at, captured_at, metadata
+    SELECT id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata
     FROM transactions
   `;
 
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, source_id, amount, merchant_name, description, authorized_at, captured_at, metadata
+        SELECT id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata
         FROM transactions
         WHERE id = $1
         LIMIT 1
@@ -137,6 +139,7 @@ export const create = (pool: Pool) => (transaction: Transaction.Internal.t) : TE
       TE.tryCatch(
         () => pool.query(Query.create(
             transaction.sourceId
+          , transaction.userId
           , transaction.amount
           , transaction.merchantName
           , transaction.description

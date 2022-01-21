@@ -11,6 +11,7 @@ export namespace Internal {
   export type t = {
     id: O.Option<string>;
     sourceId: string;
+    userId: string;
     amount: number;
     merchantName: string;
     description: string;
@@ -25,6 +26,7 @@ export namespace Materialize {
   export type t = {
     id: string;
     sourceId: string;
+    userId: string;
     amount: number;
     merchantName: string;
     description: string;
@@ -37,7 +39,7 @@ export namespace Materialize {
   export namespace Field {
     export type NumberField = "amount" | "authorizedAt" | "capturedAt";
     export type OptionNumberField = "capturedAt";
-    export type StringField = "id" | "sourceId" | "merchantName" | "description";
+    export type StringField = "id" | "sourceId" | "userId" | "merchantName" | "description";
 
     export type t = NumberField | StringField;
   }
@@ -51,6 +53,7 @@ export namespace Materialize {
     return {
         id: id
       , sourceId: transaction.sourceId
+      , userId: transaction.userId
       , amount: transaction.amount
       , merchantName: transaction.merchantName
       , description: transaction.description
@@ -65,6 +68,7 @@ export namespace Materialize {
     return {
         id: O.some(transaction.id)
       , sourceId: transaction.sourceId
+      , userId: transaction.userId
       , amount: transaction.amount
       , merchantName: transaction.merchantName
       , description: transaction.description
@@ -80,6 +84,7 @@ export namespace Json {
 
   export const Request = iot.type({
       sourceId: iot.string
+    , userId: iot.string
     , amount: iot.number
     , merchantName: iot.string
     , description: iot.string
@@ -100,6 +105,7 @@ export namespace Json {
     export const StringField: iot.Type<Materialize.Field.StringField> = iot.union([
         iot.literal("id")
       , iot.literal("sourceId")
+      , iot.literal("userId")
       , iot.literal("merchantName")
       , iot.literal("description")
     ]);
@@ -133,6 +139,7 @@ export namespace Json {
     return {
         ...id
       , sourceId: transaction.sourceId
+      , userId: transaction.userId
       , amount: transaction.amount
       , merchantName: transaction.merchantName
       , description: transaction.description
@@ -148,6 +155,7 @@ export namespace Database {
   export const t = iot.type({
       id: iot.string
     , source_id: iot.string
+    , user_id: iot.string
     , amount: types.NumberFromString
     , merchant_name: iot.string
     , description: iot.string

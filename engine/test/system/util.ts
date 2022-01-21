@@ -68,6 +68,7 @@ export namespace MetadataBuilder {
 
 export type JsonTransaction = {
     sourceId: string
+  , userId: string
   , amount: number
   , merchantName: string
   , description: string
@@ -78,6 +79,7 @@ export type JsonTransaction = {
 
 export const defaultTransaction: JsonTransaction = {
     sourceId: "sourceId"
+  , userId: "user"
   , amount: 10
   , merchantName: "merchant name"
   , description: "description"
@@ -88,6 +90,7 @@ export const defaultTransaction: JsonTransaction = {
 
 export const addTransaction = (system: System) => ({
       sourceId
+    , userId
     , amount
     , merchantName
     , description
@@ -97,6 +100,7 @@ export const addTransaction = (system: System) => ({
   }: JsonTransaction = defaultTransaction): TE.TaskEither<Error, any> => {
   return system.addTransaction(
       sourceId
+    , userId
     , amount
     , merchantName
     , description
@@ -111,6 +115,7 @@ export class System {
 
   addTransaction(
       sourceId: string
+    , userId: string
     , amount: number
     , merchantName: string
     , description: string
@@ -126,6 +131,7 @@ export class System {
     return pipe(
         this.fetchTask('/transactions/')('POST')(O.some({
             sourceId: sourceId
+          , userId: userId
           , amount: amount
           , merchantName: merchantName
           , description: description

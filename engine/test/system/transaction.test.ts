@@ -17,12 +17,13 @@ it('can add transaction', async () => {
   const merchantName = `test-${uuid()}`;
   const authorizedAt = new Date();
   await pipe(
-      system.addTransaction(sourceId, 10, merchantName, "test description", authorizedAt, O.none, MetadataBuilder.plaid)
+      system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.none, MetadataBuilder.plaid)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transaction: any) => {
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
+              , userId: "user"
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
@@ -41,12 +42,13 @@ it('can add transaction with capturedAt', async () => {
   const authorizedAt = new Date();
   const capturedAt = new Date();
   await pipe(
-      system.addTransaction(sourceId, 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
+      system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transaction: any) => {
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
+              , userId: "user"
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
@@ -65,7 +67,7 @@ it('can get transaction', async () => {
   const authorizedAt = new Date();
   const capturedAt = new Date();
   await pipe(
-      system.addTransaction(sourceId, 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
+      system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
     , TE.chain((transaction) => system.getTransaction(transaction.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -73,6 +75,7 @@ it('can get transaction', async () => {
             const transaction = _transaction.transaction
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
+              , userId: "user"
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
@@ -91,7 +94,7 @@ it('can list transactions', async () => {
   const authorizedAt = new Date();
   const capturedAt = new Date();
   await pipe(
-      system.addTransaction(sourceId, 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
+      system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
     , TE.chain((_) => system.listTransactions())
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -100,6 +103,7 @@ it('can list transactions', async () => {
 
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
+              , userId: "user"
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
@@ -118,7 +122,7 @@ it('can delete transaction', async () => {
   const authorizedAt = new Date();
   const capturedAt = new Date();
   await pipe(
-      system.addTransaction(sourceId, 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
+      system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
     , TE.chain((transaction) => system.deleteTransaction(transaction.id))
     , TE.chain((_) => system.listTransactions())
     , TE.match(

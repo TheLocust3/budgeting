@@ -33,10 +33,8 @@ Run the test suite:
 ## todo
 
 ### next
- - user CRUD
-   - hash password with bcrypt
-   - JWT token to authenticate requests
  - source CRUD
+ - JWT token to authenticate requests
 
 ### future
  - N/A
