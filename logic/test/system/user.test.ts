@@ -18,8 +18,9 @@ it('can add user', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (user: any) => {
-            expect(user).toEqual(expect.objectContaining({ email: email, password: "foobar" }));
-            expect(typeof user.id).toBe('string');
+            expect(user).toEqual(expect.objectContaining({ email: email }));
+            expect(typeof user.id).toBe("string");
+            expect(user.password).not.toBe("foobar");
           }
       )
   )();
@@ -34,8 +35,9 @@ it('can get user', async () => {
           (error) => { throw new Error(`Failed with ${error}`); }
         , (_user) => {
             const user = _user.user
-            expect(user).toEqual(expect.objectContaining({ email: email, password: "foobar" }));
+            expect(user).toEqual(expect.objectContaining({ email: email }));
             expect(typeof user.id).toBe('string');
+            expect(user.password).not.toBe("foobar");
           }
       )
   )();
@@ -51,8 +53,9 @@ it('can list users', async () => {
         , (users) => {
             const user = users.users.filter((user: any) => user.email === email)[0]
 
-            expect(user).toEqual(expect.objectContaining({ email: email, password: "foobar" }));
+            expect(user).toEqual(expect.objectContaining({ email: email }));
             expect(typeof user.id).toBe('string');
+            expect(user.password).not.toBe("foobar");
           }
       )
   )();

@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import bcrypt from 'bcrypt';
 import * as A from 'fp-ts/Array';
 import * as O from 'fp-ts/Option';
 import * as E from 'fp-ts/Either';
@@ -31,8 +32,12 @@ export namespace UserFrontend {
 
   export const create = (pool: Pool) => (user: User.Internal.t): TE.TaskEither<Exception.t, User.Internal.t> => {
     return pipe(
-        user
-      , UsersTable.create(pool)
+        TE.tryCatch(
+            () => bcrypt.hash(user.password, 10)
+          , E.toError
+        )
+      , TE.map((hashed) => { return { ...user, password: "test" }; })
+      , TE.chain(UsersTable.create(pool))
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   }
