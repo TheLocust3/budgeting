@@ -48,7 +48,7 @@ export namespace UserFrontend {
             () => bcrypt.hash(user.password, 10)
           , E.toError
         )
-      , TE.map((hashed) => { return { ...user, password: "test" }; })
+      , TE.map((hashed) => { return { ...user, password: hashed }; })
       , TE.chain(UsersTable.create(pool))
       , TE.mapLeft((_) => Exception.throwInternalError)
     );

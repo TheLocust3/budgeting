@@ -39,6 +39,13 @@ export class System {
     );
   }
 
+  login(email: string, password: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/auth/login`)('POST')(O.some({ email: email, password: password }))
+      , TE.chain(this.json)
+    );
+  }
+
   private fetchTask = (uri: string) => (method: string) => (body: O.Option<any> = O.none): TE.TaskEither<Error, Response> => {
     const resolved = O.match(
       () => { return {}; },
