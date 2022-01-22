@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken';
 import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
 
-import { router as authRouter } from './route/auth';
 import { router as userRouter } from './route/users';
 import { router as sourceRouter } from './route/sources';
 import { JWT } from './route/util';
@@ -27,7 +26,7 @@ app.context.db = new Pool();
 
 const router = new Router();
 
-router.use('/auth', authRouter.routes(), authRouter.allowedMethods());
+router.use('/users', userRouter.routes(), userRouter.allowedMethods());
 
 /*app.use((ctx, next) => {
   return pipe(
@@ -42,8 +41,6 @@ router.use('/auth', authRouter.routes(), authRouter.allowedMethods());
     )
   );
 });*/
-
-router.use('/users', userRouter.routes(), userRouter.allowedMethods());
 router.use('/sources', sourceRouter.routes(), sourceRouter.allowedMethods());
 
 app.use(bodyParser());

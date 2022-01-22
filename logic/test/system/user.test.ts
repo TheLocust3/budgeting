@@ -26,54 +26,40 @@ it('can add user', async () => {
   )();
 });
 
-it('can get user', async () => {
+it('can successfully login', async () => {
   const email = `test-${uuid()}`;
   await pipe(
       system.addUser(email, "foobar")
-    , TE.chain((user) => system.getUser(user.id))
+    , TE.chain((_) => system.login(email, "foobar"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (_user) => {
-            const user = _user.user
-            expect(user).toEqual(expect.objectContaining({ email: email }));
-            expect(typeof user.id).toBe('string');
-            expect(user.password).not.toBe("foobar");
+        , (token: any) => {
+            expect(typeof token.token).toBe("string");
           }
       )
   )();
 });
 
-it('can list users', async () => {
+it('can\'t log into account with wrong email', async () => {
   const email = `test-${uuid()}`;
   await pipe(
       system.addUser(email, "foobar")
-    , TE.chain((_) => system.listUsers())
+    , TE.chain((_) => system.login("test", "foobar"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (users) => {
-            const user = users.users.filter((user: any) => user.email === email)[0]
-
-            expect(user).toEqual(expect.objectContaining({ email: email }));
-            expect(typeof user.id).toBe('string');
-            expect(user.password).not.toBe("foobar");
-          }
+        , (res) => { expect(res.message).toBe('failed') }
       )
   )();
 });
 
-it('can delete user', async () => {
+it('can\'t log into account with wrong password', async () => {
   const email = `test-${uuid()}`;
   await pipe(
       system.addUser(email, "foobar")
-    , TE.chain((user) => system.deleteUser(user.id))
-    , TE.chain((_) => system.listUsers())
+    , TE.chain((_) => system.login(email, "foobar123"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (users) => {
-            const user = users.users.filter((user: any) => user.email === email)
-
-            expect(user.length).toEqual(0);
-          }
+        , (res) => { expect(res.message).toBe('failed') }
       )
   )();
 });

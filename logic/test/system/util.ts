@@ -18,27 +18,6 @@ export class System {
     );
   }
 
-  getUser(id: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/users/${id}`)('GET')()
-      , TE.chain(this.json)
-    );
-  }
-
-  listUsers(): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/users`)('GET')()
-      , TE.chain(this.json)
-    );
-  }
-
-  deleteUser(id: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/users/${id}`)('DELETE')()
-      , TE.chain(this.json)
-    );
-  }
-
   addSource(userId: string, name: string): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask('/sources/')('POST')(O.some({ userId: userId, name: name }))
@@ -69,7 +48,7 @@ export class System {
 
   login(email: string, password: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/auth/login`)('POST')(O.some({ email: email, password: password }))
+        this.fetchTask(`/users/login`)('POST')(O.some({ email: email, password: password }))
       , TE.chain(this.json)
     );
   }
