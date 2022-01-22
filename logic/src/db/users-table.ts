@@ -49,6 +49,18 @@ namespace Query {
     }
   }
 
+    export const byEmail = (email: string) => {
+    return {
+      text: `
+        SELECT id, email, password
+        FROM users
+        WHERE email = $1
+        LIMIT 1
+      `,
+      values: [email]
+    }
+  }
+
   export const deleteById = (id: string) => {
     return {
       text: `
@@ -98,6 +110,21 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.byId(id)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(User.Database.from)
+        , A.sequence(E.Applicative)
+      )))
+    , TE.map(A.lookup(0))
+  );
+}
+
+export const byEmail = (pool: Pool) => (email: string) : TE.TaskEither<Error, O.Option<User.Internal.t>> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.byEmail(email)),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(

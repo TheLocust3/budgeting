@@ -30,6 +30,18 @@ export namespace UserFrontend {
     );
   }
 
+  export const getByEmail = (pool: Pool) => (email: string): TE.TaskEither<Exception.t, User.Internal.t> => {
+    return pipe(
+        email
+      , UsersTable.byEmail(pool)
+      , TE.mapLeft((_) => Exception.throwInternalError)
+      , TE.chain(O.fold(
+            (): TE.TaskEither<Exception.t, User.Internal.t> => TE.throwError(Exception.throwNotFound)
+          , (user) => TE.of(user)
+        ))
+    );
+  }
+
   export const create = (pool: Pool) => (user: User.Internal.t): TE.TaskEither<Exception.t, User.Internal.t> => {
     return pipe(
         TE.tryCatch(
@@ -47,6 +59,24 @@ export namespace UserFrontend {
         id
       , UsersTable.deleteById(pool)
       , TE.mapLeft((_) => Exception.throwInternalError)
+    );
+  }
+
+  export const login = (pool: Pool) => (email: string, password: string): TE.TaskEither<Exception.t, User.Internal.t> => {
+    return pipe(
+        TE.Do
+      , TE.bind('user', () => getByEmail(pool)(email))
+      , TE.bind('match', ({ user }) => TE.tryCatch(
+          () => bcrypt.compare(password, user.password),
+          () => Exception.throwInternalError
+        ))
+      , TE.chain(({ user, match }) => {
+          if (match) {
+            return TE.of(user);
+          } else {
+            return TE.throwError(Exception.throwNotFound);
+          }
+        })
     );
   }
 }

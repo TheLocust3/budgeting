@@ -33,7 +33,6 @@ Run the test suite:
 ## todo
 
 ### next
- - source CRUD
  - JWT token to authenticate requests
 
 ### future
@@ -42,3 +41,5 @@ Run the test suite:
 ### miscellaneous
  - validate email
    - both formatting + send email to user
+ - pull jwt secret fron environment
+ - JWT expiry
