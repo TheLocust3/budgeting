@@ -37,7 +37,6 @@ Run the test suite:
  - Don't build plan/stages for every transaction
 
 ### future
- - authenticate requests
  - basic rule pushdowns
    - all include rules are up for grabs
  - Aggregations

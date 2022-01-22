@@ -36,7 +36,7 @@ Run the test suite:
  - Connect sources => puller
 
 ### future
- - only allow requests from business logic
+ - N/A
 
 ### miscellaneous
  - N/A

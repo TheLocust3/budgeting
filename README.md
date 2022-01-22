@@ -33,9 +33,10 @@ Run the test suite:
 
 ## todo
  - Business logic layer
-   - user management
    - sources + puller orchestration
    - manage business logic
+ - distinguish between channel errors and user facing errors
+ - Global service configuration
  - Authenticate requests between components
 
 ## future

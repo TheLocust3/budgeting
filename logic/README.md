@@ -33,7 +33,7 @@ Run the test suite:
 ## todo
 
 ### next
- - Add "channels" to talk to other micro-services
+ - N/A
 
 ### future
  - N/A
