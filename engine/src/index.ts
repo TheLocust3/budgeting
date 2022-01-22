@@ -1,13 +1,13 @@
-import Koa from 'koa';
-import Router from '@koa/router';
-import bodyParser from 'koa-bodyparser';
-import { Pool } from 'pg';
+import Koa from "koa";
+import Router from "@koa/router";
+import bodyParser from "koa-bodyparser";
+import { Pool } from "pg";
 
-import { router as transactionsRouter } from './route/transactions';
-import { router as accountsRouter } from './route/accounts';
-import { router as rulesRouter } from './route/rules';
+import { router as transactionsRouter } from "./route/transactions";
+import { router as accountsRouter } from "./route/accounts";
+import { router as rulesRouter } from "./route/rules";
 
-type State = {}
+type State = Record<string, never>;
 
 type Context = {
   db: Pool;
@@ -18,9 +18,9 @@ app.context.db = new Pool();
 
 const router = new Router();
 
-router.use('/transactions', transactionsRouter.routes(), transactionsRouter.allowedMethods());
-router.use('/accounts', accountsRouter.routes(), accountsRouter.allowedMethods());
-router.use('/rules', rulesRouter.routes(), rulesRouter.allowedMethods());
+router.use("/transactions", transactionsRouter.routes(), transactionsRouter.allowedMethods());
+router.use("/accounts", accountsRouter.routes(), accountsRouter.allowedMethods());
+router.use("/rules", rulesRouter.routes(), rulesRouter.allowedMethods());
 
 app.use(bodyParser());
 app.use(router.routes());

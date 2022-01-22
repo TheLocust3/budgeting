@@ -1,5 +1,5 @@
-import { QueryResult } from 'pg';
-import * as TE from 'fp-ts/TaskEither';
+import { QueryResult } from "pg";
+import * as TE from "fp-ts/TaskEither";
 
 export const expectOne = TE.chain((res: QueryResult) => {
   if (res.rows.length !== 1) {
@@ -7,4 +7,4 @@ export const expectOne = TE.chain((res: QueryResult) => {
   } else {
     return TE.right(res);
   }
-})
+});

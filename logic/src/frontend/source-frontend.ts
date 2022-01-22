@@ -1,14 +1,14 @@
-import { Pool } from 'pg';
-import bcrypt from 'bcrypt';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
-import { pipe } from 'fp-ts/lib/pipeable';
+import { Pool } from "pg";
+import bcrypt from "bcrypt";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
 
-import { Source } from 'model';
-import * as SourcesTable from '../db/sources-table';
-import { Exception } from 'magic';
+import { Source } from "model";
+import * as SourcesTable from "../db/sources-table";
+import { Exception } from "magic";
 
 export namespace SourceFrontend {
   export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
@@ -16,7 +16,7 @@ export namespace SourceFrontend {
         SourcesTable.all(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
-  }
+  };
 
   export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
@@ -28,7 +28,7 @@ export namespace SourceFrontend {
           , (source) => TE.of(source)
         ))
     );
-  }
+  };
 
   export const create = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
@@ -36,7 +36,7 @@ export namespace SourceFrontend {
       , SourcesTable.create(pool)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
-  }
+  };
 
   export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
@@ -44,7 +44,7 @@ export namespace SourceFrontend {
       , SourcesTable.deleteById(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
-  }
+  };
 }
 
 export default SourceFrontend;

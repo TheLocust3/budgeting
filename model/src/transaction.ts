@@ -1,11 +1,11 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as iot from 'io-ts';
-import * as types from 'io-ts-types';
-import camelcaseKeys from 'camelcase-keys';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as iot from "io-ts";
+import * as types from "io-ts-types";
+import camelcaseKeys from "camelcase-keys";
 
-import { Exception } from 'magic';
+import { Exception } from "magic";
 
 export namespace Internal {
   export type t = {
@@ -48,7 +48,7 @@ export namespace Materialize {
     const id = pipe(
         transaction.id
       , O.getOrElse(() => "")
-    )
+    );
 
     return {
         id: id
@@ -61,8 +61,8 @@ export namespace Materialize {
       , capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(transaction.capturedAt)
       , metadata: transaction.metadata
       , custom: {}
-    }
-  }
+    };
+  };
 
   export const to = (transaction: t): Internal.t => {
     return {
@@ -76,8 +76,8 @@ export namespace Materialize {
       , capturedAt: O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt)
       , metadata: transaction.metadata
       , custom: transaction.custom
-    }
-  }
+    };
+  };
 }
 
 export namespace Json {
@@ -100,7 +100,7 @@ export namespace Json {
       , iot.literal("capturedAt")
     ]);
 
-    export const OptionNumberField: iot.Type<Materialize.Field.OptionNumberField> = iot.literal("capturedAt")
+    export const OptionNumberField: iot.Type<Materialize.Field.OptionNumberField> = iot.literal("capturedAt");
 
     export const StringField: iot.Type<Materialize.Field.StringField> = iot.union([
         iot.literal("id")
@@ -126,15 +126,15 @@ export namespace Json {
         })
       , E.mapLeft((_) => Exception.throwMalformedJson)
     );
-  }
+  };
 
   export const to = (transaction: Internal.t): any => {
-    const id = pipe(transaction.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }))
+    const id = pipe(transaction.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }));
     const capturedAt = pipe(
         transaction.capturedAt
       , O.map(capturedAt => { return { capturedAt: capturedAt.getTime() }; })
       , O.getOrElse(() => { return {}; })
-    )
+    );
 
     return {
         ...id
@@ -147,8 +147,8 @@ export namespace Json {
       , ...capturedAt
       , metadata: transaction.metadata
       , custom: transaction.custom
-    }
-  }
+    };
+  };
 }
 
 export namespace Database {
@@ -162,7 +162,7 @@ export namespace Database {
     , authorized_at: types.date
     , captured_at: types.optionFromNullable(types.date)
     , metadata: iot.object
-  })
+  });
 
   export const from = (transaction: any): E.Either<Error, Internal.t> => {
     return pipe(
@@ -172,5 +172,5 @@ export namespace Database {
       , E.map(transaction => { return { ...transaction, id: O.some(transaction.id), custom: {} }; })
       , E.mapLeft(E.toError)
     );
-  }
+  };
 }

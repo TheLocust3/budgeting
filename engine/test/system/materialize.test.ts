@@ -1,21 +1,21 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
-import { System, uuid, RuleBuilder, MetadataBuilder, JsonTransaction, defaultTransaction, addTransaction as addTransaction2 } from './util';
+import { System, uuid, RuleBuilder, MetadataBuilder, JsonTransaction, defaultTransaction, addTransaction as addTransaction2 } from "./util";
 
 const addTransaction = (transaction: JsonTransaction = defaultTransaction): TE.TaskEither<Error, any> => {
   return addTransaction2(system)(transaction);
-}
+};
 
 let system: System;
 beforeAll(async () => {
   system = new System();
-})
+});
 
-it('can materialize empty', async () => {
+it("can materialize empty", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name)
@@ -27,20 +27,20 @@ it('can materialize empty', async () => {
                 conflicts: []
               , tagged: {}
             }));
-            expect(typeof rows.untagged.length).toBe('number'); // make sure untagged exists
+            expect(typeof rows.untagged.length).toBe("number"); // make sure untagged exists
           }
       )
   )();
 });
 
-it('can materialize split with no matches', async () => {
+it("can materialize split with no matches", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('rule', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("rule", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", "nonesense")
           , [RuleBuilder.percent(child1.id, 1)]
@@ -59,21 +59,21 @@ it('can materialize split with no matches', async () => {
   )();
 });
 
-it('can materialize split for specific transaction', async () => {
+it("can materialize split for specific transaction", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, child1, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, child1, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction, rows }) => {
@@ -86,22 +86,22 @@ it('can materialize split for specific transaction', async () => {
   )();
 });
 
-it('can split transaction in two', async () => {
+it("can split transaction in two", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, child1, child2, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, child1, child2, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.percent(child1.id, 0.3), RuleBuilder.percent(child2.id, 0.7)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction, rows }) => {
@@ -117,29 +117,29 @@ it('can split transaction in two', async () => {
   )();
 });
 
-it('can split two transactions via two rules', async () => {
+it("can split two transactions via two rules", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction())
-    , TE.bind('transaction2', () => addTransaction())
-    , TE.bind('rule1', ({ account, child1, child2, transaction1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction())
+    , TE.bind("transaction2", () => addTransaction())
+    , TE.bind("rule1", ({ account, child1, child2, transaction1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction1.id)
           , [RuleBuilder.percent(child1.id, 0.3), RuleBuilder.percent(child2.id, 0.7)]
         ));
       })
-    , TE.bind('rule2', ({ account, child1, child2, transaction2 }) => {
+    , TE.bind("rule2", ({ account, child1, child2, transaction2 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction2.id)
           , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction1, transaction2, rows }) => {
@@ -155,17 +155,17 @@ it('can split two transactions via two rules', async () => {
   )();
 });
 
-it('can split one transactions via one rule against two transactions', async () => {
+it("can split one transactions via one rule against two transactions", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction())
-    , TE.bind('transaction2', () => addTransaction())
-    , TE.bind('rule1', ({ account, child1, child2, transaction1, transaction2 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction())
+    , TE.bind("transaction2", () => addTransaction())
+    , TE.bind("rule1", ({ account, child1, child2, transaction1, transaction2 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("id", "Neq", transaction1.id)
@@ -174,7 +174,7 @@ it('can split one transactions via one rule against two transactions', async () 
           , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction2, rows }) => {
@@ -190,17 +190,17 @@ it('can split one transactions via one rule against two transactions', async () 
   )();
 });
 
-it('can split one transactions via one rule against two transactions (not)', async () => {
+it("can split one transactions via one rule against two transactions (not)", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction())
-    , TE.bind('transaction2', () => addTransaction())
-    , TE.bind('rule1', ({ account, child1, child2, transaction1, transaction2 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction())
+    , TE.bind("transaction2", () => addTransaction())
+    , TE.bind("rule1", ({ account, child1, child2, transaction1, transaction2 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.not(RuleBuilder.stringMatch("id", "Eq", transaction1.id))
@@ -209,7 +209,7 @@ it('can split one transactions via one rule against two transactions (not)', asy
           , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction2, rows }) => {
@@ -225,24 +225,24 @@ it('can split one transactions via one rule against two transactions (not)', asy
   )();
 });
 
-it('can split two transactions via one rule', async () => {
+it("can split two transactions via one rule", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account, child1, child2 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account, child1, child2 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
           , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction1, transaction2, rows }) => {
@@ -258,29 +258,29 @@ it('can split two transactions via one rule', async () => {
   )();
 });
 
-it('can attach metadata to a transaction', async () => {
+it("can attach metadata to a transaction", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule1", ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.attach(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , "comment"
           , "test"
         ));
       })
-    , TE.bind('rule2', ({ account, child1, transaction }) => {
+    , TE.bind("rule2", ({ account, child1, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction, rows }) => {
@@ -295,36 +295,36 @@ it('can attach metadata to a transaction', async () => {
   )();
 });
 
-it('can attach metadata to a transaction on the same field', async () => {
+it("can attach metadata to a transaction on the same field", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule1", ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.attach(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , "comment"
           , "test"
         ));
       })
-    , TE.bind('rule2', ({ account, transaction }) => {
+    , TE.bind("rule2", ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.attach(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , "comment"
           , "test2"
         ));
       })
-    , TE.bind('rule3', ({ account, child1, transaction }) => {
+    , TE.bind("rule3", ({ account, child1, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction, rows }) => {
@@ -339,36 +339,36 @@ it('can attach metadata to a transaction on the same field', async () => {
   )();
 });
 
-it('can attach two pieces of metadata to a transaction', async () => {
+it("can attach two pieces of metadata to a transaction", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule1', ({ account, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule1", ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.attach(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , "comment"
           , "test"
         ));
       })
-    , TE.bind('rule2', ({ account, transaction }) => {
+    , TE.bind("rule2", ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.attach(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , "comment2"
           , "test2"
         ));
       })
-    , TE.bind('rule3', ({ account, child1, transaction }) => {
+    , TE.bind("rule3", ({ account, child1, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction, rows }) => {
@@ -383,17 +383,17 @@ it('can attach two pieces of metadata to a transaction', async () => {
   )();
 });
 
-it('can split a transaction operating on amount (eq)', async () => {
+it("can split a transaction operating on amount (eq)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -402,7 +402,7 @@ it('can split a transaction operating on amount (eq)', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, rows }) => {
@@ -417,17 +417,17 @@ it('can split a transaction operating on amount (eq)', async () => {
   )();
 });
 
-it('can split a transaction operating on amount (neq)', async () => {
+it("can split a transaction operating on amount (neq)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -436,7 +436,7 @@ it('can split a transaction operating on amount (neq)', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction2, rows }) => {
@@ -451,17 +451,17 @@ it('can split a transaction operating on amount (neq)', async () => {
   )();
 });
 
-it('can split a transaction operating on amount (lt)', async () => {
+it("can split a transaction operating on amount (lt)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -470,7 +470,7 @@ it('can split a transaction operating on amount (lt)', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction2, rows }) => {
@@ -485,17 +485,17 @@ it('can split a transaction operating on amount (lt)', async () => {
   )();
 });
 
-it('can split a transaction operating on amount (lte)', async () => {
+it("can split a transaction operating on amount (lte)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -504,7 +504,7 @@ it('can split a transaction operating on amount (lte)', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, transaction2, rows }) => {
@@ -519,17 +519,17 @@ it('can split a transaction operating on amount (lte)', async () => {
   )();
 });
 
-it('can split a transaction operating on amount (gt)', async () => {
+it("can split a transaction operating on amount (gt)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -538,7 +538,7 @@ it('can split a transaction operating on amount (gt)', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, rows }) => {
@@ -553,17 +553,17 @@ it('can split a transaction operating on amount (gt)', async () => {
   )();
 });
 
-it('can split a transaction operating on amount (gte)', async () => {
+it("can split a transaction operating on amount (gte)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -572,7 +572,7 @@ it('can split a transaction operating on amount (gte)', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, transaction2, rows }) => {
@@ -587,17 +587,17 @@ it('can split a transaction operating on amount (gte)', async () => {
   )();
 });
 
-it('can split a transaction (glob) 1', async () => {
+it("can split a transaction (glob) 1", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -606,7 +606,7 @@ it('can split a transaction (glob) 1', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, rows }) => {
@@ -621,17 +621,17 @@ it('can split a transaction (glob) 1', async () => {
   )();
 });
 
-it('can split a transaction (glob) 2', async () => {
+it("can split a transaction (glob) 2", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -640,7 +640,7 @@ it('can split a transaction (glob) 2', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, rows }) => {
@@ -655,17 +655,17 @@ it('can split a transaction (glob) 2', async () => {
   )();
 });
 
-it('can split a transaction (glob) 3', async () => {
+it("can split a transaction (glob) 3", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "hello world" }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, description: "jake kinsella" }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -674,7 +674,7 @@ it('can split a transaction (glob) 3', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, transaction2, rows }) => {
@@ -689,18 +689,18 @@ it('can split a transaction (glob) 3', async () => {
   )();
 });
 
-it('can split a transaction with exists', async () => {
+it("can split a transaction with exists", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
-  const capturedAt = new Date()
+  const capturedAt = new Date();
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -709,7 +709,7 @@ it('can split a transaction with exists', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, transaction2, rows }) => {
@@ -724,18 +724,18 @@ it('can split a transaction with exists', async () => {
   )();
 });
 
-it('can split a transaction with exists (not)', async () => {
+it("can split a transaction with exists (not)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
-  const capturedAt = new Date()
+  const capturedAt = new Date();
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(capturedAt) }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -744,7 +744,7 @@ it('can split a transaction with exists (not)', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, transaction2, rows }) => {
@@ -759,18 +759,18 @@ it('can split a transaction with exists (not)', async () => {
   )();
 });
 
-it('can split a transaction on capturedAt 1', async () => {
+it("can split a transaction on capturedAt 1", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
-  const now = new Date().getTime()
+  const now = new Date().getTime();
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(new Date(now)) }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(new Date(now)) }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -779,7 +779,7 @@ it('can split a transaction on capturedAt 1', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, transaction2, rows }) => {
@@ -794,18 +794,18 @@ it('can split a transaction on capturedAt 1', async () => {
   )();
 });
 
-it('can split a transaction on capturedAt 2', async () => {
+it("can split a transaction on capturedAt 2", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
-  const now = new Date().getTime()
+  const now = new Date().getTime();
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(new Date(now)) }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
-    , TE.bind('rule1', ({ account, child1 }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.some(new Date(now)) }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, merchantName: merchantName, capturedAt: O.none }))
+    , TE.bind("rule1", ({ account, child1 }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.and(
                 RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
@@ -814,7 +814,7 @@ it('can split a transaction on capturedAt 2', async () => {
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction1, transaction2, rows }) => {
@@ -829,23 +829,23 @@ it('can split a transaction on capturedAt 2', async () => {
   )();
 });
 
-it('can split transaction in two by value', async () => {
+it("can split transaction in two by value", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, child1, child2, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, child1, child2, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByValue(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.value(child1.id, 7)]
           , child2.id
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction, rows }) => {
@@ -861,24 +861,24 @@ it('can split transaction in two by value', async () => {
   )();
 });
 
-it('can split transaction in three by value', async () => {
+it("can split transaction in three by value", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child3', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, child1, child2, child3, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child3", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, child1, child2, child3, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByValue(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.value(child1.id, 3), RuleBuilder.value(child2.id, 5)]
           , child3.id
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, child3, transaction, rows }) => {
@@ -895,24 +895,24 @@ it('can split transaction in three by value', async () => {
   )();
 });
 
-it('can split transaction in three by value without remainder', async () => {
+it("can split transaction in three by value without remainder", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child3', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, child1, child2, child3, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child3", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, child1, child2, child3, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByValue(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.value(child1.id, 6), RuleBuilder.value(child2.id, 4)]
           , child3.id
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, child3, transaction, rows }) => {
@@ -928,21 +928,21 @@ it('can split transaction in three by value without remainder', async () => {
   )();
 });
 
-it('can materialize child with parent splitting for a specific transaction', async () => {
+it("can materialize child with parent splitting for a specific transaction", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, child1, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, child1, transaction }) => {
         return system.addRule(account.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Eq", transaction.id)
           , [RuleBuilder.percent(child1.id, 1)]
         ));
       })
-    , TE.bind('rows', ({ child1 }) => system.materialize(child1.id))
+    , TE.bind("rows", ({ child1 }) => system.materialize(child1.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ transaction, rows }) => {
@@ -956,20 +956,20 @@ it('can materialize child with parent splitting for a specific transaction', asy
   )();
 });
 
-it('can materialize include for specific transaction', async () => {
+it("can materialize include for specific transaction", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.stringMatch("id", "Eq", transaction.id)
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, transaction, rows }) => {
@@ -983,21 +983,21 @@ it('can materialize include for specific transaction', async () => {
   )();
 });
 
-it('can materialize include for specific transaction across multiple children', async () => {
+it("can materialize include for specific transaction across multiple children", async () => {
   const name = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('account', () => system.addAccount(name))
-    , TE.bind('child1', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('child2', ({ account }) => system.addAccount(name, O.some(account.id)))
-    , TE.bind('transaction', () => addTransaction())
-    , TE.bind('rule', ({ account, transaction }) => {
+    , TE.bind("account", () => system.addAccount(name))
+    , TE.bind("child1", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("child2", ({ account }) => system.addAccount(name, O.some(account.id)))
+    , TE.bind("transaction", () => addTransaction())
+    , TE.bind("rule", ({ account, transaction }) => {
         return system.addRule(account.id, RuleBuilder.include(
           RuleBuilder.stringMatch("id", "Eq", transaction.id)
         ));
       })
-    , TE.bind('rows', ({ account }) => system.materialize(account.id))
+    , TE.bind("rows", ({ account }) => system.materialize(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction, rows }) => {
@@ -1011,31 +1011,31 @@ it('can materialize include for specific transaction across multiple children', 
   )();
 });
 
-it('can materialize two transactions via include => split (1)', async () => {
+it("can materialize two transactions via include => split (1)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('globalAccount', () => system.addAccount(name))
-    , TE.bind('globalRule', ({ globalAccount }) => {
+    , TE.bind("globalAccount", () => system.addAccount(name))
+    , TE.bind("globalRule", ({ globalAccount }) => {
         return system.addRule(globalAccount.id, RuleBuilder.include(
           RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
         ));
       })
-    , TE.bind('account1', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
-    , TE.bind('account2', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
-    , TE.bind('child1', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
-    , TE.bind('child2', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account1, child1, child2 }) => {
+    , TE.bind("account1", ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind("account2", ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind("child1", ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind("child2", ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account1, child1, child2 }) => {
         return system.addRule(account1.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Neq", "")
           , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
         ));
       })
-    , TE.bind('rows', ({ account1 }) => system.materialize(account1.id))
+    , TE.bind("rows", ({ account1 }) => system.materialize(account1.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ child1, child2, transaction1, transaction2, rows }) => {
@@ -1052,31 +1052,31 @@ it('can materialize two transactions via include => split (1)', async () => {
   )();
 });
 
-it('can materialize two transactions via include => split (2)', async () => {
+it("can materialize two transactions via include => split (2)", async () => {
   const name = `test-${uuid()}`;
   const merchantName = `test-${uuid()}`;
 
   await pipe(
       TE.Do
-    , TE.bind('globalAccount', () => system.addAccount(name))
-    , TE.bind('globalRule', ({ globalAccount }) => {
+    , TE.bind("globalAccount", () => system.addAccount(name))
+    , TE.bind("globalRule", ({ globalAccount }) => {
         return system.addRule(globalAccount.id, RuleBuilder.include(
           RuleBuilder.stringMatch("merchantName", "Eq", merchantName)
         ));
       })
-    , TE.bind('account1', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
-    , TE.bind('account2', ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
-    , TE.bind('child1', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
-    , TE.bind('child2', ({ account1 }) => system.addAccount(name, O.some(account1.id)))
-    , TE.bind('transaction1', () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
-    , TE.bind('transaction2', () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
-    , TE.bind('rule1', ({ account1, child1, child2 }) => {
+    , TE.bind("account1", ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind("account2", ({ globalAccount }) => system.addAccount(name, O.some(globalAccount.id)))
+    , TE.bind("child1", ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind("child2", ({ account1 }) => system.addAccount(name, O.some(account1.id)))
+    , TE.bind("transaction1", () => addTransaction({ ...defaultTransaction, amount: 10, merchantName: merchantName }))
+    , TE.bind("transaction2", () => addTransaction({ ...defaultTransaction, amount: 5, merchantName: merchantName }))
+    , TE.bind("rule1", ({ account1, child1, child2 }) => {
         return system.addRule(account1.id, RuleBuilder.splitByPercent(
             RuleBuilder.stringMatch("id", "Neq", "")
           , [RuleBuilder.percent(child1.id, 0.5), RuleBuilder.percent(child2.id, 0.5)]
         ));
       })
-    , TE.bind('rows', ({ account2 }) => system.materialize(account2.id))
+    , TE.bind("rows", ({ account2 }) => system.materialize(account2.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ transaction1, transaction2, rows }) => {

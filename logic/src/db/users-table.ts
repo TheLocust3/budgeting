@@ -1,14 +1,14 @@
-import { Pool } from 'pg';
-import { pipe } from 'fp-ts/lib/function';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as T from 'fp-ts/lib/Task';
-import * as TE from 'fp-ts/lib/TaskEither';
-import * as iot from 'io-ts';
+import { Pool } from "pg";
+import { pipe } from "fp-ts/lib/function";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
+import * as iot from "io-ts";
 
-import { User } from 'model';
-import { Db } from 'magic';
+import { User } from "model";
+import { Db } from "magic";
 
 namespace Query {
   export const createTable = `
@@ -19,7 +19,7 @@ namespace Query {
     )
   `;
 
-  export const dropTable = `DROP TABLE users`
+  export const dropTable = "DROP TABLE users";
 
   export const create = (email: string, password: string) => {
     return {
@@ -29,13 +29,13 @@ namespace Query {
         RETURNING *
       `,
       values: [email, password]
-    }
-  }
+    };
+  };
 
   export const all = `
     SELECT id, email, password
     FROM users
-  `
+  `;
 
   export const byId = (id: string) => {
     return {
@@ -46,8 +46,8 @@ namespace Query {
         LIMIT 1
       `,
       values: [id]
-    }
-  }
+    };
+  };
 
     export const byEmail = (email: string) => {
     return {
@@ -58,8 +58,8 @@ namespace Query {
         LIMIT 1
       `,
       values: [email]
-    }
-  }
+    };
+  };
 
   export const deleteById = (id: string) => {
     return {
@@ -68,11 +68,11 @@ namespace Query {
         WHERE id = $1
       `,
       values: [id]
-    }
-  }
+    };
+  };
 }
 
-export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
+export const migrate = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.createTable);
     return true;
@@ -80,9 +80,9 @@ export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
-}
+};
 
-export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
+export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.dropTable);
     return true;
@@ -90,7 +90,7 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
-}
+};
 
 export const all = (pool: Pool) => () : TE.TaskEither<Error, User.Internal.t[]> => {
   return pipe(
@@ -104,7 +104,7 @@ export const all = (pool: Pool) => () : TE.TaskEither<Error, User.Internal.t[]> 
         , A.sequence(E.Applicative)
       )))
   );
-}
+};
 
 export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<User.Internal.t>> => {
   return pipe(
@@ -119,7 +119,7 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
       )))
     , TE.map(A.lookup(0))
   );
-}
+};
 
 export const byEmail = (pool: Pool) => (email: string) : TE.TaskEither<Error, O.Option<User.Internal.t>> => {
   return pipe(
@@ -134,7 +134,7 @@ export const byEmail = (pool: Pool) => (email: string) : TE.TaskEither<Error, O.
       )))
     , TE.map(A.lookup(0))
   );
-}
+};
 
 export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
@@ -142,9 +142,9 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, vo
         () => pool.query(Query.deleteById(id)),
         E.toError
       )
-    , TE.map(x => { return })
+    , TE.map(x => { return; })
   );
-}
+};
 
 export const create = (pool: Pool) => (user: User.Internal.t) : TE.TaskEither<Error, User.Internal.t> => {
   return pipe(
@@ -155,4 +155,4 @@ export const create = (pool: Pool) => (user: User.Internal.t) : TE.TaskEither<Er
     , Db.expectOne
     , TE.chain(res => TE.fromEither(User.Database.from(res.rows[0])))
   );
-}
+};

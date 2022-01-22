@@ -1,21 +1,21 @@
-import Router from '@koa/router';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
-import { pipe } from 'fp-ts/lib/pipeable';
+import Router from "@koa/router";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
 
-import SourceFrontend from '../frontend/source-frontend';
-import { AuthenticationFor } from './util';
+import SourceFrontend from "../frontend/source-frontend";
+import { AuthenticationFor } from "./util";
 
-import { Source } from 'model';
-import { Message } from 'magic';
+import { Source } from "model";
+import { Message } from "magic";
 
 export const router = new Router();
 
 router
   .use(AuthenticationFor.user)
-  .get('/', async (ctx, next) => {
+  .get("/", async (ctx, next) => {
     const user = ctx.state.user;
     await pipe(
         SourceFrontend.all(ctx.db)(user.id)
@@ -28,9 +28,9 @@ router
         )
     )();
   })
-  .get('/:sourceId', async (ctx, next) => {
+  .get("/:sourceId", async (ctx, next) => {
     const user = ctx.state.user;
-    const sourceId = ctx.params.sourceId
+    const sourceId = ctx.params.sourceId;
     await pipe(
         sourceId
       , SourceFrontend.getById(ctx.db)(user.id)
@@ -43,7 +43,7 @@ router
         )
     )();
   })
-  .post('/', async (ctx, next) => {
+  .post("/", async (ctx, next) => {
     const user = ctx.state.user;
     await pipe(
         ctx.request.body
@@ -59,7 +59,7 @@ router
         )
     )();
   })
-  .delete('/:sourceId', async (ctx, next) => {
+  .delete("/:sourceId", async (ctx, next) => {
     const user = ctx.state.user;
     const sourceId = ctx.params.sourceId;
     await pipe(
@@ -72,4 +72,4 @@ router
             }
         )
     )();
-  })
+  });

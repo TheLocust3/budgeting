@@ -1,20 +1,20 @@
-import * as Exception from './exception'
+import * as Exception from "./exception";
 
 type OkMessage = {
-  message: 'ok';
+  message: "ok";
 }
 
 type ErrorMessage = {
-  message: 'failed';
+  message: "failed";
   error: string;
 }
 
 export type t = OkMessage | ErrorMessage;
 
-export const ok = { message: 'ok' };
+export const ok = { message: "ok" };
 export const error = (details: string): ErrorMessage => {
-  return { message: 'failed', error: details };
-}
+  return { message: "failed", error: details };
+};
 
 export const respondWithError = (ctx: any) => (exception: Exception.t): void => {
   switch (exception._type) {
@@ -43,4 +43,4 @@ export const respondWithError = (ctx: any) => (exception: Exception.t): void => 
       ctx.body = error("Unauthorized");
       return;
   }
-}
+};

@@ -1,11 +1,11 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as iot from 'io-ts';
-import * as types from 'io-ts-types';
-import camelcaseKeys from 'camelcase-keys'
+import { pipe } from "fp-ts/lib/pipeable";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as iot from "io-ts";
+import * as types from "io-ts-types";
+import camelcaseKeys from "camelcase-keys";
 
-import { Exception } from 'magic';
+import { Exception } from "magic";
 
 export namespace Internal {
   export type t = {
@@ -27,17 +27,17 @@ export namespace Json {
       , E.map((source) => { return { ...source, id: O.none, userId: userId }; })
       , E.mapLeft((_) => Exception.throwMalformedJson)
     );
-  }
+  };
 
   export const to = (source: Internal.t): any => {
-    const id = pipe(source.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }))
+    const id = pipe(source.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }));
 
     return {
         ...id
       , userId: source.userId
       , name: source.name
-    }
-  }
+    };
+  };
 }
 
 export namespace Database {
@@ -55,5 +55,5 @@ export namespace Database {
       , E.map(source => { return { ...source, id: O.some(source.id) }; })
       , E.mapLeft(E.toError)
     );
-  }
+  };
 }

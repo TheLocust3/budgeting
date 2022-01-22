@@ -1,13 +1,13 @@
-import { Pool } from 'pg';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
-import { pipe } from 'fp-ts/lib/pipeable';
+import { Pool } from "pg";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
 
-import { Transaction } from 'model';
-import * as TransactionsTable from '../db/transactions';
-import { Exception } from 'magic';
+import { Transaction } from "model";
+import * as TransactionsTable from "../db/transactions";
+import { Exception } from "magic";
 
 export namespace TransactionFrontend {
   export const all = (pool: Pool) => (): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
@@ -15,7 +15,7 @@ export namespace TransactionFrontend {
         TransactionsTable.all(pool)()
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
-  }
+  };
 
   export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
@@ -27,7 +27,7 @@ export namespace TransactionFrontend {
           , (rule) => TE.of(rule)
         ))
     );
-  }
+  };
 
   export const create = (pool: Pool) => (transaction: Transaction.Internal.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
@@ -35,7 +35,7 @@ export namespace TransactionFrontend {
       , TransactionsTable.create(pool)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
-  }
+  };
 
   export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
@@ -43,7 +43,7 @@ export namespace TransactionFrontend {
       , TransactionsTable.deleteById(pool)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
-  }
+  };
 }
 
 export default TransactionFrontend;

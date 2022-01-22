@@ -1,10 +1,10 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
 
-import { Account } from 'model';
-import { Rule } from 'model';
-import { Pipe } from 'magic';
+import { Account } from "model";
+import { Rule } from "model";
+import { Pipe } from "magic";
 
 export type SplitStage = {
     _type: "SplitStage"
@@ -28,7 +28,7 @@ export type t = {
 }
 
 const buildStage = (account: Account.Internal.t): Stage => {
-  const accountId = O.match(() => "", (account: string) => account)(account.id) // TODO: JK should really have a strict "Materialize" Account type
+  const accountId = O.match(() => "", (account: string) => account)(account.id); // TODO: JK should really have a strict "Materialize" Account type
   const rules = A.map((rule: Rule.Internal.t) => rule.rule)(account.rules);
 
   const attach = pipe(rules, A.map(Rule.Internal.collectAttach), Pipe.flattenOption);
@@ -51,8 +51,8 @@ const buildStage = (account: Account.Internal.t): Stage => {
       , split: split
     };
   }
-}
+};
 
 export const build = (accounts: Account.Internal.t[]): t => {
   return { stages: A.map(buildStage)(accounts) };
-}
+};

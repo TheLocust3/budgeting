@@ -1,17 +1,17 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
-import { System, uuid } from './util';
+import { System, uuid } from "./util";
 
 let system: System;
 beforeAll(async () => {
   system = new System();
 });
 
-it('can add user', async () => {
+it("can add user", async () => {
   const email = `test-${uuid()}`;
   await pipe(
       system.addUser(email, "foobar")
@@ -26,7 +26,7 @@ it('can add user', async () => {
   )();
 });
 
-it('can successfully login', async () => {
+it("can successfully login", async () => {
   const email = `test-${uuid()}`;
   await pipe(
       system.addUser(email, "foobar")
@@ -40,26 +40,26 @@ it('can successfully login', async () => {
   )();
 });
 
-it('can\'t log into account with wrong email', async () => {
+it("can't log into account with wrong email", async () => {
   const email = `test-${uuid()}`;
   await pipe(
       system.addUser(email, "foobar")
     , TE.chain((_) => system.login("test", "foobar"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (res) => { expect(res.message).toBe('failed') }
+        , (res) => { expect(res.message).toBe("failed"); }
       )
   )();
 });
 
-it('can\'t log into account with wrong password', async () => {
+it("can't log into account with wrong password", async () => {
   const email = `test-${uuid()}`;
   await pipe(
       system.addUser(email, "foobar")
     , TE.chain((_) => system.login(email, "foobar123"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (res) => { expect(res.message).toBe('failed') }
+        , (res) => { expect(res.message).toBe("failed"); }
       )
   )();
 });

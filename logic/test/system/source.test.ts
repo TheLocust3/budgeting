@@ -1,10 +1,10 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
-import { System, uuid } from './util';
+import { System, uuid } from "./util";
 
 let system: System;
 let otherSystem: System;
@@ -17,10 +17,10 @@ beforeAll(async () => {
   const otherEmail = `test-${uuid()}`;
   await pipe(
       TE.Do
-    , TE.bind('user', () => system.addUser(email, "foobar"))
-    , TE.bind('token', () => system.login(email, "foobar"))
-    , TE.bind('otherUser', () => otherSystem.addUser(otherEmail, "foobar"))
-    , TE.bind('otherToken', () => otherSystem.login(otherEmail, "foobar"))
+    , TE.bind("user", () => system.addUser(email, "foobar"))
+    , TE.bind("token", () => system.login(email, "foobar"))
+    , TE.bind("otherUser", () => otherSystem.addUser(otherEmail, "foobar"))
+    , TE.bind("otherToken", () => otherSystem.login(otherEmail, "foobar"))
     , TE.match(
           (error) => { throw error; }
         , ({ user }) => { userId = user.id; }
@@ -28,7 +28,7 @@ beforeAll(async () => {
   )();
 });
 
-it('can add source', async () => {
+it("can add source", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addSource(name)
@@ -42,7 +42,7 @@ it('can add source', async () => {
   )();
 });
 
-it('can get source', async () => {
+it("can get source", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addSource(name)
@@ -50,15 +50,15 @@ it('can get source', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (_source) => {
-            const source = _source.source
+            const source = _source.source;
             expect(source).toEqual(expect.objectContaining({ userId: userId, name: name }));
-            expect(typeof source.id).toBe('string');
+            expect(typeof source.id).toBe("string");
           }
       )
   )();
 });
 
-it('can\'t get other user\'s source', async () => {
+it("can't get other user's source", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       otherSystem.addSource(name)
@@ -66,13 +66,13 @@ it('can\'t get other user\'s source', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (res) => {
-            expect(res.message).toBe("failed")
+            expect(res.message).toBe("failed");
           }
       )
   )();
 });
 
-it('can list sources', async () => {
+it("can list sources", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addSource(name)
@@ -80,18 +80,18 @@ it('can list sources', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (sources) => {
-            const source = sources.sources.filter((source: any) => source.name === name)[0]
+            const source = sources.sources.filter((source: any) => source.name === name)[0];
 
             expect(source).toEqual(expect.objectContaining({ userId: userId, name: name }));
-            expect(typeof source.id).toBe('string');
+            expect(typeof source.id).toBe("string");
 
-            sources.sources.map((source: any) => expect(source.userId).toBe(userId))
+            sources.sources.map((source: any) => expect(source.userId).toBe(userId));
           }
       )
   )();
 });
 
-it('can delete source', async () => {
+it("can delete source", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addSource(name)
@@ -100,7 +100,7 @@ it('can delete source', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (sources) => {
-            const source = sources.sources.filter((source: any) => source.name === name)
+            const source = sources.sources.filter((source: any) => source.name === name);
 
             expect(source.length).toEqual(0);
           }
@@ -108,7 +108,7 @@ it('can delete source', async () => {
   )();
 });
 
-it('can\'t delete other user\'s source', async () => {
+it("can't delete other user's source", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       otherSystem.addSource(name)
@@ -117,10 +117,10 @@ it('can\'t delete other user\'s source', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (sources) => {
-            const source = sources.sources.filter((source: any) => source.name === name)[0]
+            const source = sources.sources.filter((source: any) => source.name === name)[0];
 
             expect(source).toEqual(expect.objectContaining({ name: name }));
-            expect(typeof source.id).toBe('string');
+            expect(typeof source.id).toBe("string");
           }
       )
   )();

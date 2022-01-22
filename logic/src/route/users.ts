@@ -1,16 +1,16 @@
-import Router from '@koa/router';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as iot from 'io-ts';
+import Router from "@koa/router";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
+import * as iot from "io-ts";
 
-import UserFrontend from '../frontend/user-frontend';
-import { JWT } from './util';
+import UserFrontend from "../frontend/user-frontend";
+import { JWT } from "./util";
 
-import { User } from 'model';
-import { Exception, Message } from 'magic';
+import { User } from "model";
+import { Exception, Message } from "magic";
 
 export const router = new Router();
 
@@ -28,12 +28,12 @@ namespace Requests {
         , t.decode
         , E.mapLeft((_) => Exception.throwMalformedJson)
       );
-    }
+    };
   }
 }
 
 router
-  .post('/login', async (ctx, next) => {
+  .post("/login", async (ctx, next) => {
     await pipe(
         ctx.request.body
       , Requests.Login.from
@@ -48,7 +48,7 @@ router
         )
     )();
   })
-  .post('/', async (ctx, next) => {
+  .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
       , User.Json.from
@@ -62,7 +62,7 @@ router
             }
         )
     )();
-  })
+  });
   /*.get('/', async (ctx, next) => {
     await pipe(
         UserFrontend.all(ctx.db)()

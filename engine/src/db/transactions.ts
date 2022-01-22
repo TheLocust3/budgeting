@@ -1,14 +1,14 @@
-import { Pool } from 'pg';
-import { pipe } from 'fp-ts/lib/function';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as T from 'fp-ts/lib/Task';
-import * as TE from 'fp-ts/lib/TaskEither';
-import * as iot from 'io-ts';
+import { Pool } from "pg";
+import { pipe } from "fp-ts/lib/function";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
+import * as iot from "io-ts";
 
-import { Transaction } from 'model';
-import { Db } from 'magic';
+import { Transaction } from "model";
+import { Db } from "magic";
 
 namespace Query {
   export const createTable = `
@@ -25,7 +25,7 @@ namespace Query {
     )
   `;
 
-  export const dropTable = `DROP TABLE transactions`
+  export const dropTable = "DROP TABLE transactions";
 
   export const create = (
       sourceId: string
@@ -44,8 +44,8 @@ namespace Query {
         RETURNING *
       `,
       values: [sourceId, userId, amount, merchantName, description, authorizedAt, capturedAt, metadata]
-    }
-  }
+    };
+  };
 
   export const all = `
     SELECT id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata
@@ -61,8 +61,8 @@ namespace Query {
         LIMIT 1
       `,
       values: [id]
-    }
-  }
+    };
+  };
 
   export const deleteById = (id: string) => {
     return {
@@ -71,11 +71,11 @@ namespace Query {
         WHERE id = $1
       `,
       values: [id]
-    }
-  }
+    };
+  };
 }
 
-export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
+export const migrate = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.createTable);
     return true;
@@ -83,9 +83,9 @@ export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
-}
+};
 
-export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
+export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.dropTable);
     return true;
@@ -93,7 +93,7 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
-}
+};
 
 export const all = (pool: Pool) => () : TE.TaskEither<Error, Transaction.Internal.t[]> => {
   return pipe(
@@ -107,7 +107,7 @@ export const all = (pool: Pool) => () : TE.TaskEither<Error, Transaction.Interna
         , A.sequence(E.Applicative)
       )))
   );
-}
+};
 
 export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<Transaction.Internal.t>> => {
   return pipe(
@@ -122,7 +122,7 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
       )))
     , TE.map(A.lookup(0))
   );
-}
+};
 
 export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
@@ -130,9 +130,9 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, vo
         () => pool.query(Query.deleteById(id)),
         E.toError
       )
-    , TE.map(x => { return })
+    , TE.map(x => { return; })
   );
-}
+};
 
 export const create = (pool: Pool) => (transaction: Transaction.Internal.t) : TE.TaskEither<Error, Transaction.Internal.t> => {
   return pipe(
@@ -152,4 +152,4 @@ export const create = (pool: Pool) => (transaction: Transaction.Internal.t) : TE
     , Db.expectOne
     , TE.chain(res => TE.fromEither(Transaction.Database.from(res.rows[0])))
   );
-}
+};

@@ -1,22 +1,22 @@
-import Router from '@koa/router';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
-import { pipe } from 'fp-ts/lib/pipeable';
+import Router from "@koa/router";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
 
-import AccountFrontend from '../frontend/account-frontend';
+import AccountFrontend from "../frontend/account-frontend";
 
-import { Account } from 'model';
-import { Transaction } from 'model';
-import { Rule } from 'model';
-import * as Materialize from '../materialize/index';
-import { Message } from 'magic';
+import { Account } from "model";
+import { Transaction } from "model";
+import { Rule } from "model";
+import * as Materialize from "../materialize/index";
+import { Message } from "magic";
 
 export const router = new Router();
 
 router
-  .get('/', async (ctx, next) => {
+  .get("/", async (ctx, next) => {
     await pipe(
         AccountFrontend.all(ctx.db)()
       , TE.map(A.map(Account.Json.to))
@@ -28,8 +28,8 @@ router
         )
     )();
   })
-  .get('/:accountId', async (ctx, next) => {
-    const accountId = ctx.params.accountId
+  .get("/:accountId", async (ctx, next) => {
+    const accountId = ctx.params.accountId;
     await pipe(
         accountId
       , AccountFrontend.getById(ctx.db)
@@ -42,8 +42,8 @@ router
         )
     )();
   })
-  .get('/:accountId/materialize', async (ctx, next) => {
-    const accountId = ctx.params.accountId
+  .get("/:accountId/materialize", async (ctx, next) => {
+    const accountId = ctx.params.accountId;
     await pipe(
         accountId
       , AccountFrontend.getById(ctx.db)
@@ -62,7 +62,7 @@ router
         )
     )();
   })
-  .post('/', async (ctx, next) => {
+  .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
       , Account.Json.from
@@ -77,8 +77,8 @@ router
         )
     )();
   })
-  .delete('/:accountId', async (ctx, next) => {
-    const accountId = ctx.params.accountId
+  .delete("/:accountId", async (ctx, next) => {
+    const accountId = ctx.params.accountId;
     await pipe(
         accountId
       , AccountFrontend.deleteById(ctx.db)
@@ -89,4 +89,4 @@ router
             }
         )
     )();
-  })
+  });

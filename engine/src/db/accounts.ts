@@ -1,14 +1,14 @@
-import { Pool } from 'pg';
-import { pipe } from 'fp-ts/lib/function';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as T from 'fp-ts/lib/Task';
-import * as TE from 'fp-ts/lib/TaskEither';
-import * as iot from 'io-ts';
+import { Pool } from "pg";
+import { pipe } from "fp-ts/lib/function";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
+import * as iot from "io-ts";
 
-import { Account } from 'model';
-import { Db } from 'magic';
+import { Account } from "model";
+import { Db } from "magic";
 
 namespace Query {
   export const createTable = `
@@ -21,7 +21,7 @@ namespace Query {
     )
   `;
 
-  export const dropTable = `DROP TABLE accounts`
+  export const dropTable = "DROP TABLE accounts";
 
   export const create = (parentId: string | null, userId: string, name: string) => {
     return {
@@ -31,13 +31,13 @@ namespace Query {
         RETURNING *
       `,
       values: [parentId, userId, name]
-    }
-  }
+    };
+  };
 
   export const all = `
     SELECT id, parent_id, user_id, name
     FROM accounts
-  `
+  `;
 
   export const byId = (id: string) => {
     return {
@@ -48,8 +48,8 @@ namespace Query {
         LIMIT 1
       `,
       values: [id]
-    }
-  }
+    };
+  };
 
   export const childrenOf = (parent: string) => {
     return {
@@ -59,8 +59,8 @@ namespace Query {
         WHERE parent_id = $1
       `,
       values: [parent]
-    }
-  }
+    };
+  };
 
   export const deleteById = (id: string) => {
     return {
@@ -69,11 +69,11 @@ namespace Query {
         WHERE id = $1
       `,
       values: [id]
-    }
-  }
+    };
+  };
 }
 
-export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
+export const migrate = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.createTable);
     return true;
@@ -81,9 +81,9 @@ export const migrate = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
-}
+};
 
-export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
+export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.dropTable);
     return true;
@@ -91,7 +91,7 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
     console.log(err);
     return false;
   }
-}
+};
 
 export const all = (pool: Pool) => () : TE.TaskEither<Error, Account.Internal.t[]> => {
   return pipe(
@@ -105,7 +105,7 @@ export const all = (pool: Pool) => () : TE.TaskEither<Error, Account.Internal.t[
         , A.sequence(E.Applicative)
       )))
   );
-}
+};
 
 export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<Account.Internal.t>> => {
   return pipe(
@@ -120,7 +120,7 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
       )))
     , TE.map(A.lookup(0))
   );
-}
+};
 
 export const childrenOf = (pool: Pool) => (parent: string) : TE.TaskEither<Error, string[]> => {
   return pipe(
@@ -133,7 +133,7 @@ export const childrenOf = (pool: Pool) => (parent: string) : TE.TaskEither<Error
       , A.map(row => String(row.id))
     ))
   );
-}
+};
 
 export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
@@ -141,9 +141,9 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, vo
         () => pool.query(Query.deleteById(id)),
         E.toError
       )
-    , TE.map(x => { return })
+    , TE.map(x => { return; })
   );
-}
+};
 
 export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEither<Error, Account.Internal.t> => {
   return pipe(
@@ -158,4 +158,4 @@ export const create = (pool: Pool) => (account: Account.Internal.t) : TE.TaskEit
     , Db.expectOne
     , TE.chain(res => TE.fromEither(Account.Database.from(res.rows[0])))
   );
-}
+};

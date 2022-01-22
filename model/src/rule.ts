@@ -1,11 +1,11 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as iot from 'io-ts';
-import camelcaseKeys from 'camelcase-keys'
+import { pipe } from "fp-ts/lib/pipeable";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as iot from "io-ts";
+import camelcaseKeys from "camelcase-keys";
 
-import * as Transaction from './transaction';
-import { Exception } from 'magic';
+import * as Transaction from "./transaction";
+import { Exception } from "magic";
 
 export namespace Internal {
   export namespace Clause {
@@ -110,7 +110,7 @@ export namespace Internal {
       case "Include":
         return O.none;
     }
-  }
+  };
 
   export const collectSplit = (rule: Rule): O.Option<Split.t> => {
     switch (rule._type) {
@@ -123,7 +123,7 @@ export namespace Internal {
       case "Include":
         return O.none;
     }
-  }
+  };
 
   export const collectInclude = (rule: Rule): O.Option<Include.t> => {
     switch (rule._type) {
@@ -136,7 +136,7 @@ export namespace Internal {
       case "Include":
         return O.some(rule);
     }
-  }
+  };
 
   export type t = {
     id: O.Option<string>;
@@ -240,7 +240,7 @@ export namespace Json {
       , remainder: iot.string
     });
 
-    export const t = iot.union([SplitByPercent, SplitByValue])
+    export const t = iot.union([SplitByPercent, SplitByValue]);
   }
 
   export namespace Include {
@@ -250,7 +250,7 @@ export namespace Json {
     });
   }
 
-  export const Rule = iot.union([Attach.t, Split.t, Include.t])
+  export const Rule = iot.union([Attach.t, Split.t, Include.t]);
 
   export const Request = iot.type({
       accountId: iot.string
@@ -264,17 +264,17 @@ export namespace Json {
       , E.map(rule => { return { ...rule, id: O.none }; })
       , E.mapLeft((_) => Exception.throwMalformedJson)
     );
-  }
+  };
 
   export const to = (rule: Internal.t): any => {
-    const id = pipe(rule.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }))
+    const id = pipe(rule.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }));
 
     return {
         ...id
       , accountId: rule.accountId
       , rule: rule.rule
-    }
-  }
+    };
+  };
 }
 
 export namespace Database {
@@ -292,5 +292,5 @@ export namespace Database {
       , E.map(rule => { return { ...rule, id: O.some(rule.id) }; })
       , E.mapLeft(E.toError)
     );
-  }
+  };
 }

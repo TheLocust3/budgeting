@@ -1,8 +1,8 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as iot from 'io-ts';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as iot from "io-ts";
 
 export const flattenOption = <T>(arr: O.Option<T>[]): T[] => {
   return pipe(
@@ -10,4 +10,4 @@ export const flattenOption = <T>(arr: O.Option<T>[]): T[] => {
     , A.map(O.match(() => [], (x) => [x]))
     , A.flatten
   );
-}
+};

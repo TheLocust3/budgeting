@@ -1,15 +1,15 @@
-import Koa from 'koa';
-import Router from '@koa/router';
-import bodyParser from 'koa-bodyparser';
-import { Pool } from 'pg';
-import jwt from 'jsonwebtoken';
-import * as TE from 'fp-ts/TaskEither';
-import { pipe } from 'fp-ts/lib/pipeable';
+import Koa from "koa";
+import Router from "@koa/router";
+import bodyParser from "koa-bodyparser";
+import { Pool } from "pg";
+import jwt from "jsonwebtoken";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
 
-import { router as userRouter } from './route/users';
-import { router as sourceRouter } from './route/sources';
+import { router as userRouter } from "./route/users";
+import { router as sourceRouter } from "./route/sources";
 
-import { User } from 'model';
+import { User } from "model";
 
 type State = {
   user: User.Internal.t;
@@ -24,8 +24,8 @@ app.context.db = new Pool();
 
 const router = new Router();
 
-router.use('/users', userRouter.routes(), userRouter.allowedMethods());
-router.use('/sources', sourceRouter.routes(), sourceRouter.allowedMethods());
+router.use("/users", userRouter.routes(), userRouter.allowedMethods());
+router.use("/sources", sourceRouter.routes(), sourceRouter.allowedMethods());
 
 app.use(bodyParser());
 app.use(router.routes());

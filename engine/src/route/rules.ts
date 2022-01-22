@@ -1,20 +1,20 @@
-import Router from '@koa/router';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
-import { pipe } from 'fp-ts/lib/pipeable';
-import { PathReporter } from 'io-ts/PathReporter';
+import Router from "@koa/router";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
+import { PathReporter } from "io-ts/PathReporter";
 
-import RuleFrontend from '../frontend/rule-frontend';
+import RuleFrontend from "../frontend/rule-frontend";
 
-import { Rule } from 'model';
-import { Message, Route } from 'magic';
+import { Rule } from "model";
+import { Message, Route } from "magic";
 
 export const router = new Router();
 
 router
-  .get('/', async (ctx, next) => {
+  .get("/", async (ctx, next) => {
     await pipe(
         ctx.query.accountId
       , Route.fromQuery
@@ -29,8 +29,8 @@ router
         )
     )();
   })
-  .get('/:ruleId', async (ctx, next) => {
-    const ruleId = ctx.params.ruleId
+  .get("/:ruleId", async (ctx, next) => {
+    const ruleId = ctx.params.ruleId;
     await pipe(
         ruleId
       , RuleFrontend.getById(ctx.db)
@@ -43,7 +43,7 @@ router
         )
     )();
   })
-  .post('/', async (ctx, next) => {
+  .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
       , Rule.Json.from
@@ -58,8 +58,8 @@ router
         )
     )();
   })
-  .delete('/:ruleId', async (ctx, next) => {
-    const ruleId = ctx.params.ruleId
+  .delete("/:ruleId", async (ctx, next) => {
+    const ruleId = ctx.params.ruleId;
     await pipe(
         ruleId
       , RuleFrontend.deleteById(ctx.db)

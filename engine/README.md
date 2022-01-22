@@ -37,7 +37,6 @@ Run the test suite:
  - Don't build plan/stages for every transaction
  - request logging
  - Clean up TODO: JK's
- - run linter
 
 ### future
  - authenticate requests

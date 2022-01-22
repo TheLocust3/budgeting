@@ -1,19 +1,19 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
-import { System, uuid, MetadataBuilder } from './util';
+import { System, uuid, MetadataBuilder } from "./util";
 
 const sourceId = `source-${uuid()}`;
 
 let system: System;
 beforeAll(() => {
   system = new System();
-})
+});
 
-it('can add transaction', async () => {
+it("can add transaction", async () => {
   const merchantName = `test-${uuid()}`;
   const authorizedAt = new Date();
   await pipe(
@@ -30,14 +30,14 @@ it('can add transaction', async () => {
               , authorizedAt: authorizedAt.getTime()
               , metadata: MetadataBuilder.plaid
             }));
-            expect(typeof transaction.id).toBe('string');
-            expect('capturedAt' in transaction).toBe(false);
+            expect(typeof transaction.id).toBe("string");
+            expect("capturedAt" in transaction).toBe(false);
           }
       )
   )();
 });
 
-it('can add transaction with capturedAt', async () => {
+it("can add transaction with capturedAt", async () => {
   const merchantName = `test-${uuid()}`;
   const authorizedAt = new Date();
   const capturedAt = new Date();
@@ -56,13 +56,13 @@ it('can add transaction with capturedAt', async () => {
               , capturedAt: capturedAt.getTime()
               , metadata: MetadataBuilder.plaid
             }));
-            expect(typeof transaction.id).toBe('string');
+            expect(typeof transaction.id).toBe("string");
           }
       )
   )();
 });
 
-it('can get transaction', async () => {
+it("can get transaction", async () => {
   const merchantName = `test-${uuid()}`;
   const authorizedAt = new Date();
   const capturedAt = new Date();
@@ -72,7 +72,7 @@ it('can get transaction', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (_transaction) => {
-            const transaction = _transaction.transaction
+            const transaction = _transaction.transaction;
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
               , userId: "user"
@@ -83,13 +83,13 @@ it('can get transaction', async () => {
               , capturedAt: capturedAt.getTime()
               , metadata: MetadataBuilder.plaid
             }));
-            expect(typeof transaction.id).toBe('string');
+            expect(typeof transaction.id).toBe("string");
           }
       )
   )();
 });
 
-it('can list transactions', async () => {
+it("can list transactions", async () => {
   const merchantName = `test-${uuid()}`;
   const authorizedAt = new Date();
   const capturedAt = new Date();
@@ -99,7 +99,7 @@ it('can list transactions', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {
-            const transaction = transactions.transactions.filter((transaction: any) => transaction.merchantName === merchantName)[0]
+            const transaction = transactions.transactions.filter((transaction: any) => transaction.merchantName === merchantName)[0];
 
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
@@ -111,13 +111,13 @@ it('can list transactions', async () => {
               , capturedAt: capturedAt.getTime()
               , metadata: MetadataBuilder.plaid
             }));
-            expect(typeof transaction.id).toBe('string');
+            expect(typeof transaction.id).toBe("string");
           }
       )
   )();
 });
 
-it('can delete transaction', async () => {
+it("can delete transaction", async () => {
   const merchantName = `test-${uuid()}`;
   const authorizedAt = new Date();
   const capturedAt = new Date();
@@ -128,7 +128,7 @@ it('can delete transaction', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {
-            const transaction = transactions.transactions.filter((transaction: any) => transaction.merchantName === merchantName)
+            const transaction = transactions.transactions.filter((transaction: any) => transaction.merchantName === merchantName);
 
             expect(transaction.length).toEqual(0);
           }

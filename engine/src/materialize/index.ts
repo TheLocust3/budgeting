@@ -1,23 +1,23 @@
-import { Pool } from 'pg';
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
+import { Pool } from "pg";
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
-import TransactionFrontend from '../frontend/transaction-frontend';
-import AccountFrontend from '../frontend/account-frontend';
-import RuleFrontend from '../frontend/rule-frontend';
+import TransactionFrontend from "../frontend/transaction-frontend";
+import AccountFrontend from "../frontend/account-frontend";
+import RuleFrontend from "../frontend/rule-frontend";
 
-import * as AccountsTable from '../db/accounts';
-import * as TransactionsTable from '../db/transactions';
-import * as RulesTable from '../db/rules';
-import { Transaction } from 'model';
-import { Rule } from 'model';
-import { Account } from 'model';
-import * as Plan from './plan';
-import * as Materializer from './materializer';
-import { Exception } from 'magic';
+import * as AccountsTable from "../db/accounts";
+import * as TransactionsTable from "../db/transactions";
+import * as RulesTable from "../db/rules";
+import { Transaction } from "model";
+import { Rule } from "model";
+import { Account } from "model";
+import * as Plan from "./plan";
+import * as Materializer from "./materializer";
+import { Exception } from "magic";
 
 export type t = {
   conflicts: Materializer.Conflict[];
@@ -32,13 +32,13 @@ export namespace Json {
           element: pipe(conflict.element, Transaction.Materialize.to, Transaction.Json.to)
         , rules: conflict.rules
       };
-    }
+    };
   }
 
   namespace Tagged {
     export const to = (tagged: { [tag: string]: Transaction.Materialize.t[] }) => (tag: string): any => {
       return { [tag]: pipe(tagged[tag], A.map(Transaction.Materialize.to), A.map(Transaction.Json.to)) };
-    }
+    };
   }
 
   export const to = (materialized: t): any => {
@@ -50,8 +50,8 @@ export namespace Json {
         conflicts: A.map(Conflict.to)(materialized.conflicts)
       , tagged: tagged
       , untagged: pipe(materialized.untagged, A.map(Transaction.Materialize.to), A.map(Transaction.Json.to))
-    }
-  }
+    };
+  };
 }
 
 const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
@@ -59,17 +59,17 @@ const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEit
       () => TE.of([])
     , (parentId: string) => pipe(
           TE.Do
-        , TE.bind('parent', () => pipe(
+        , TE.bind("parent", () => pipe(
               parentId
             , AccountFrontend.getById(pool)
             , TE.chain(AccountFrontend.withRules(pool))
             , TE.chain(AccountFrontend.withChildren(pool))
           ))
-        , TE.bind('rest', ({ parent }) => linkedAccounts(pool)(parent))
+        , TE.bind("rest", ({ parent }) => linkedAccounts(pool)(parent))
         , TE.map(({ parent, rest }) => rest.concat(parent))
       )
   )(account.parentId);
-}
+};
 
 const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
   const flow = Materializer.build(stage);
@@ -91,7 +91,7 @@ const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
               } else {
                 tagged.set(element.tag, [element.element]);
               }
-            })(element.elements)
+            })(element.elements);
             
             return { conflicts: conflicts, tagged: tagged, untagged: untagged };
           case "Untagged":
@@ -99,7 +99,7 @@ const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
         }
       })
   );
-}
+};
 
 const executePlan = (plan: Plan.t) => (transactions: Transaction.Materialize.t[]): t => {
   if (plan.stages.length < 1) {
@@ -121,7 +121,7 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Materialize.t[]
         })
     );
   }
-}
+};
 
 export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
   // TODO: JK track materialize logs with id
@@ -141,4 +141,4 @@ export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEit
         );
       })
   );
-}
+};

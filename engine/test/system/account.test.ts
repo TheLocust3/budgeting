@@ -1,17 +1,17 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as O from 'fp-ts/Option';
-import * as E from 'fp-ts/Either';
-import * as TE from 'fp-ts/TaskEither';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
 
-import { System, uuid } from './util';
+import { System, uuid } from "./util";
 
 let system: System;
 beforeAll(async () => {
   system = new System();
-})
+});
 
-it('can add account', async () => {
+it("can add account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
@@ -19,13 +19,13 @@ it('can add account', async () => {
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account: any) => {
             expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
-            expect(typeof account.id).toBe('string');
+            expect(typeof account.id).toBe("string");
           }
       )
   )();
 });
 
-it('can get account', async () => {
+it("can get account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
@@ -33,15 +33,15 @@ it('can get account', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (_account) => {
-            const account = _account.account
+            const account = _account.account;
             expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
-            expect(typeof account.id).toBe('string');
+            expect(typeof account.id).toBe("string");
           }
       )
   )();
 });
 
-it('can list accounts', async () => {
+it("can list accounts", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
@@ -49,16 +49,16 @@ it('can list accounts', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
-            const account = accounts.accounts.filter((account: any) => account.name === name)[0]
+            const account = accounts.accounts.filter((account: any) => account.name === name)[0];
 
             expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
-            expect(typeof account.id).toBe('string');
+            expect(typeof account.id).toBe("string");
           }
       )
   )();
 });
 
-it('can delete account', async () => {
+it("can delete account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
@@ -67,7 +67,7 @@ it('can delete account', async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
-            const account = accounts.accounts.filter((account: any) => account.name === name)
+            const account = accounts.accounts.filter((account: any) => account.name === name);
 
             expect(account.length).toEqual(0);
           }

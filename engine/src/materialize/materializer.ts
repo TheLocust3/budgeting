@@ -1,11 +1,11 @@
-import { pipe } from 'fp-ts/lib/pipeable';
-import * as A from 'fp-ts/Array';
-import * as E from 'fp-ts/Either';
-import * as O from 'fp-ts/Option';
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as E from "fp-ts/Either";
+import * as O from "fp-ts/Option";
 
-import { Transaction } from 'model';
-import { Rule } from 'model';
-import * as Plan from './plan';
+import { Transaction } from "model";
+import { Rule } from "model";
+import * as Plan from "./plan";
 
 export type Conflict = {
   _type: "Conflict";
@@ -37,14 +37,14 @@ type TagFlow = (transaction: Transaction.Materialize.t) => O.Option<TaggedSet>;
 type PassthroughFlow = (transaction: Transaction.Materialize.t) => Transaction.Materialize.t;
 type FilterFlow = (transaction: Transaction.Materialize.t) => O.Option<Transaction.Materialize.t>;
 
-type Predicate = (transaction: Transaction.Materialize.t) => Boolean
+type Predicate = (transaction: Transaction.Materialize.t) => boolean
 type EvaluateTo<T> = (transaction: Transaction.Materialize.t) => T
 
-const buildStringPredicate = (field: Transaction.Materialize.Field.StringField) => (pred: (value: string) => Boolean): Predicate => {
+const buildStringPredicate = (field: Transaction.Materialize.Field.StringField) => (pred: (value: string) => boolean): Predicate => {
   return (transaction) => pred(transaction[field]);
-}
+};
 
-const buildNumberPredicate = (field: Transaction.Materialize.Field.NumberField) => (pred: (value: number) => Boolean): Predicate => {
+const buildNumberPredicate = (field: Transaction.Materialize.Field.NumberField) => (pred: (value: number) => boolean): Predicate => {
   if (field == "capturedAt") {
     return (transaction) => O.match(
         () => false
@@ -53,7 +53,7 @@ const buildNumberPredicate = (field: Transaction.Materialize.Field.NumberField) 
   } else {
     return (transaction) => pred(transaction[field]);
   }
-}
+};
 
 const buildStringMatch = (rule: Rule.Internal.Clause.StringMatch): Predicate => {
   switch (rule.operator) {
@@ -62,7 +62,7 @@ const buildStringMatch = (rule: Rule.Internal.Clause.StringMatch): Predicate => 
     case "Neq":
       return buildStringPredicate(rule.field)((value) => value !== rule.value);
   }
-}
+};
 
 const buildNumberMatch = (rule: Rule.Internal.Clause.NumberMatch): Predicate => {
   switch (rule.operator) {
@@ -79,16 +79,16 @@ const buildNumberMatch = (rule: Rule.Internal.Clause.NumberMatch): Predicate => 
     case "Lte":
       return buildNumberPredicate(rule.field)((value) => value <= rule.value);
   }
-}
+};
 
 const buildExists = (rule: Rule.Internal.Clause.Exists): Predicate => {
   return (transaction: Transaction.Materialize.t) => O.match(() => false, (_) => true)(transaction[rule.field]);
-}
+};
 
 const buildStringGlob = (rule: Rule.Internal.Clause.StringGlob): Predicate => {
   const matcher = new RegExp(rule.value.replaceAll("*", "(.*)")); // TODO: JK might need to escape some stuff
   return (transaction: Transaction.Materialize.t) => matcher.test(transaction[rule.field]);
-}
+};
 
 const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
   switch (clause._type) {
@@ -100,19 +100,19 @@ const buildClause = (clause: Rule.Internal.Clause.t): Predicate => {
       const inner = buildClause(clause.clause);
       return (transaction: Transaction.Materialize.t) => !inner(transaction);
     case "StringMatch":
-      const stringMatch = buildStringMatch(clause)
+      const stringMatch = buildStringMatch(clause);
       return (transaction: Transaction.Materialize.t) => stringMatch(transaction);
     case "NumberMatch":
-      const numberMatch = buildNumberMatch(clause)
+      const numberMatch = buildNumberMatch(clause);
       return (transaction: Transaction.Materialize.t) => numberMatch(transaction);
     case "Exists":
-      const exists = buildExists(clause)
+      const exists = buildExists(clause);
       return (transaction: Transaction.Materialize.t) => exists(transaction);
     case "StringGlob":
-      const stringGlob = buildStringGlob(clause)
+      const stringGlob = buildStringGlob(clause);
       return (transaction: Transaction.Materialize.t) => stringGlob(transaction);
   }
-}
+};
 
 const buildAttach = (rule: Rule.Internal.Attach.t): PassthroughFlow => {
   const where = buildClause(rule.where);
@@ -133,7 +133,7 @@ const buildAttach = (rule: Rule.Internal.Attach.t): PassthroughFlow => {
       return transaction;
     }
   };
-}
+};
 
 const buildSplitByPercent = (rule: Rule.Internal.Split.SplitByPercent): TagFlow => {
   const where = buildClause(rule.where);
@@ -150,7 +150,7 @@ const buildSplitByPercent = (rule: Rule.Internal.Split.SplitByPercent): TagFlow 
       return <O.Option<TaggedSet>>O.none;
     }
   };
-}
+};
 
 const buildSplitByValue = (rule: Rule.Internal.Split.SplitByValue): TagFlow => {
   const where = buildClause(rule.where);
@@ -173,7 +173,7 @@ const buildSplitByValue = (rule: Rule.Internal.Split.SplitByValue): TagFlow => {
               return <[number, Tagged[]]>[0, tagged];
             }
           }
-      )(rule.splits)
+      )(rule.splits);
 
       if (remaining > 0) {
         const splitTransaction = { ...transaction, amount: remaining };
@@ -188,7 +188,7 @@ const buildSplitByValue = (rule: Rule.Internal.Split.SplitByValue): TagFlow => {
       return <O.Option<TaggedSet>>O.none;
     }
   };
-}
+};
 
 const buildSplit = (rule: Rule.Internal.Split.t): TagFlow => {
   switch (rule._type) {
@@ -197,11 +197,11 @@ const buildSplit = (rule: Rule.Internal.Split.t): TagFlow => {
     case "SplitByValue":
     return buildSplitByValue(rule);
   }
-}
+};
 
 const buildInclude = (rule: Rule.Internal.Include.t): Predicate => {
   return buildClause(rule.where);
-}
+};
 
 const buildAttachFlow = (attach: Rule.Internal.Attach.t[]): PassthroughFlow => {
   const attachFlows = A.map(buildAttach)(attach);
@@ -210,11 +210,11 @@ const buildAttachFlow = (attach: Rule.Internal.Attach.t[]): PassthroughFlow => {
       attachFlows
     , A.reduce(transaction, (out: Transaction.Materialize.t, flow) => flow(out))
   );
-}
+};
 
 const buildSplitFlow = (split: Rule.Internal.Split.t[]): Flow => {
   const splitFlows: [Rule.Internal.Split.t, TagFlow][] = A.map((split: Rule.Internal.Split.t) => {
-    return <[Rule.Internal.Split.t, TagFlow]>[split, buildSplit(split)]
+    return <[Rule.Internal.Split.t, TagFlow]>[split, buildSplit(split)];
   })(split);
 
   return (transaction: Transaction.Materialize.t) => {
@@ -231,7 +231,7 @@ const buildSplitFlow = (split: Rule.Internal.Split.t[]): Flow => {
                       return <[O.Option<Rule.Internal.Split.t>, Element]>[O.some(split), { ...out, rules: out.rules.concat(split) }];
                     case "TaggedSet":
                       const rules = O.match(() => [], (last) => [last])(last).concat(split);
-                      return <[O.Option<Rule.Internal.Split.t>, Element]>[O.some(split), { _type: "Conflict", element: transaction, rules: rules }]
+                      return <[O.Option<Rule.Internal.Split.t>, Element]>[O.some(split), { _type: "Conflict", element: transaction, rules: rules }];
                     case "Untagged":
                       return <[O.Option<Rule.Internal.Split.t>, Element]>[O.some(split), tagged];
                   }
@@ -241,8 +241,8 @@ const buildSplitFlow = (split: Rule.Internal.Split.t[]): Flow => {
     );
 
     return out;
-  }
-}
+  };
+};
 
 const buildIncludeFlow = (include: Rule.Internal.Include.t[]): FilterFlow => {
   const includeFlows = A.map(buildInclude)(include);
@@ -258,12 +258,12 @@ const buildIncludeFlow = (include: Rule.Internal.Include.t[]): FilterFlow => {
           }
         })
     );
-  }
-}
+  };
+};
 
 const buildSplitStage = (stage: Plan.SplitStage): Flow => {
   const attachFlow = buildAttachFlow(stage.attach);
-  const splitFlow = buildSplitFlow(stage.split)
+  const splitFlow = buildSplitFlow(stage.split);
 
   return (transaction: Transaction.Materialize.t) => {
     return pipe(
@@ -271,8 +271,8 @@ const buildSplitStage = (stage: Plan.SplitStage): Flow => {
       , attachFlow
       , splitFlow
     );
-  }
-}
+  };
+};
 
 const buildIncludeStage = (stage: Plan.IncludeStage): Flow => {
   const attachFlow = buildAttachFlow(stage.attach);
@@ -297,8 +297,8 @@ const buildIncludeStage = (stage: Plan.IncludeStage): Flow => {
             }
         )
     );
-  }
-}
+  };
+};
 
 export const build = (stage: Plan.Stage): Flow => {
   switch (stage._type) {
@@ -307,4 +307,4 @@ export const build = (stage: Plan.Stage): Flow => {
     case "IncludeStage":
       return buildIncludeStage(stage);
   }
-}
+};
