@@ -17,6 +17,8 @@ export const error = (details: string): ErrorMessage => {
 };
 
 export const respondWithError = (ctx: any) => (exception: Exception.t): void => {
+  console.log(`[${ctx.state.id}] responding with ${exception}`)
+
   switch (exception._type) {
     case "InvalidRule":
       ctx.status = 400;

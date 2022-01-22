@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Koa from "koa";
 import Router from "@koa/router";
 import bodyParser from "koa-bodyparser";
@@ -12,6 +13,7 @@ import { router as sourceRouter } from "./route/sources";
 import { User } from "model";
 
 type State = {
+  id: string;
   user: User.Internal.t;
 }
 
@@ -26,6 +28,18 @@ const router = new Router();
 
 router.use("/users", userRouter.routes(), userRouter.allowedMethods());
 router.use("/sources", sourceRouter.routes(), sourceRouter.allowedMethods());
+
+app.use(async (ctx, next) => {
+  const start = Date.now();
+
+  ctx.state.id = crypto.randomUUID();
+  console.log(`[${ctx.state.id}] ${ctx.url}`)
+
+  await next();
+
+  const took = Date.now() - start;
+  console.log(`[${ctx.state.id}] took ${took}ms`)
+});
 
 app.use(bodyParser());
 app.use(router.routes());

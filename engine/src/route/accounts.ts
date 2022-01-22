@@ -51,7 +51,7 @@ router
       , TE.chain(AccountFrontend.withChildren(ctx.db))
       , TE.chain((account) => pipe(
             account
-          , Materialize.execute(ctx.db)
+          , Materialize.execute(ctx.state.id)(ctx.db)
           , TE.map(Materialize.Json.to)
         ))
       , TE.match(

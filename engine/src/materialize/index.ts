@@ -123,16 +123,16 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Materialize.t[]
   }
 };
 
-export const execute = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
+export const execute = (id: string) => (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
   // TODO: JK track materialize logs with id
-  console.log(`materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
+  console.log(`[${id}] materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   
   return pipe(
       account
     , linkedAccounts(pool)
     , TE.chain((accounts) => {
         const plan = Plan.build(accounts.concat(account));
-        console.log(`materialize - with plan ${JSON.stringify(plan, null, 2)}`);
+        console.log(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
 
         return pipe(
             TransactionFrontend.all(pool)()

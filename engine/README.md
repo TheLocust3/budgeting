@@ -35,8 +35,6 @@ Run the test suite:
 ### next
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
- - request logging
- - Clean up TODO: JK's
 
 ### future
  - authenticate requests
