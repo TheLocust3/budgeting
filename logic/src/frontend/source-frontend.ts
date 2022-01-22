@@ -11,9 +11,9 @@ import * as SourcesTable from '../db/sources-table';
 import { Exception } from 'magic';
 
 export namespace SourceFrontend {
-  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+  export const all = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     return pipe(
-        SourcesTable.all(pool)(userId)
+        SourcesTable.all(pool)()
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   }

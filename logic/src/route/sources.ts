@@ -15,7 +15,7 @@ export const router = new Router();
 router
   .get('/', async (ctx, next) => {
     await pipe(
-        SourceFrontend.all(ctx.db)("test") // TODO: JK
+        SourceFrontend.all(ctx.db)()
       , TE.map(A.map(Source.Json.to))
       , TE.match(
             Message.respondWithError(ctx)

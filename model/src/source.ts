@@ -44,7 +44,7 @@ export namespace Json {
 export namespace Database {
   export const t = iot.type({
       id: iot.string
-    , userId: iot.string
+    , user_id: iot.string
     , name: iot.string
   });
 

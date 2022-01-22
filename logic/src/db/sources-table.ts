@@ -19,7 +19,7 @@ namespace Query {
     )
   `;
 
-  export const dropTable = `DROP TABLE users`
+  export const dropTable = `DROP TABLE sources`
 
   export const create = (userId: string, name: string) => {
     return {
@@ -32,16 +32,10 @@ namespace Query {
     }
   }
 
-  export const all = (userId: string) => {
-    return {
-      text: `
+  export const all = `
         SELECT id, user_id, name
         FROM sources
-        WHERE user_id = $1
-      `,
-      values: [userId]
-    }
-  }
+  `
 
   export const byId = (id: string) => {
     return {
@@ -86,10 +80,10 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
   }
 }
 
-export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Source.Internal.t[]> => {
+export const all = (pool: Pool) => () : TE.TaskEither<Error, Source.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.all(userId)),
+        () => pool.query(Query.all),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
