@@ -4,6 +4,7 @@ import bodyParser from 'koa-bodyparser';
 import { Pool } from 'pg';
 
 import { router as userRouter } from './route/users';
+import { router as sourceRouter } from './route/sources';
 
 type State = {}
 
@@ -17,6 +18,7 @@ app.context.db = new Pool();
 const router = new Router();
 
 router.use('/users', userRouter.routes(), userRouter.allowedMethods());
+router.use('/sources', sourceRouter.routes(), sourceRouter.allowedMethods());
 
 app.use(bodyParser());
 app.use(router.routes());
