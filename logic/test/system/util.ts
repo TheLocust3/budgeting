@@ -20,9 +20,9 @@ export class System {
     );
   }
 
-  addSource(userId: string, name: string): TE.TaskEither<Error, any> {
+  addSource(name: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask('/sources/')('POST')(O.some({ userId: userId, name: name }))
+        this.fetchTask('/sources/')('POST')(O.some({ name: name }))
       , TE.chain(this.json)
     );
   }
@@ -49,7 +49,6 @@ export class System {
   }
 
   login(email: string, password: string): TE.TaskEither<Error, any> {
-    console.log("WAHT")
     return pipe(
         this.fetchTask(`/users/login`)('POST')(O.some({ email: email, password: password }))
       , TE.chain(this.json)

@@ -16,8 +16,9 @@ export const router = new Router();
 router
   .use(AuthenticationFor.user)
   .get('/', async (ctx, next) => {
+    const user = ctx.state.user;
     await pipe(
-        SourceFrontend.all(ctx.db)()
+        SourceFrontend.all(ctx.db)(user.id)
       , TE.map(A.map(Source.Json.to))
       , TE.match(
             Message.respondWithError(ctx)
@@ -28,10 +29,11 @@ router
     )();
   })
   .get('/:sourceId', async (ctx, next) => {
+    const user = ctx.state.user;
     const sourceId = ctx.params.sourceId
     await pipe(
         sourceId
-      , SourceFrontend.getById(ctx.db)
+      , SourceFrontend.getById(ctx.db)(user.id)
       , TE.map(Source.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
@@ -42,9 +44,10 @@ router
     )();
   })
   .post('/', async (ctx, next) => {
+    const user = ctx.state.user;
     await pipe(
         ctx.request.body
-      , Source.Json.from
+      , Source.Json.from(user.id)
       , TE.fromEither
       , TE.chain(SourceFrontend.create(ctx.db))
       , TE.map(Source.Json.to)
@@ -57,10 +60,11 @@ router
     )();
   })
   .delete('/:sourceId', async (ctx, next) => {
+    const user = ctx.state.user;
     const sourceId = ctx.params.sourceId;
     await pipe(
         sourceId
-      , SourceFrontend.deleteById(ctx.db)
+      , SourceFrontend.deleteById(ctx.db)(user.id)
       , TE.match(
             Message.respondWithError(ctx)
           , (_) => {

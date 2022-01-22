@@ -15,7 +15,8 @@ namespace Query {
     CREATE TABLE sources (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id TEXT NOT NULL,
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `;
 
@@ -32,30 +33,36 @@ namespace Query {
     }
   }
 
-  export const all = `
-        SELECT id, user_id, name
-        FROM sources
-  `
-
-  export const byId = (id: string) => {
+  export const all = (userId: string) => {
     return {
       text: `
         SELECT id, user_id, name
         FROM sources
-        WHERE id = $1
-        LIMIT 1
+        WHERE user_id = $1
       `,
-      values: [id]
+      values: [userId]
     }
   }
 
-  export const deleteById = (id: string) => {
+  export const byId = (userId: string, id: string) => {
+    return {
+      text: `
+        SELECT id, user_id, name
+        FROM sources
+        WHERE user_id = $1 AND id = $2
+        LIMIT 1
+      `,
+      values: [userId, id]
+    }
+  }
+
+  export const deleteById = (userId: string, id: string) => {
     return {
       text: `
         DELETE FROM sources
-        WHERE id = $1
+        WHERE user_id = $1 AND id = $2
       `,
-      values: [id]
+      values: [userId, id]
     }
   }
 }
@@ -80,10 +87,10 @@ export const rollback = (pool: Pool): T.Task<Boolean> => async () => {
   }
 }
 
-export const all = (pool: Pool) => () : TE.TaskEither<Error, Source.Internal.t[]> => {
+export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Source.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.all),
+        () => pool.query(Query.all(userId)),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
@@ -94,10 +101,10 @@ export const all = (pool: Pool) => () : TE.TaskEither<Error, Source.Internal.t[]
   );
 }
 
-export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<Source.Internal.t>> => {
+export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, O.Option<Source.Internal.t>> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.byId(id)),
+        () => pool.query(Query.byId(userId, id)),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
@@ -109,10 +116,10 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
   );
 }
 
-export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
+export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.deleteById(id)),
+        () => pool.query(Query.deleteById(userId, id)),
         E.toError
       )
     , TE.map(x => { return })

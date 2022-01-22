@@ -9,7 +9,7 @@ import { Exception } from 'magic';
 
 export namespace Internal {
   export type t = {
-    id: O.Option<string>;
+    id: string;
     email: string;
     password: string;
   }
@@ -25,16 +25,14 @@ export namespace Json {
     return pipe(
         user
       , Request.decode
-      , E.map((user) => { return { ...user, id: O.none }; })
+      , E.map((user) => { return { ...user, id: "" }; })
       , E.mapLeft((_) => Exception.throwMalformedJson)
     );
   }
 
   export const to = (user: Internal.t): any => {
-    const id = pipe(user.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }))
-
     return {
-        ...id
+        id: user.id
       , email: user.email
       , password: user.password
     }
@@ -53,7 +51,7 @@ export namespace Database {
         user
       , t.decode
       , E.map(camelcaseKeys)
-      , E.map(user => { return { ...user, id: O.some(user.id) }; })
+      , E.map(user => { return { ...user, id: user.id }; })
       , E.mapLeft(E.toError)
     );
   }

@@ -17,15 +17,14 @@ export namespace Internal {
 
 export namespace Json {
   export const Request = iot.type({
-      userId: iot.string
-    , name: iot.string
+    name: iot.string
   });
 
-  export const from = (source: any): E.Either<Exception.t, Internal.t> => {
+  export const from = (userId: string) => (source: any): E.Either<Exception.t, Internal.t> => {
     return pipe(
         source
       , Request.decode
-      , E.map((source) => { return { ...source, id: O.none }; })
+      , E.map((source) => { return { ...source, id: O.none, userId: userId }; })
       , E.mapLeft((_) => Exception.throwMalformedJson)
     );
   }

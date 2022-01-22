@@ -45,8 +45,7 @@ export namespace JWT {
   }
 
   export const sign = (user: User.Internal.t): string => {
-    const userId = pipe(user.id, O.getOrElse(() => ""))
-    const payload: Payload.t = { userId: userId };
+    const payload: Payload.t = { userId: user.id };
     return jwt.sign(payload, 'secret'); // TODO: JK
   }
 

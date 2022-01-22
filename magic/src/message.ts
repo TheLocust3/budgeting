@@ -21,20 +21,26 @@ export const respondWithError = (ctx: any) => (exception: Exception.t): void => 
     case "InvalidRule":
       ctx.status = 400;
       ctx.body = error("Invalid rule");
+      return;
     case "BadRequest":
       ctx.status = 400;
       ctx.body = error("Bad request");
+      return;
     case "MalformedJson":
       ctx.status = 400;
       ctx.body = error("Malformed Json");
+      return;
     case "NotFound":
       ctx.status = 404;
       ctx.body = error("Not found");
+      return;
     case "InternalError":
       ctx.status = 500;
       ctx.body = error("Internal error");
+      return;
     case "Unauthorized":
       ctx.status = 403;
       ctx.body = error("Unauthorized");
+      return;
   }
 }

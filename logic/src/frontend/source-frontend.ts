@@ -11,17 +11,17 @@ import * as SourcesTable from '../db/sources-table';
 import { Exception } from 'magic';
 
 export namespace SourceFrontend {
-  export const all = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     return pipe(
-        SourcesTable.all(pool)()
+        SourcesTable.all(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   }
 
-  export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
+  export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         id
-      , SourcesTable.byId(pool)
+      , SourcesTable.byId(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
@@ -38,10 +38,10 @@ export namespace SourceFrontend {
     );
   }
 
-  export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , SourcesTable.deleteById(pool)
+      , SourcesTable.deleteById(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   }
