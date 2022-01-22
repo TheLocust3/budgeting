@@ -33,7 +33,8 @@ Run the test suite:
 ## todo
 
 ### next
- - JWT token to authenticate requests
+ - Connect sources => puller
+ - protect routes behind authentication middleware + refactor tests to create "test user"
 
 ### future
  - N/A
@@ -43,3 +44,4 @@ Run the test suite:
    - both formatting + send email to user
  - pull jwt secret fron environment
  - JWT expiry
+ - admin user to access `/user` + other global routes

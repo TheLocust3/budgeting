@@ -3,12 +3,20 @@ import Router from '@koa/router';
 import bodyParser from 'koa-bodyparser';
 import { Pool } from 'pg';
 import jwt from 'jsonwebtoken';
+import * as TE from 'fp-ts/TaskEither';
+import { pipe } from 'fp-ts/lib/pipeable';
 
 import { router as authRouter } from './route/auth';
 import { router as userRouter } from './route/users';
 import { router as sourceRouter } from './route/sources';
+import { JWT } from './route/util';
 
-type State = {}
+import { User } from 'model';
+import { Message } from 'magic';
+
+type State = {
+  user: User.Internal.t;
+}
 
 type Context = {
   db: Pool;
@@ -21,10 +29,19 @@ const router = new Router();
 
 router.use('/auth', authRouter.routes(), authRouter.allowedMethods());
 
-app.use(async (ctx, next) => {
-  // TODO: JK
-  await next();
-});
+/*app.use((ctx, next) => {
+  return pipe(
+      ctx.get('Authorization')
+    , JWT.verify(ctx.db)
+    , TE.match(
+        Message.respondWithError(ctx)
+      , async (user) => {
+          ctx.state.user = user;
+          await next();
+        }
+    )
+  );
+});*/
 
 router.use('/users', userRouter.routes(), userRouter.allowedMethods());
 router.use('/sources', sourceRouter.routes(), sourceRouter.allowedMethods());
