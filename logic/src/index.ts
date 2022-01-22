@@ -33,7 +33,7 @@ app.use(async (ctx, next) => {
   const start = Date.now();
 
   ctx.state.id = crypto.randomUUID();
-  console.log(`[${ctx.state.id}] ${ctx.url}`)
+  console.log(`[${ctx.state.id}] ${ctx.method}: ${ctx.url}`)
 
   await next();
 

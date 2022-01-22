@@ -1,9 +1,9 @@
 import { Pool } from "pg";
 
-import * as UsersTable from "./users-table";
+import * as SourcesTable from "./sources-table";
 
 const rollback = async (pool: Pool) => {
-  await UsersTable.rollback(pool)();
+  await SourcesTable.rollback(pool)();
   console.log("Rollback complete");
   process.exit(0);
 };

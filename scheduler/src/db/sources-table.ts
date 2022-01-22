@@ -15,8 +15,7 @@ namespace Query {
     CREATE TABLE sources (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id TEXT NOT NULL,
-      name TEXT NOT NULL,
-      FOREIGN KEY(user_id) REFERENCES users(id)
+      name TEXT NOT NULL
     )
   `;
 

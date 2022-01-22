@@ -1,45 +1,48 @@
 import { Pool } from "pg";
+import bcrypt from "bcrypt";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import SchedulerChannel from '../channel/scheduler-channel';
-
 import { Source } from "model";
+import * as SourcesTable from "../db/sources-table";
 import { Exception } from "magic";
 
 export namespace SourceFrontend {
   export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     return pipe(
-        SchedulerChannel.push(`/sources?userId=${userId}`)('GET')()
-      , TE.chain((response: any) => TE.fromEither(pipe(
-            response.sources
-          , A.map(Source.Channel.Response.from)
-          , A.sequence(E.Applicative)
-        )))
+        SourcesTable.all(pool)(userId)
+      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
   export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
-        SchedulerChannel.push(`/sources/${id}?userId=${userId}`)('GET')()
-      , TE.chain((response: any) => pipe(response, Source.Channel.Response.from, TE.fromEither))
+        id
+      , SourcesTable.byId(pool)(userId)
+      , TE.mapLeft((_) => Exception.throwInternalError)
+      , TE.chain(O.fold(
+            (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
+          , (source) => TE.of(source)
+        ))
     );
   };
 
   export const create = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
-        SchedulerChannel.push(`/sources/`)('POST')(O.some(Source.Channel.Request.to(source)))
-      , TE.chain((response: any) => pipe(response, Source.Channel.Response.from, TE.fromEither))
+        source
+      , SourcesTable.create(pool)
+      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
   export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
-        SchedulerChannel.push(`/sources/${id}?userId=${userId}`)('DELETE')()
-      , TE.map((_) => { return; })
+        id
+      , SourcesTable.deleteById(pool)(userId)
+      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 }

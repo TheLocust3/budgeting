@@ -1,4 +1,4 @@
-# logic
+# scheduler
 
 ## setup
 `yarn install`  
@@ -33,15 +33,10 @@ Run the test suite:
 ## todo
 
 ### next
- - Add "channels" to talk to other micro-services
+ - Connect sources => puller
 
 ### future
- - N/A
+ - only allow requests from business logic
 
 ### miscellaneous
- - when a user is deleted, all associated resources should be cleaned up
- - validate email
-   - both formatting + send email to user
- - pull jwt secret fron environment
- - JWT expiry
- - admin user to access `/user` + other global routes
+ - N/A

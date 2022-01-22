@@ -1,3 +1,4 @@
+import * as E from "fp-ts/Either";
 import * as Exception from "./exception";
 
 type OkMessage = {
@@ -17,7 +18,7 @@ export const error = (details: string): ErrorMessage => {
 };
 
 export const respondWithError = (ctx: any) => (exception: Exception.t): void => {
-  console.log(`[${ctx.state.id}] responding with ${exception}`)
+  console.log(`[${ctx.state.id}] responding with ${exception._type}`)
 
   switch (exception._type) {
     case "InvalidRule":
@@ -46,3 +47,27 @@ export const respondWithError = (ctx: any) => (exception: Exception.t): void => 
       return;
   }
 };
+
+// JK: not the greatest way of doing this
+export const liftError = (response: any): E.Either<Exception.t, any> => {
+  if ("message" in response && response.message === "failed") {
+    switch (response.error) {
+      case "Invalid rule":
+        return E.left(Exception.throwInvalidRule);
+      case "Bad request":
+        return E.left(Exception.throwBadRequest);
+      case "Malformed Json":
+        return E.left(Exception.throwMalformedJson);
+      case "Not found":
+        return E.left(Exception.throwNotFound);
+      case "Internal error":
+        return E.left(Exception.throwInternalError);
+      case "Unauthorized":
+        return E.left(Exception.throwUnauthorized);
+      default:
+        return E.left(Exception.throwInternalError);
+    }
+  } else {
+    return E.right(response);
+  }
+}

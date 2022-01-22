@@ -3,14 +3,16 @@ import Koa from "koa";
 import Router from "@koa/router";
 import bodyParser from "koa-bodyparser";
 import { Pool } from "pg";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
 
-import { router as transactionsRouter } from "./route/transactions";
-import { router as accountsRouter } from "./route/accounts";
-import { router as rulesRouter } from "./route/rules";
+import { router as sourceRouter } from "./route/sources";
+
+import { User } from "model";
 
 type State = {
   id: string;
-};
+}
 
 type Context = {
   db: Pool;
@@ -21,9 +23,7 @@ app.context.db = new Pool();
 
 const router = new Router();
 
-router.use("/transactions", transactionsRouter.routes(), transactionsRouter.allowedMethods());
-router.use("/accounts", accountsRouter.routes(), accountsRouter.allowedMethods());
-router.use("/rules", rulesRouter.routes(), rulesRouter.allowedMethods());
+router.use("/sources", sourceRouter.routes(), sourceRouter.allowedMethods());
 
 app.use(async (ctx, next) => {
   const start = Date.now();
@@ -41,5 +41,5 @@ app.use(bodyParser());
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-app.listen(3000);
-console.log("Listening at localhost:3000");
+app.listen(3002);
+console.log("Listening at localhost:3002");
