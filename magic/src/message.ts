@@ -33,5 +33,8 @@ export const respondWithError = (ctx: any) => (exception: Exception.t): void => 
     case "InternalError":
       ctx.status = 500;
       ctx.body = error("Internal error");
+    case "Unauthorized":
+      ctx.status = 403;
+      ctx.body = error("Unauthorized");
   }
 }

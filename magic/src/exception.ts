@@ -13,4 +13,7 @@ export const throwNotFound: t = { _type: "NotFound" }
 export type InternalError = { _type: "InternalError" }
 export const throwInternalError: t = { _type: "InternalError" }
 
-export type t = InvalidRule | BadRequest | MalformedJson | NotFound | InternalError
+export type Unauthorized = { _type: "Unauthorized" }
+export const throwUnauthorized: t = { _type: "Unauthorized" }
+
+export type t = InvalidRule | BadRequest | MalformedJson | NotFound | InternalError | Unauthorized

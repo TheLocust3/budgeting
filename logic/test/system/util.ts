@@ -9,6 +9,8 @@ import * as TE from 'fp-ts/TaskEither';
 export const uuid = (): string => crypto.randomUUID()
 
 export class System {
+  private token: O.Option<string> = O.none;
+
   constructor(readonly host: string = 'localhost', readonly port: string = '3001') {}
 
   addUser(email: string, password: string): TE.TaskEither<Error, any> {
@@ -47,9 +49,19 @@ export class System {
   }
 
   login(email: string, password: string): TE.TaskEither<Error, any> {
+    console.log("WAHT")
     return pipe(
         this.fetchTask(`/users/login`)('POST')(O.some({ email: email, password: password }))
       , TE.chain(this.json)
+      , TE.map((token) => {
+          if ('token' in token) {
+            this.token = O.some(String(token.token));
+          } else {
+            this.token = O.some('');
+          }
+
+          return token;
+        })
     );
   }
 
@@ -59,10 +71,15 @@ export class System {
       (body) => { return { body: JSON.stringify(body) }; }
     )(body);
 
+    const authorization = O.match(
+      () => { return {}; },
+      (token: string) => { return { Authorization: token }; }
+    )(this.token);
+
     return TE.tryCatch(
         () => fetch(
             `http://${this.host}:${this.port}${uri}`
-          , { method: method, ...resolved, headers: { 'Content-Type': 'application/json' } }
+          , { method: method, ...resolved, headers: { 'Content-Type': 'application/json', ...authorization } }
         )
       , E.toError
     );

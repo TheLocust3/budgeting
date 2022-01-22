@@ -8,10 +8,8 @@ import { pipe } from 'fp-ts/lib/pipeable';
 
 import { router as userRouter } from './route/users';
 import { router as sourceRouter } from './route/sources';
-import { JWT } from './route/util';
 
 import { User } from 'model';
-import { Message } from 'magic';
 
 type State = {
   user: User.Internal.t;
@@ -27,20 +25,6 @@ app.context.db = new Pool();
 const router = new Router();
 
 router.use('/users', userRouter.routes(), userRouter.allowedMethods());
-
-/*app.use((ctx, next) => {
-  return pipe(
-      ctx.get('Authorization')
-    , JWT.verify(ctx.db)
-    , TE.match(
-        Message.respondWithError(ctx)
-      , async (user) => {
-          ctx.state.user = user;
-          await next();
-        }
-    )
-  );
-});*/
 router.use('/sources', sourceRouter.routes(), sourceRouter.allowedMethods());
 
 app.use(bodyParser());

@@ -1,3 +1,4 @@
+import Koa from 'koa';
 import { Pool } from 'pg';
 import jwt from 'jsonwebtoken';
 import * as O from 'fp-ts/Option';
@@ -9,7 +10,23 @@ import * as iot from 'io-ts';
 import UserFrontend from '../frontend/user-frontend';
 
 import { User } from 'model';
-import { Exception } from 'magic';
+import { Exception, Message } from 'magic';
+
+export namespace AuthenticationFor {
+  export const user = async (ctx: Koa.Context, next: Koa.Next) => {
+    await pipe(
+        ctx.get('Authorization')
+      , JWT.verify(ctx.db)
+      , TE.match(
+          Message.respondWithError(ctx)
+        , async (user) => {
+            ctx.state.user = user;
+            await next();
+          }
+      )
+    )();
+  }
+}
 
 export namespace JWT {
   namespace Payload {
@@ -34,11 +51,15 @@ export namespace JWT {
   }
 
   export const verify = (pool: Pool) => (token: string): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return pipe(
-        jwt.verify(token, 'secret') // TODO JK
-      , Payload.from
-      , TE.fromEither
-      , TE.chain(({ userId }) => UserFrontend.getById(pool)(userId))
-    );
+    if (token !== undefined && token !== null && token !== "") {
+      return pipe(
+          jwt.verify(token, 'secret') // TODO JK
+        , Payload.from
+        , TE.fromEither
+        , TE.chain(({ userId }) => UserFrontend.getById(pool)(userId))
+      );
+    } else {
+      return TE.throwError(Exception.throwUnauthorized)
+    }
   }
 }

@@ -9,6 +9,12 @@ import { System, uuid } from './util';
 let system: System;
 beforeAll(async () => {
   system = new System();
+  
+  const email = `test-${uuid()}`;
+  await pipe(
+      system.addUser(email, "foobar")
+    , TE.chain((_) => system.login(email, "foobar"))
+  )();
 });
 
 it('can add source', async () => {

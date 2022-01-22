@@ -6,6 +6,7 @@ import * as TE from 'fp-ts/TaskEither';
 import { pipe } from 'fp-ts/lib/pipeable';
 
 import SourceFrontend from '../frontend/source-frontend';
+import { AuthenticationFor } from './util';
 
 import { Source } from 'model';
 import { Message } from 'magic';
@@ -13,6 +14,7 @@ import { Message } from 'magic';
 export const router = new Router();
 
 router
+  .use(AuthenticationFor.user)
   .get('/', async (ctx, next) => {
     await pipe(
         SourceFrontend.all(ctx.db)()

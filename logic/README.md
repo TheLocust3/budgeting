@@ -34,7 +34,6 @@ Run the test suite:
 
 ### next
  - Connect sources => puller
- - protect routes behind authentication middleware + refactor tests to create "test user"
 
 ### future
  - N/A
