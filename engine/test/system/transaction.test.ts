@@ -27,11 +27,10 @@ it("can add transaction", async () => {
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
-              , authorizedAt: authorizedAt.getTime()
+              , authorizedAt: authorizedAt.toJSON()
               , metadata: MetadataBuilder.plaid
             }));
             expect(typeof transaction.id).toBe("string");
-            expect("capturedAt" in transaction).toBe(false);
           }
       )
   )();
@@ -52,8 +51,8 @@ it("can add transaction with capturedAt", async () => {
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
-              , authorizedAt: authorizedAt.getTime()
-              , capturedAt: capturedAt.getTime()
+              , authorizedAt: authorizedAt.toJSON()
+              , capturedAt: O.some(capturedAt.toJSON())
               , metadata: MetadataBuilder.plaid
             }));
             expect(typeof transaction.id).toBe("string");
@@ -79,8 +78,8 @@ it("can get transaction", async () => {
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
-              , authorizedAt: authorizedAt.getTime()
-              , capturedAt: capturedAt.getTime()
+              , authorizedAt: authorizedAt.toJSON()
+              , capturedAt: O.some(capturedAt.toJSON())
               , metadata: MetadataBuilder.plaid
             }));
             expect(typeof transaction.id).toBe("string");
@@ -107,8 +106,8 @@ it("can list transactions", async () => {
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
-              , authorizedAt: authorizedAt.getTime()
-              , capturedAt: capturedAt.getTime()
+              , authorizedAt: authorizedAt.toJSON()
+              , capturedAt: O.some(capturedAt.toJSON())
               , metadata: MetadataBuilder.plaid
             }));
             expect(typeof transaction.id).toBe("string");

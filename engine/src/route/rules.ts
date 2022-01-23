@@ -20,7 +20,7 @@ router
       , Route.fromQuery
       , TE.fromEither
       , TE.chain(RuleFrontend.getByAccountId(ctx.db))
-      , TE.map(A.map(Rule.Json.to))
+      , TE.map(A.map(Rule.Channel.Response.to))
       , TE.match(
           Message.respondWithError(ctx),
           (rules) => {
@@ -34,7 +34,7 @@ router
     await pipe(
         ruleId
       , RuleFrontend.getById(ctx.db)
-      , TE.map(Rule.Json.to)
+      , TE.map(Rule.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (rule) => {
@@ -46,10 +46,10 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Rule.Json.from
+      , Rule.Channel.Request.from
       , TE.fromEither
       , TE.chain(RuleFrontend.create(ctx.db))
-      , TE.map(Rule.Json.to)
+      , TE.map(Rule.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (rule) => {

@@ -123,11 +123,6 @@ export class System {
     , capturedAt: O.Option<Date>
     , metadata: any
   ): TE.TaskEither<Error, any> {
-    const resolvedCapturedAt = O.match(
-        () => { return {}; }
-      , (capturedAt: Date) => { return { capturedAt: capturedAt.getTime() }; }
-    )(capturedAt);
-
     return pipe(
         this.fetchTask("/transactions/")("POST")(O.some({
             sourceId: sourceId
@@ -136,7 +131,7 @@ export class System {
           , merchantName: merchantName
           , description: description
           , authorizedAt: authorizedAt.getTime()
-          , ...resolvedCapturedAt
+          , capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(capturedAt)
           , metadata: metadata
         }))
       , TE.chain(this.json)
@@ -165,13 +160,8 @@ export class System {
   }
 
   addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = "user"): TE.TaskEither<Error, any> {
-    const resolvedParentId = O.match(
-        () => { return {}; }
-      , (parentId: string) => { return { parentId: parentId }; }
-    )(parentId);
-
     return pipe(
-        this.fetchTask("/accounts/")("POST")(O.some({ name: name, userId: userId, ...resolvedParentId }))
+        this.fetchTask("/accounts/")("POST")(O.some({ name: name, userId: userId, parentId: parentId }))
       , TE.chain(this.json)
     );
   }

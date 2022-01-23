@@ -17,7 +17,7 @@ router
   .get("/", async (ctx, next) => {
     await pipe(
         TransactionFrontend.all(ctx.db)()
-      , TE.map(A.map(Transaction.Json.to))
+      , TE.map(A.map(Transaction.Channel.Response.to))
       , TE.match(
             Message.respondWithError(ctx)
           , (transactions) => {
@@ -31,7 +31,7 @@ router
     await pipe(
         transactionId
       , TransactionFrontend.getById(ctx.db)
-      , TE.map(Transaction.Json.to)
+      , TE.map(Transaction.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (transaction) => {
@@ -43,10 +43,10 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Transaction.Json.from
+      , Transaction.Channel.Request.from
       , TE.fromEither
       , TE.chain(TransactionFrontend.create(ctx.db))
-      , TE.map(Transaction.Json.to)
+      , TE.map(Transaction.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (transaction) => {

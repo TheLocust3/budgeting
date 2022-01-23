@@ -80,8 +80,82 @@ export namespace Materialize {
   };
 }
 
-export namespace Json {
+export namespace Channel {
+  export namespace Request {
+    const t = iot.type({
+        sourceId: iot.string
+      , userId: iot.string
+      , amount: iot.number
+      , merchantName: iot.string
+      , description: iot.string
+      , authorizedAt: iot.number
+      , capturedAt: types.option(iot.number)
+      , metadata: iot.object
+    });
+    type t = iot.TypeOf<typeof t>;
 
+    export const from = (transaction: any): E.Either<Exception.t, Internal.t> => {
+      console.log(transaction)
+      return pipe(
+          transaction
+        , t.decode
+        , E.map(transaction => {
+            const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt);
+            return { ...transaction, id: O.none, authorizedAt: new Date(transaction.authorizedAt), capturedAt: capturedAt, custom: {} };
+          })
+        , E.mapLeft((e) => {
+          console.log(e)
+            return e;
+          })
+        , E.mapLeft((_) => Exception.throwMalformedJson)
+      );
+    };
+
+    export const to = (transaction: Internal.t): t => {
+      return {
+          sourceId: transaction.sourceId
+        , userId: transaction.userId
+        , amount: transaction.amount
+        , merchantName: transaction.merchantName
+        , description: transaction.description
+        , authorizedAt: transaction.authorizedAt.getTime()
+        , capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(transaction.capturedAt)
+        , metadata: transaction.metadata
+      };
+    };
+  }
+
+  export namespace Response {
+    type t = {
+      id: string;
+      sourceId: string;
+      userId: string;
+      amount: number;
+      merchantName: string;
+      description: string;
+      authorizedAt: Date;
+      capturedAt: O.Option<Date>;
+      metadata: object;
+      custom: { [key: string]: string[] };
+    };
+
+    const from = (transaction: any): E.Either<Exception.t, Internal.t> => {
+      return E.right({
+          ...transaction
+        , id: O.some(transaction.id)
+      })
+    };
+
+    export const to = (transaction: Internal.t): t => {
+      return {
+          ...transaction
+        , id: O.match(() => "", (id: string) => id)(transaction.id)
+      };
+    };
+  }
+}
+
+export namespace Json {
   export const Request = iot.type({
       sourceId: iot.string
     , userId: iot.string

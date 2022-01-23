@@ -29,7 +29,7 @@ export namespace Json {
   namespace Conflict {
     export const to = (conflict: Materializer.Conflict): any => {
       return {
-          element: pipe(conflict.element, Transaction.Materialize.to, Transaction.Json.to)
+          element: pipe(conflict.element, Transaction.Materialize.to, Transaction.Channel.Response.to)
         , rules: conflict.rules
       };
     };
@@ -37,19 +37,19 @@ export namespace Json {
 
   namespace Tagged {
     export const to = (tagged: { [tag: string]: Transaction.Materialize.t[] }) => (tag: string): any => {
-      return { [tag]: pipe(tagged[tag], A.map(Transaction.Materialize.to), A.map(Transaction.Json.to)) };
+      return { [tag]: pipe(tagged[tag], A.map(Transaction.Materialize.to), A.map(Transaction.Channel.Response.to)) };
     };
   }
 
   export const to = (materialized: t): any => {
     const tagged = A.reduce({}, (tagged: object, [tag, transactions]: [string, Transaction.Materialize.t[]]) => {
-      return { ...tagged, [tag]: pipe(transactions, A.map(Transaction.Materialize.to), A.map(Transaction.Json.to)) };
+      return { ...tagged, [tag]: pipe(transactions, A.map(Transaction.Materialize.to), A.map(Transaction.Channel.Response.to)) };
     })(Array.from(materialized.tagged.entries()));
 
     return {
         conflicts: A.map(Conflict.to)(materialized.conflicts)
       , tagged: tagged
-      , untagged: pipe(materialized.untagged, A.map(Transaction.Materialize.to), A.map(Transaction.Json.to))
+      , untagged: pipe(materialized.untagged, A.map(Transaction.Materialize.to), A.map(Transaction.Channel.Response.to))
     };
   };
 }

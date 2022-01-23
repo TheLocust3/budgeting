@@ -19,6 +19,59 @@ export namespace Internal {
   }
 }
 
+export namespace Channel {
+  export namespace Request {
+    const t = iot.type({
+        parentId: types.option(iot.string)
+      , userId: iot.string
+      , name: iot.string
+    });
+    type t = iot.TypeOf<typeof t>;
+
+    export const from = (account: any): E.Either<Exception.t, Internal.t> => {
+      return pipe(
+          account
+        , t.decode
+        , E.map((account) => { return { ...account, id: O.none, rules: [], children: [] }; })
+        , E.mapLeft((_) => Exception.throwMalformedJson)
+      );
+    };
+
+    export const to = (account: Internal.t): t => {
+      return {
+          parentId: account.parentId
+        , userId: account.userId
+        , name: account.name
+      };
+    };
+  }
+
+  export namespace Response {
+    type t = {
+      id: string;
+      parentId: O.Option<string>;
+      userId: string;
+      name: string;
+      rules: Rule.Internal.t[];
+      children: string[];
+    };
+
+    export const from = (account: any): E.Either<Exception.t, Internal.t> => {
+      return E.right({
+          ...account
+        , id: O.some(account.id)
+      })
+    };
+
+    export const to = (account: Internal.t): t => {
+      return {
+          ...account
+        , id: O.match(() => "", (id: string) => id)(account.id)
+      };
+    };
+  }
+}
+
 export namespace Json {
   export const Request = iot.type({
       parentId: types.optionFromNullable(iot.string)

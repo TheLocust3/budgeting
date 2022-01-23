@@ -145,6 +145,42 @@ export namespace Internal {
   }
 }
 
+export namespace Channel {
+  export namespace Request {
+    type t = iot.TypeOf<typeof Json.Request>;
+
+    export const from = (rule: any): E.Either<Exception.t, Internal.t> => {
+      return Json.from(rule);
+    };
+
+    export const to = (rule: Internal.t): t => {
+      return Json.to(rule);
+    };
+  }
+
+  export namespace Response {
+    type t = {
+      id: string;
+      accountId: string;
+      rule: Internal.Rule;
+    };
+
+    export const from = (rule: any): E.Either<Exception.t, Internal.t> => {
+      return E.right({
+          ...rule
+        , id: O.some(rule.id)
+      })
+    };
+
+    export const to = (rule: Internal.t): t => {
+      return {
+          ...rule
+        , id: O.match(() => "", (id: string) => id)(rule.id)
+      };
+    };
+  }
+}
+
 export namespace Json {
   export namespace Clause {
     export const StringOperator = iot.union([

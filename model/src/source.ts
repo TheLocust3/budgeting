@@ -17,11 +17,11 @@ export namespace Internal {
 
 export namespace Channel {
   export namespace Request {
-    export const t = iot.type({
+    const t = iot.type({
         userId: iot.string
       , name: iot.string
     });
-    export type t = iot.TypeOf<typeof t>;
+    type t = iot.TypeOf<typeof t>;
 
     export const from = (source: any): E.Either<Exception.t, Internal.t> => {
       return pipe(
@@ -41,7 +41,7 @@ export namespace Channel {
   }
 
   export namespace Response {
-    export type t = {
+    type t = {
       id: string;
       userId: string;
       name: string;

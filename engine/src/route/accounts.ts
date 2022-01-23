@@ -19,7 +19,7 @@ router
   .get("/", async (ctx, next) => {
     await pipe(
         AccountFrontend.all(ctx.db)()
-      , TE.map(A.map(Account.Json.to))
+      , TE.map(A.map(Account.Channel.Response.to))
       , TE.match(
             Message.respondWithError(ctx)
           , (accounts) => {
@@ -33,7 +33,7 @@ router
     await pipe(
         accountId
       , AccountFrontend.getById(ctx.db)
-      , TE.map(Account.Json.to)
+      , TE.map(Account.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (account) => {
@@ -65,10 +65,10 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Account.Json.from
+      , Account.Channel.Request.from
       , TE.fromEither
       , TE.chain(AccountFrontend.create(ctx.db))
-      , TE.map(Account.Json.to)
+      , TE.map(Account.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (account) => {
