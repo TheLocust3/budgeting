@@ -29,7 +29,7 @@ it("can get account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
-    , TE.chain((account) => system.getAccount(account.id))
+    , TE.chain((account) => system.getAccount(account.id, account.userId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (_account) => {
@@ -45,7 +45,7 @@ it("can list accounts", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
-    , TE.chain((_) => system.listAccounts())
+    , TE.chain((account) => system.listAccounts(account.userId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
@@ -62,8 +62,8 @@ it("can delete account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
-    , TE.chain((account) => system.deleteAccount(account.id))
-    , TE.chain((_) => system.listAccounts())
+    , TE.chain((account) => system.deleteAccount(account.id, "user"))
+    , TE.chain(() => system.listAccounts("user"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {

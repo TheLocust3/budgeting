@@ -9,7 +9,7 @@ import { PathReporter } from "io-ts/PathReporter";
 import TransactionFrontend from "../frontend/transaction-frontend";
 
 import { Transaction } from "model";
-import { Message } from "magic";
+import { Message, Route } from "magic";
 
 export const router = new Router();
 

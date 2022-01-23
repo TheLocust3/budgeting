@@ -159,30 +159,30 @@ export class System {
     );
   }
 
-  addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = "user"): TE.TaskEither<Error, any> {
+  addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = "test"): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask("/accounts/")("POST")(O.some({ name: name, userId: userId, parentId: parentId }))
       , TE.chain(this.json)
     );
   }
 
-  getAccount(id: string): TE.TaskEither<Error, any> {
+  getAccount(id: string, userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/accounts/${id}`)("GET")()
+        this.fetchTask(`/accounts/${id}?userId=${userId}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  listAccounts(): TE.TaskEither<Error, any> {
+  listAccounts(userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask("/accounts")("GET")()
+        this.fetchTask(`/accounts?userId=${userId}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  deleteAccount(id: string): TE.TaskEither<Error, any> {
+  deleteAccount(id: string, userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/accounts/${id}`)("DELETE")()
+        this.fetchTask(`/accounts/${id}?userId=${userId}`)("DELETE")()
       , TE.chain(this.json)
     );
   }
@@ -215,9 +215,9 @@ export class System {
     );
   }
 
-  materialize(accountId: string): TE.TaskEither<Error, any> {
+  materialize(accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/accounts/${accountId}/materialize`)("GET")()
+        this.fetchTask(`/accounts/${accountId}/materialize?userId=${userId}`)("GET")()
       , TE.chain(this.json)
     );
   }

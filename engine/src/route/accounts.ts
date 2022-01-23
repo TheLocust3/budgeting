@@ -11,14 +11,17 @@ import { Account } from "model";
 import { Transaction } from "model";
 import { Rule } from "model";
 import * as Materialize from "../materialize/index";
-import { Message } from "magic";
+import { Message, Route } from "magic";
 
 export const router = new Router();
 
 router
   .get("/", async (ctx, next) => {
     await pipe(
-        AccountFrontend.all(ctx.db)()
+        ctx.query.userId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain(AccountFrontend.all(ctx.db))
       , TE.map(A.map(Account.Channel.Response.to))
       , TE.match(
             Message.respondWithError(ctx)
@@ -31,8 +34,10 @@ router
   .get("/:accountId", async (ctx, next) => {
     const accountId = ctx.params.accountId;
     await pipe(
-        accountId
-      , AccountFrontend.getById(ctx.db)
+        ctx.query.userId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain((userId) => AccountFrontend.getByIdAndUserId(ctx.db)(userId)(accountId))
       , TE.map(Account.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
@@ -45,8 +50,10 @@ router
   .get("/:accountId/materialize", async (ctx, next) => {
     const accountId = ctx.params.accountId;
     await pipe(
-        accountId
-      , AccountFrontend.getById(ctx.db)
+        ctx.query.userId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain((userId) => AccountFrontend.getByIdAndUserId(ctx.db)(userId)(accountId))
       , TE.chain(AccountFrontend.withRules(ctx.db))
       , TE.chain(AccountFrontend.withChildren(ctx.db))
       , TE.chain((account) => pipe(
@@ -80,8 +87,10 @@ router
   .delete("/:accountId", async (ctx, next) => {
     const accountId = ctx.params.accountId;
     await pipe(
-        accountId
-      , AccountFrontend.deleteById(ctx.db)
+        ctx.query.userId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain((userId) => AccountFrontend.deleteById(ctx.db)(userId)(accountId))
       , TE.match(
             Message.respondWithError(ctx)
           , (_) => {

@@ -12,9 +12,9 @@ import * as AccountsTable from "../db/accounts";
 import { Exception } from "magic";
 
 export namespace AccountFrontend {
-  export const all = (pool: Pool) => (): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
+  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
     return pipe(
-        AccountsTable.all(pool)()
+        AccountsTable.all(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
@@ -28,6 +28,20 @@ export namespace AccountFrontend {
             (): TE.TaskEither<Exception.t, Account.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (account) => TE.of(account)
         ))
+    );
+  };
+
+  export const getByIdAndUserId = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
+    return pipe(
+        id
+      , getById(pool)
+      , TE.chain((account) => {
+          if (account.userId == userId) {
+            return TE.of(account);
+          } else {
+            return TE.throwError(Exception.throwNotFound);
+          }
+        })
     );
   };
 
@@ -57,10 +71,10 @@ export namespace AccountFrontend {
     );
   };
 
-  export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , AccountsTable.deleteById(pool)
+      , AccountsTable.deleteById(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
