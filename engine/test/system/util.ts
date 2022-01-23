@@ -79,7 +79,7 @@ export type JsonTransaction = {
 
 export const defaultTransaction: JsonTransaction = {
     sourceId: "sourceId"
-  , userId: "user"
+  , userId: "test"
   , amount: 10
   , merchantName: "merchant name"
   , description: "description"
@@ -138,23 +138,23 @@ export class System {
     );
   }
 
-  getTransaction(id: string): TE.TaskEither<Error, any> {
+  getTransaction(id: string, userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/transactions/${id}`)("GET")()
+        this.fetchTask(`/transactions/${id}?userId=${userId}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  listTransactions(): TE.TaskEither<Error, any> {
+  listTransactions(userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask("/transactions/")("GET")()
+        this.fetchTask(`/transactions?userId=${userId}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  deleteTransaction(id: string): TE.TaskEither<Error, any> {
+  deleteTransaction(id: string, userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/transactions/${id}`)("DELETE")()
+        this.fetchTask(`/transactions/${id}?userId=${userId}`)("DELETE")()
       , TE.chain(this.json)
     );
   }

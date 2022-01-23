@@ -42,7 +42,7 @@ router
       , TE.match(
             Message.respondWithError(ctx)
           , (account) => {
-              ctx.body = { account: account };
+              ctx.body = account;
             }
         )
     )();

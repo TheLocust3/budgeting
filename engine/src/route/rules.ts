@@ -38,7 +38,7 @@ router
       , TE.match(
             Message.respondWithError(ctx)
           , (rule) => {
-              ctx.body = { rule: rule };
+              ctx.body = rule;
             }
         )
     )();

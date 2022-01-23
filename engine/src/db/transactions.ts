@@ -47,10 +47,16 @@ namespace Query {
     };
   };
 
-  export const all = `
-    SELECT id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata
-    FROM transactions
-  `;
+  export const all = (userId: string) => {
+    return {
+      text: `
+        SELECT id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata
+        FROM transactions
+        WHERE user_id = $1
+      `,
+      values: [userId]
+    };
+  };
 
   export const byId = (id: string) => {
     return {
@@ -64,13 +70,13 @@ namespace Query {
     };
   };
 
-  export const deleteById = (id: string) => {
+  export const deleteById = (id: string, userId: string) => {
     return {
       text: `
         DELETE FROM transactions
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
       `,
-      values: [id]
+      values: [id, userId]
     };
   };
 }
@@ -95,10 +101,10 @@ export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   }
 };
 
-export const all = (pool: Pool) => () : TE.TaskEither<Error, Transaction.Internal.t[]> => {
+export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Transaction.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.all),
+        () => pool.query(Query.all(userId)),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
@@ -124,10 +130,10 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
   );
 };
 
-export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
+export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.deleteById(id)),
+        () => pool.query(Query.deleteById(id, userId)),
         E.toError
       )
     , TE.map(x => { return; })

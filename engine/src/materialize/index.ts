@@ -135,7 +135,7 @@ export const execute = (id: string) => (pool: Pool) => (account: Account.Interna
         console.log(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
 
         return pipe(
-            TransactionFrontend.all(pool)()
+            TransactionFrontend.all(pool)(account.userId)
           , TE.map(A.map(Transaction.Materialize.from))
           , TE.map(executePlan(plan))
         );

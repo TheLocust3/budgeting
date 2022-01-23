@@ -87,8 +87,7 @@ it("can get rule", async () => {
     , TE.chain((rule) => system.getRule(rule.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (_rule) => {
-            const rule = _rule.rule;
+        , (rule) => {
             expect(rule).toEqual(expect.objectContaining({ accountId: accountId, rule: ruleBody }));
             expect(typeof rule.id).toBe("string");
           }

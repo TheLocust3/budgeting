@@ -42,6 +42,7 @@ Run the test suite:
    - manage business logic
 
 ### miscellaneous
+ - types for query paraments (+ decoders)
  - when a user is deleted, all associated resources should be cleaned up
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction

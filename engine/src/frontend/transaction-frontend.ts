@@ -10,14 +10,14 @@ import * as TransactionsTable from "../db/transactions";
 import { Exception } from "magic";
 
 export namespace TransactionFrontend {
-  export const all = (pool: Pool) => (): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
+  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     return pipe(
-        TransactionsTable.all(pool)()
+        TransactionsTable.all(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
-  export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+  export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
         id
       , TransactionsTable.byId(pool)
@@ -26,6 +26,13 @@ export namespace TransactionFrontend {
             (): TE.TaskEither<Exception.t, Transaction.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (rule) => TE.of(rule)
         ))
+      , TE.chain((transaction) => {
+          if (transaction.userId == userId) {
+            return TE.of(transaction);
+          } else {
+            return TE.throwError(Exception.throwNotFound);
+          }
+        })
     );
   };
 
@@ -37,10 +44,10 @@ export namespace TransactionFrontend {
     );
   };
 
-  export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , TransactionsTable.deleteById(pool)
+      , TransactionsTable.deleteById(pool)(userId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };

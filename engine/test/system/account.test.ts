@@ -32,8 +32,7 @@ it("can get account", async () => {
     , TE.chain((account) => system.getAccount(account.id, account.userId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (_account) => {
-            const account = _account.account;
+        , (account) => {
             expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
             expect(typeof account.id).toBe("string");
           }

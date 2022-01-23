@@ -16,7 +16,10 @@ export const router = new Router();
 router
   .get("/", async (ctx, next) => {
     await pipe(
-        TransactionFrontend.all(ctx.db)()
+        ctx.query.userId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain(TransactionFrontend.all(ctx.db))
       , TE.map(A.map(Transaction.Channel.Response.to))
       , TE.match(
             Message.respondWithError(ctx)
@@ -29,13 +32,15 @@ router
   .get("/:transactionId", async (ctx, next) => {
     const transactionId = ctx.params.transactionId;
     await pipe(
-        transactionId
-      , TransactionFrontend.getById(ctx.db)
+        ctx.query.userId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain((userId) => TransactionFrontend.getById(ctx.db)(userId)(transactionId))
       , TE.map(Transaction.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (transaction) => {
-              ctx.body = { transaction: transaction };
+              ctx.body = transaction;
             }
         )
     )();
@@ -58,8 +63,10 @@ router
   .delete("/:transactionId", async (ctx, next) => {
     const transactionId = ctx.params.transactionId;
     await pipe(
-        transactionId
-      , TransactionFrontend.deleteById(ctx.db)
+        ctx.query.userId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain((userId) => TransactionFrontend.deleteById(ctx.db)(userId)(transactionId))
       , TE.match(
             Message.respondWithError(ctx)
           , (_) => {
