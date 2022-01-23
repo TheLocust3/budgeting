@@ -34,8 +34,6 @@ Run the test suite:
 ## todo
 
 ### next
- - admin users
-   - allowed to access user management routes
  - "reaper" jobs
    - jobs that run in the background, retried automatically
    - used for deleting a user + in scheduler
@@ -56,6 +54,7 @@ Run the test suite:
  - JWT expiry
  - admin user to access `/user` + other global routes
  - distinguish between channel errors and user facing errors
+ - a productized path for adding superusers
 
 ### future
  - Global service configuration

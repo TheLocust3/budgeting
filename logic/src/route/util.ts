@@ -26,6 +26,27 @@ export namespace AuthenticationFor {
       )
     )();
   };
+
+  export const admin = async (ctx: Koa.Context, next: Koa.Next) => {
+    await pipe(
+        ctx.get("Authorization")
+      , JWT.verify(ctx.db)
+      , TE.chain((user) => {
+          if (user.role === 'superuser') {
+            return TE.of(user);
+          } else {
+            return TE.throwError(Exception.throwUnauthorized);
+          }
+        })
+      , TE.match(
+          Message.respondWithError(ctx)
+        , async (user) => {
+            ctx.state.user = user;
+            await next();
+          }
+      )
+    )();
+  };
 }
 
 export namespace JWT {

@@ -12,6 +12,7 @@ export namespace Internal {
     id: string;
     email: string;
     password: string;
+    role: string;
   }
 }
 
@@ -25,7 +26,7 @@ export namespace Json {
     return pipe(
         user
       , Request.decode
-      , E.map((user) => { return { ...user, id: "" }; })
+      , E.map((user) => { return { ...user, id: "", role: "user" }; })
       , E.mapLeft((_) => Exception.throwMalformedJson)
     );
   };
@@ -44,6 +45,7 @@ export namespace Database {
       id: iot.string
     , email: iot.string
     , password: iot.string
+    , role: iot.string
   });
 
   export const from = (user: any): E.Either<Error, Internal.t> => {

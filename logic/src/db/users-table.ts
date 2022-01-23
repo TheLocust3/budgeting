@@ -15,32 +15,33 @@ namespace Query {
     CREATE TABLE users (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       email TEXT NOT NULL,
-      password TEXT NOT NULL
+      password TEXT NOT NULL,
+      role TEXT NOT NULL
     )
   `;
 
   export const dropTable = "DROP TABLE users";
 
-  export const create = (email: string, password: string) => {
+  export const create = (email: string, password: string, role: string) => {
     return {
       text: `
-        INSERT INTO users (email, password)
-        VALUES ($1, $2)
+        INSERT INTO users (email, password, role)
+        VALUES ($1, $2, $3)
         RETURNING *
       `,
-      values: [email, password]
+      values: [email, password, role]
     };
   };
 
   export const all = `
-    SELECT id, email, password
+    SELECT id, email, password, role
     FROM users
   `;
 
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, email, password
+        SELECT id, email, password, role
         FROM users
         WHERE id = $1
         LIMIT 1
@@ -52,7 +53,7 @@ namespace Query {
     export const byEmail = (email: string) => {
     return {
       text: `
-        SELECT id, email, password
+        SELECT id, email, password, role
         FROM users
         WHERE email = $1
         LIMIT 1
@@ -149,7 +150,7 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, vo
 export const create = (pool: Pool) => (user: User.Internal.t) : TE.TaskEither<Error, User.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(user.email, user.password)),
+        () => pool.query(Query.create(user.email, user.password, user.role)),
         E.toError
       )
     , Db.expectOne
