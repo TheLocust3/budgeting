@@ -96,7 +96,7 @@ export namespace RuleFrontend {
     );
   };
 
-  export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+  export const getById = (pool: Pool) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         id
       , RulesTable.byId(pool)
@@ -105,6 +105,13 @@ export namespace RuleFrontend {
             (): TE.TaskEither<Exception.t, Rule.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (rule) => TE.of(rule)
         ))
+      , TE.chain((rule) => {
+          if (rule.accountId == accountId) {
+            return TE.of(rule);
+          } else {
+            return TE.throwError(Exception.throwNotFound);
+          }
+        })
     );
   };
 
@@ -116,10 +123,10 @@ export namespace RuleFrontend {
     );
   };
 
-  export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (pool: Pool) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , RulesTable.deleteById(pool)
+      , RulesTable.deleteById(pool)(accountId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };

@@ -56,13 +56,13 @@ namespace Query {
     };
   };
 
-  export const deleteById = (id: string) => {
+  export const deleteById = (id: string, accountId: string) => {
     return {
       text: `
         DELETE FROM rules
-        WHERE id = $1
+        WHERE id = $1 AND account_id = $2
       `,
-      values: [id]
+      values: [id, accountId]
     };
   };
 }
@@ -116,10 +116,10 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
   );
 };
 
-export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, void> => {
+export const deleteById = (pool: Pool) => (accountId: string) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.deleteById(id)),
+        () => pool.query(Query.deleteById(id, accountId)),
         E.toError
       )
     , TE.map(x => { return; })

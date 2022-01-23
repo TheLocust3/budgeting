@@ -47,7 +47,7 @@ export namespace Channel {
 
   export const toArrayOf = <T>(from: (response: any) => E.Either<Exception.t, T>) => (task: TE.TaskEither<Exception.t, any>): TE.TaskEither<Exception.t, T[]> => {
     return TE.chain((response: any) => TE.fromEither(pipe(
-        response.sources
+        response
       , A.map(from)
       , A.sequence(E.Applicative)
     )))(task);

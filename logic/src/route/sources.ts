@@ -18,7 +18,7 @@ router
   .get("/", async (ctx, next) => {
     const user = ctx.state.user;
     await pipe(
-        SourceFrontend.all(ctx.db)(user.id)
+        SourceFrontend.all(user.id)
       , TE.map(A.map(Source.Json.to))
       , TE.match(
             Message.respondWithError(ctx)
@@ -33,7 +33,7 @@ router
     const sourceId = ctx.params.sourceId;
     await pipe(
         sourceId
-      , SourceFrontend.getById(ctx.db)(user.id)
+      , SourceFrontend.getById(user.id)
       , TE.map(Source.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
@@ -49,7 +49,7 @@ router
         ctx.request.body
       , Source.Json.from(user.id)
       , TE.fromEither
-      , TE.chain(SourceFrontend.create(ctx.db))
+      , TE.chain(SourceFrontend.create)
       , TE.map(Source.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
@@ -64,7 +64,7 @@ router
     const sourceId = ctx.params.sourceId;
     await pipe(
         sourceId
-      , SourceFrontend.deleteById(ctx.db)(user.id)
+      , SourceFrontend.deleteById(user.id)
       , TE.match(
             Message.respondWithError(ctx)
           , (_) => {

@@ -1,4 +1,3 @@
-import { Pool } from "pg";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -12,28 +11,29 @@ import { Source } from "model";
 import { Exception } from "magic";
 
 export namespace SourceFrontend {
-  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+  export const all = (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     return pipe(
         SchedulerChannel.push(`/sources?userId=${userId}`)('GET')()
+      , TE.map((response) => response.sources)
       , Channel.toArrayOf(Source.Channel.Response.from)
     );
   };
 
-  export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
+  export const getById = (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         SchedulerChannel.push(`/sources/${id}?userId=${userId}`)('GET')()
       , Channel.to(Source.Channel.Response.from)
     );
   };
 
-  export const create = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
+  export const create = (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         SchedulerChannel.push(`/sources/`)('POST')(O.some(Source.Channel.Request.to(source)))
       , Channel.to(Source.Channel.Response.from)
     );
   };
 
-  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         SchedulerChannel.push(`/sources/${id}?userId=${userId}`)('DELETE')()
       , Channel.toVoid

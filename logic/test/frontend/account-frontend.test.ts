@@ -1,0 +1,103 @@
+import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
+import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import * as TE from "fp-ts/TaskEither";
+
+import AccountFrontend from "../../src/frontend/account-frontend";
+import { uuid } from "../system/util";
+
+it("can add account", async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (account) => {
+            expect(account).toEqual(expect.objectContaining({ parentId: O.none, userId: "test", name: name }));
+            expect(O.isSome(account.id)).toBe(true);
+          }
+      )
+  )();
+});
+
+it("can get account", async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountFrontend.getById(account.userId)(O.match(() => "", (account: string) => account)(account.id)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (account) => {
+            expect(account).toEqual(expect.objectContaining({ parentId: O.none, userId: "test", name: name }));
+            expect(O.isSome(account.id)).toBe(true);
+          }
+      )
+  )();
+});
+
+it("can't get other user's account", async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountFrontend.getById("test2")(O.match(() => "", (account: string) => account)(account.id)))
+    , TE.match(
+          (res) => { expect(res._type).toBe("NotFound"); }
+        , (_) => { throw new Error("Got unexpected successful response"); }
+      )
+  )();
+});
+
+it("can list account", async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((_) => AccountFrontend.all("test"))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (accounts) => {
+            const account = accounts.filter((account) => account.name === name)[0];
+
+            expect(account).toEqual(expect.objectContaining({ parentId: O.none, userId: "test", name: name }));
+            expect(O.isSome(account.id)).toBe(true);
+
+            accounts.map((account) => expect(account.userId).toBe("test"));
+          }
+      )
+  )();
+});
+
+it("can delete account", async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountFrontend.deleteById("test")(O.match(() => "", (account: string) => account)(account.id)))
+    , TE.chain((_) => AccountFrontend.all("test"))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (accounts) => {
+            const account = accounts.filter((account) => account.name === name);
+
+            expect(account.length).toEqual(0);
+          }
+      )
+  )();
+});
+
+it("can't delete other user's account", async () => {
+  const name = `test-${uuid()}`;
+  await pipe(
+      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test2", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountFrontend.deleteById("test")(O.match(() => "", (account: string) => account)(account.id)))
+    , TE.chain((_) => AccountFrontend.all("test2"))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (accounts) => {
+            const account = accounts.filter((account) => account.name === name)[0];
+
+            expect(account).toEqual(expect.objectContaining({ name: name }));
+            expect(O.isSome(account.id)).toBe(true);
+          }
+      )
+  )();
+});

@@ -32,8 +32,10 @@ router
   .get("/:ruleId", async (ctx, next) => {
     const ruleId = ctx.params.ruleId;
     await pipe(
-        ruleId
-      , RuleFrontend.getById(ctx.db)
+        ctx.query.accountId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain((accountId) => RuleFrontend.getById(ctx.db)(accountId)(ruleId))
       , TE.map(Rule.Channel.Response.to)
       , TE.match(
             Message.respondWithError(ctx)
@@ -61,8 +63,10 @@ router
   .delete("/:ruleId", async (ctx, next) => {
     const ruleId = ctx.params.ruleId;
     await pipe(
-        ruleId
-      , RuleFrontend.deleteById(ctx.db)
+        ctx.query.accountId
+      , Route.fromQuery
+      , TE.fromEither
+      , TE.chain((accountId) => RuleFrontend.deleteById(ctx.db)(accountId)(ruleId))
       , TE.match(
             Message.respondWithError(ctx)
           , (_) => {

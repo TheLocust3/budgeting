@@ -95,17 +95,12 @@ export namespace Channel {
     type t = iot.TypeOf<typeof t>;
 
     export const from = (transaction: any): E.Either<Exception.t, Internal.t> => {
-      console.log(transaction)
       return pipe(
           transaction
         , t.decode
         , E.map(transaction => {
             const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(transaction.capturedAt);
             return { ...transaction, id: O.none, authorizedAt: new Date(transaction.authorizedAt), capturedAt: capturedAt, custom: {} };
-          })
-        , E.mapLeft((e) => {
-          console.log(e)
-            return e;
           })
         , E.mapLeft((_) => Exception.throwMalformedJson)
       );
