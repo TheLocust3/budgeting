@@ -194,9 +194,9 @@ export class System {
     );
   }
 
-  getRule(id: string): TE.TaskEither<Error, any> {
+  getRule(id: string, accountId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/rules/${id}`)("GET")()
+        this.fetchTask(`/rules/${id}?accountId=${accountId}`)("GET")()
       , TE.chain(this.json)
     );
   }
@@ -208,9 +208,9 @@ export class System {
     );
   }
 
-  deleteRule(id: string): TE.TaskEither<Error, any> {
+  deleteRule(id: string, accountId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/rules/${id}`)("DELETE")()
+        this.fetchTask(`/rules/${id}?accountId=${accountId}`)("DELETE")()
       , TE.chain(this.json)
     );
   }

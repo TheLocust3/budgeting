@@ -84,7 +84,7 @@ it("can't add rule with made up field", async () => {
 it("can get rule", async () => {
   await pipe(
       system.addRule(accountId, ruleBody)
-    , TE.chain((rule) => system.getRule(rule.id))
+    , TE.chain((rule) => system.getRule(rule.id, accountId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rule) => {
@@ -114,7 +114,7 @@ it("can list rules", async () => {
 it("can delete rule", async () => {
   await pipe(
       system.addRule(accountId, ruleBody)
-    , TE.chain((rule) => TE.map(_ => rule.id)(system.deleteRule(rule.id)))
+    , TE.chain((rule) => TE.map(_ => rule.id)(system.deleteRule(rule.id, accountId)))
     , TE.chain((ruleId) => TE.map(rules => [rules, ruleId])(system.listRules(accountId)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
