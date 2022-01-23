@@ -47,7 +47,7 @@ export class System {
 
     return TE.tryCatch(
         () => fetch(
-            `http://${this.host}:${this.port}${uri}`
+            `http://${this.host}:${this.port}/channel${uri}`
           , { method: method, ...resolved, headers: { "Content-Type": "application/json" } }
         )
       , E.toError

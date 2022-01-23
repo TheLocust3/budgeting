@@ -23,7 +23,7 @@ app.context.db = new Pool();
 
 const router = new Router();
 
-router.use("/sources", sourceRouter.routes(), sourceRouter.allowedMethods());
+router.use("/channel/sources", sourceRouter.routes(), sourceRouter.allowedMethods());
 
 app.use(async (ctx, next) => {
   const start = Date.now();

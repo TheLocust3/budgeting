@@ -34,16 +34,20 @@ Run the test suite:
 ## todo
 
 ### next
+ - admin users
+   - allowed to access user management routes
+ - "reaper" jobs
+   - jobs that run in the background, retried automatically
+   - used for deleting a user + in scheduler
  - Scheduler
    - Setup core scheduler loop
    - Spin off puller subprocesses
+   - puller adds transactions via `POST@engine /puller/transaction` and completes via `POST@scheduler /puller/complete`
  - Business logic layer
-   - sources + puller orchestration
    - manage business logic
 
 ### miscellaneous
  - types for query paraments (+ decoders)
- - when a user is deleted, all associated resources should be cleaned up
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
  - validate email

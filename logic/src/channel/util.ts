@@ -22,7 +22,7 @@ export namespace Channel {
     return pipe(
         TE.tryCatch(
             () => fetch(
-                `http://${host}:${port}${uri}`
+                `http://${host}:${port}/channel${uri}`
               , { method: method, ...resolved, headers: { "Content-Type": "application/json" } }
             )
           , E.toError
