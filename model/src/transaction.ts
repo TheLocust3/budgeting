@@ -139,7 +139,7 @@ export namespace Channel {
       custom: { [key: string]: string[] };
     };
 
-    const from = (transaction: any): E.Either<Exception.t, Internal.t> => {
+    export const from = (transaction: any): E.Either<Exception.t, Internal.t> => {
       return E.right({
           ...transaction
         , id: O.some(transaction.id)
