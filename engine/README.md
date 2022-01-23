@@ -29,19 +29,3 @@ Make sure the server is running (for system tests):
 
 Run the test suite:
 `yarn test`
-
-## todo
-
-### next
- - expect unordered lists in tests
- - Don't build plan/stages for every transaction
-
-### future
- - basic rule pushdowns
-   - all include rules are up for grabs
- - Aggregations
-
-### miscellaneous
- - unit tests against frontends/components
- - no need for camelize if columns are renamed in select
- - abstract common db queries/operations

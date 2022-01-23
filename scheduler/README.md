@@ -29,14 +29,3 @@ Make sure the server is running (for system tests):
 
 Run the test suite:
 `yarn test`
-
-## todo
-
-### next
- - Connect sources => puller
-
-### future
- - N/A
-
-### miscellaneous
- - N/A

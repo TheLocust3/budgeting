@@ -29,19 +29,3 @@ Make sure the server is running (for system tests):
 
 Run the test suite:
 `yarn test`
-
-## todo
-
-### next
- - N/A
-
-### future
- - N/A
-
-### miscellaneous
- - when a user is deleted, all associated resources should be cleaned up
- - validate email
-   - both formatting + send email to user
- - pull jwt secret fron environment
- - JWT expiry
- - admin user to access `/user` + other global routes
