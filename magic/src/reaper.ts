@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import EventEmitter from 'events';
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -14,15 +13,7 @@ type Element = {
   retriesRemaining: number;
 }
 
-class ReaperEmitter extends EventEmitter {}
-
-const emitter = new ReaperEmitter();
 let queue: Element[] = []
-
-export const enqueue = (job: Job, retriesRemaining: number = 5) => {
-  queue.push({ job: job, retriesRemaining: retriesRemaining });
-  emitter.emit("enqueue");
-}
 
 /*
 Example:
@@ -35,11 +26,16 @@ Example:
   });
 */
 
-emitter.on("enqueue", async () => {
-  const id = crypto.randomUUID();
-  const element = queue.shift();
+export const enqueue = (job: Job, retriesRemaining: number = 5) => {
+  queue.push({ job: job, retriesRemaining: retriesRemaining });
+}
 
+const reaper = async () => {
+  const start = new Date();
+
+  const element = queue.shift();
   if (element !== undefined) {
+    const id = crypto.randomUUID();
     const { job, retriesRemaining } = element;
 
     console.log(`Reaper - starting job ${id}`);
@@ -59,5 +55,10 @@ emitter.on("enqueue", async () => {
         })
     )();
   }
-});
 
+  const end = new Date();
+  const remaining = Math.max(100 - (end.getTime() - start.getTime()), 0);
+  setTimeout(reaper, remaining); // process a job at most every 100ms
+}
+
+reaper();
