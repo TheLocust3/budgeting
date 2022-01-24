@@ -34,9 +34,6 @@ Run the test suite:
 ## todo
 
 ### next
- - "reaper" jobs
-   - jobs that run in the background, retried automatically
-   - used for deleting a user + in scheduler
  - Scheduler
    - Setup core scheduler loop
    - Spin off puller subprocesses
@@ -52,7 +49,6 @@ Run the test suite:
    - both formatting + send email to user
  - pull jwt secret fron environment
  - JWT expiry
- - admin user to access `/user` + other global routes
  - distinguish between channel errors and user facing errors
  - a productized path for adding superusers
 

@@ -16,7 +16,7 @@ namespace Query {
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       account_id TEXT NOT NULL,
       rule JSONB NOT NULL,
-      FOREIGN KEY(account_id) REFERENCES accounts(id)
+      FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE
     )
   `;
 

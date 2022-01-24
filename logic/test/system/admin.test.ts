@@ -12,6 +12,7 @@ beforeAll(async () => {
   system = new System();
 });
 
+// TODO: JK test to make sure user's resources are actually deleted
 it("can delete user", async () => {
   const email = `test-${uuid()}`;
   await pipe(
