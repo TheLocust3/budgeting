@@ -65,3 +65,7 @@ Run the test suite:
  - split database in separate instances
  - move handling of write transaction requests away from engine
  - have pullers pull jobs from queue fed by some cron job
+ - Stateful reaper jobs
+    - Make services stateless, can restart jobs on crash
+    - How to implicitly divide work between clusters?
+       - "reaper microservice"? Isolates recovery to single service

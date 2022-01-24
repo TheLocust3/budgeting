@@ -10,7 +10,7 @@ import UserFrontend from "../frontend/user-frontend";
 import { AuthenticationFor } from "./util";
 
 import { User } from "model";
-import { Exception, Message } from "magic";
+import { Exception, Reaper, Message } from "magic";
 
 export const router = new Router();
 
@@ -44,14 +44,26 @@ router
   })
   .delete('/:userId', async (ctx, next) => {
     const userId = ctx.params.userId
-    await pipe(
-        userId
-      , UserFrontend.deleteById(ctx.db)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (_) => {
-              ctx.body = Message.ok;
-            }
-        )
-    )();
-  })
+    Reaper.enqueue((id) => {
+      console.log(`DeleteUser[${id}] user ${userId}`);
+
+      // TODO: JK delete all user resources
+      return pipe(
+          userId
+        , UserFrontend.deleteById(ctx.db)
+        , TE.match(
+              (error) => {
+                console.log(`DeleteUser[${id}] failed with ${error}`)
+                return false
+              }
+            , () => {
+                console.log(`DeleteUser[${id}] complete`)
+                return true;
+              }
+          )
+      );
+    });
+
+    console.log("TESTEST")
+    ctx.body = Message.ok;
+  });

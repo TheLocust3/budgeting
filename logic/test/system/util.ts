@@ -20,6 +20,20 @@ export class System {
     );
   }
 
+  getUsers(): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/admin/`)("GET")()
+      , TE.chain(this.json)
+    );
+  }
+
+  deleteUser(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/admin/${id}`)("DELETE")()
+      , TE.chain(this.json)
+    );
+  }
+
   addSource(name: string): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask("/sources/")("POST")(O.some({ name: name }))

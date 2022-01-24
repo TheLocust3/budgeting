@@ -10,6 +10,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { router as userRouter } from "./route/users";
 import { router as sourceRouter } from "./route/sources";
+import { router as adminRouter } from "./route/admin";
 
 import { Reaper } from "magic";
 import { User } from "model";
@@ -30,6 +31,7 @@ const router = new Router();
 
 router.use("/users", userRouter.routes(), userRouter.allowedMethods());
 router.use("/sources", sourceRouter.routes(), sourceRouter.allowedMethods());
+router.use("/admin", adminRouter.routes(), adminRouter.allowedMethods());
 
 app.use(async (ctx, next) => {
   const start = Date.now();
