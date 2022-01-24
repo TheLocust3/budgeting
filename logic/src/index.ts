@@ -5,11 +5,13 @@ import bodyParser from "koa-bodyparser";
 import { Pool } from "pg";
 import jwt from "jsonwebtoken";
 import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import { router as userRouter } from "./route/users";
 import { router as sourceRouter } from "./route/sources";
 
+import { Reaper } from "magic";
 import { User } from "model";
 
 type State = {
