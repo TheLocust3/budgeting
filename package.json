@@ -8,7 +8,8 @@
     "setup": "cd magic && yarn link && yarn build && cd ../model && yarn link magic && yarn link && yarn build && cd ../engine && yarn link magic && yarn link model && cd ../logic && yarn link magic && yarn link model && cd ../scheduler && yarn link magic && yarn link model",
     "clean": "rm -rf magic/dist && rm -rf model/dist && rm -rf engine/dist && rm -rf logic/dist && rm -rf scheduler/dist",
     "test": "jest --forceExit --verbose \".*/test/system/.*\" && cd logic && yarn test",
-    "start": "concurrently -k -p \"[{name}]\" -n \"engine,logic,scheduler,magic,model\" -c \"cyan.bold,green.bold,orange.bold,purple.bold,yellow.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd scheduler && yarn start\" \"cd magic && yarn start\" \"cd model && yarn start\"",
+    "start-backend": "concurrently -k -p \"[{name}]\" -n \"engine,logic,scheduler,magic,model\" -c \"cyan.bold,green.bold,orange.bold,purple.bold,yellow.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd scheduler && yarn start\" \"cd magic && yarn start\" \"cd model && yarn start\"",
+    "start-frontend": "cd ui && yarn start",
     "migrate": "cd engine && yarn migrate && cd ../scheduler && yarn migrate && cd ../logic && yarn migrate",
     "rollback": "cd logic && yarn rollback && cd ../scheduler && yarn rollback && cd ../engine && yarn rollback"
   },

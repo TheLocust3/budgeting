@@ -21,12 +21,15 @@ export PGPORT=5432
 Migrate database:
 `yarn migrate`
 
-Start:
-`yarn start`
+Start the backends:
+`yarn start-backend`
+
+Start the UI:
+`yarn start-frontend`
 
 ## test
 Make sure the server is running (for system tests):
-`yarn start`
+`yarn start-backend`
 
 Run the test suite:
 `yarn test`
@@ -34,10 +37,18 @@ Run the test suite:
 ## todo
 
 ### next
+ - Frontend
+   - Move plaid logic to frontend + add sources from frontend
  - Scheduler
+   - Model Plaid keys in sources
    - Setup core scheduler loop
    - Spin off puller subprocesses
    - puller adds transactions via `POST@engine /puller/transaction` and completes via `POST@scheduler /puller/complete`
+ - Cleanup
+   - Add names to pipe functions
+   - Add some sort of standard JSON/type serialization + deserialization
+ - Engine
+   - Optional remander in SplitByValue
  - Business logic layer
    - manage business logic
 
