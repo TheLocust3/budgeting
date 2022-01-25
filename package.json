@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint \"**/*.{js,ts}\" --quiet",
     "setup": "cd magic && yarn link && yarn build && cd ../model && yarn link magic && yarn link && yarn build && cd ../engine && yarn link magic && yarn link model && cd ../logic && yarn link magic && yarn link model && cd ../scheduler && yarn link magic && yarn link model",
+    "build": "cd magic && yarn build && cd ../model && yarn build && cd ../engine && yarn build && cd ../logic && yarn build && cd ../scheduler && yarn build",
     "clean": "rm -rf magic/dist && rm -rf model/dist && rm -rf engine/dist && rm -rf logic/dist && rm -rf scheduler/dist",
     "test": "jest --forceExit --verbose \".*/test/system/.*\" && cd logic && yarn test",
     "start-backend": "concurrently -k -p \"[{name}]\" -n \"engine,logic,scheduler,magic,model\" -c \"cyan.bold,green.bold,orange.bold,purple.bold,yellow.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd scheduler && yarn start\" \"cd magic && yarn start\" \"cd model && yarn start\"",

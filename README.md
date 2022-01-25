@@ -3,9 +3,21 @@
 ## setup
 `yarn install`  
 `yarn setup`  
+`yarn build`  
+
+### initialize the database
 `initdb data.db`  
 `pg_ctl -D data.db start`  
 `createdb budget`  
+
+### generate certs
+`mkdir certs`
+
+Create a self-signed cert, placing the resultant files in the `certs/` directory as:
+```
+cert.crt
+cert.key
+```
 
 ## running
 
