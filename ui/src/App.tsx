@@ -1,6 +1,8 @@
 import React from 'react';
 import { createGlobalStyle } from 'styled-components';
 
+import PlaidLink from './components/PlaidLink';
+
 import { colors } from './constants';
 
 const GlobalStyle = createGlobalStyle`
@@ -33,7 +35,8 @@ function App() {
   return (
     <div>
       <GlobalStyle />
-      Test
+      
+      <PlaidLink />
     </div>
   );
 }

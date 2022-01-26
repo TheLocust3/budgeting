@@ -28,6 +28,8 @@ export PGHOST=localhost
 export PGPASSWORD=
 export PGDATABASE=budget
 export PGPORT=5432
+export PLAID_CLIENT_ID=???
+export PLAID_SECRET=???
 ```
 
 Migrate database:
@@ -51,8 +53,11 @@ Run the test suite:
 ### next
  - Frontend
    - Move plaid logic to frontend + add sources from frontend
+ - Model logic APIs in "model" package and add frontends to UI
+ - Create user through UI + login
+ - `integration` table which stores JSON blob with Plaid keys
+ - `source` has optional integration id
  - Scheduler
-   - Model Plaid keys in sources
    - Setup core scheduler loop
    - Spin off puller subprocesses
    - puller adds transactions via `POST@engine /puller/transaction` and completes via `POST@scheduler /puller/complete`
