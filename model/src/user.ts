@@ -5,6 +5,8 @@ import * as iot from "io-ts";
 import * as types from "io-ts-types";
 import camelcaseKeys from "camelcase-keys";
 
+import { JSONFormatter, JSON } from "./util";
+
 import { Exception } from "magic";
 
 export namespace Internal {
@@ -13,6 +15,35 @@ export namespace Internal {
     email: string;
     password: string;
     role: string;
+  }
+}
+
+export namespace Frontend {
+  export namespace Request {
+    export namespace Credentials {
+      const t = iot.type({
+          email: iot.string
+        , password: iot.string
+      });
+      
+      export type t = iot.TypeOf<typeof t>
+      export const JSON = new JSONFormatter(t);
+    }
+  }
+
+  export namespace Response {
+    export namespace Token {
+      const t = iot.type({
+        token: iot.string
+      });
+      type t = iot.TypeOf<typeof t>
+
+      export const toJson = (response: t): any => {
+        return {
+          token: response
+        };
+      };
+    }
   }
 }
 

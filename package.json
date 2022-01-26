@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "lint": "eslint \"**/*.{js,ts}\" --quiet",
-    "setup": "cd magic && yarn link && yarn build && cd ../model && yarn link magic && yarn link && yarn build && cd ../engine && yarn link magic && yarn link model && cd ../logic && yarn link magic && yarn link model && cd ../scheduler && yarn link magic && yarn link model",
+    "setup": "cd magic && yarn link && yarn build && cd ../model && yarn link magic && yarn link && yarn build && cd ../engine && yarn link magic && yarn link model && cd ../logic && yarn link magic && yarn link model && cd ../scheduler && yarn link magic && yarn link model && cd ../ui && yarn link magic && yarn link model",
     "build": "cd magic && yarn build && cd ../model && yarn build && cd ../engine && yarn build && cd ../logic && yarn build && cd ../scheduler && yarn build",
     "clean": "rm -rf magic/dist && rm -rf model/dist && rm -rf engine/dist && rm -rf logic/dist && rm -rf scheduler/dist",
     "test": "jest --forceExit --verbose \".*/test/system/.*\" && cd logic && yarn test",

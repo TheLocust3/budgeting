@@ -5,10 +5,9 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import EngineChannel from '../channel/engine-channel';
-import { Channel } from '../channel/util';
 
 import { Rule } from "model";
-import { Exception } from "magic";
+import { Channel, Exception } from "magic";
 
 export namespace RuleFrontend {
   export const all = (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {

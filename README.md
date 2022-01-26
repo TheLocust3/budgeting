@@ -57,13 +57,12 @@ Run the test suite:
  - Create user through UI + login
  - `integration` table which stores JSON blob with Plaid keys
  - `source` has optional integration id
+ - Cleanup
+   - Add names to pipe functions
  - Scheduler
    - Setup core scheduler loop
    - Spin off puller subprocesses
    - puller adds transactions via `POST@engine /puller/transaction` and completes via `POST@scheduler /puller/complete`
- - Cleanup
-   - Add names to pipe functions
-   - Add some sort of standard JSON/type serialization + deserialization
  - Engine
    - Optional remander in SplitByValue
  - Business logic layer

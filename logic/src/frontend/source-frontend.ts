@@ -5,10 +5,9 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import SchedulerChannel from '../channel/scheduler-channel';
-import { Channel } from '../channel/util';
 
 import { Source } from "model";
-import { Exception } from "magic";
+import { Channel, Exception } from "magic";
 
 export namespace SourceFrontend {
   export const all = (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {

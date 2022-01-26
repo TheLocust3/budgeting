@@ -1,9 +1,7 @@
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 
-import { Channel } from './util';
-
-import { Exception } from "magic";
+import { Channel, Exception } from "magic";
 
 export namespace EngineChannel {
   const host = "localhost" // TODO: JK
