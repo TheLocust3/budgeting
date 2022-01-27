@@ -26,7 +26,6 @@ export namespace SourceFrontend {
   };
 
   export const create = (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
-    const request: Source.Channel.Request.Create.t = { userId: source.userId, name: source.name };
     return pipe(
         { userId: source.userId, name: source.name }
       , Source.Channel.Request.Create.Json.to

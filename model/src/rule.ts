@@ -4,25 +4,54 @@ import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 import camelcaseKeys from "camelcase-keys";
 
+import { Formatter, JsonFormatter } from "./util";
+
 import * as Transaction from "./transaction";
 import { Exception } from "magic";
 
 export namespace Internal {
   export namespace Clause {
     export type StringOperator = "Eq" | "Neq"
+    export const StringOperator = iot.union([
+        iot.literal("Eq")
+      , iot.literal("Neq")
+    ]);
+
     export type NumberOperator = "Eq" | "Neq" | "Gt" | "Lt" | "Gte" | "Lte"
+    export const NumberOperator = iot.union([
+        iot.literal("Eq")
+      , iot.literal("Neq")
+      , iot.literal("Gt")
+      , iot.literal("Lt")
+      , iot.literal("Gte")
+      , iot.literal("Lte")
+    ]);
+
     export type Operator = StringOperator | NumberOperator
+    export const Operator = iot.union([
+        StringOperator
+      , NumberOperator
+    ]);
 
     export type And = { 
       _type: "And";
       left: t;
       right: t;
     }
+    export const And: iot.Type<And> = iot.recursion("t", () => iot.type({
+        _type: iot.literal("And")
+      , left: t
+      , right: t
+    }));
 
     export type Not = {
       _type: "Not";
       clause: t;
     }
+    export const Not: iot.Type<Not> = iot.recursion("t", () => iot.type({
+        _type: iot.literal("Not")
+      , clause: t
+    }));
 
     export type StringMatch = { 
       _type: "StringMatch";
@@ -30,6 +59,12 @@ export namespace Internal {
       operator: StringOperator;
       value: string;
     }
+    export const StringMatch: iot.Type<StringMatch> = iot.type({
+        _type: iot.literal("StringMatch")
+      , field: Transaction.Json.Field.StringField
+      , operator: StringOperator
+      , value: iot.string
+    });
 
     export type NumberMatch = { 
       _type: "NumberMatch";
@@ -37,19 +72,35 @@ export namespace Internal {
       operator: NumberOperator;
       value: number;
     }
+    export const NumberMatch: iot.Type<NumberMatch> = iot.type({
+        _type: iot.literal("NumberMatch")
+      , field: Transaction.Json.Field.NumberField
+      , operator: NumberOperator
+      , value: iot.number
+    });
 
     export type Exists = { 
       _type: "Exists";
       field: Transaction.Materialize.Field.OptionNumberField;
     }
+    export const Exists: iot.Type<Exists> = iot.type({
+        _type: iot.literal("Exists")
+      , field: Transaction.Json.Field.OptionNumberField
+    });
 
     export type StringGlob = { 
       _type: "StringGlob";
       field: Transaction.Materialize.Field.StringField;
       value: string;
     }
+    export const StringGlob: iot.Type<StringGlob> = iot.type({
+        _type: iot.literal("StringGlob")
+      , field: Transaction.Json.Field.StringField
+      , value: iot.string
+    });
 
     export type t = And | Not | StringMatch | NumberMatch | Exists | StringGlob
+    export const t = iot.recursion<t>("t", () => iot.union([And, Not, StringMatch, NumberMatch, Exists, StringGlob]));
   }
 
   export namespace Attach {
@@ -59,6 +110,12 @@ export namespace Internal {
       field: string;
       value: string;
     }
+    export const t = iot.type({
+        _type: iot.literal("Attach")
+      , where: Clause.t
+      , field: iot.string
+      , value: iot.string
+    });
   }
 
   export namespace Split {
@@ -67,18 +124,33 @@ export namespace Internal {
       account: string;
       percent: number;
     }
+    export const Percent = iot.type({
+        _type: iot.literal("Percent")
+      , account: iot.string
+      , percent: iot.number
+    });
 
     export type Value = {
       _type: "Value";
       account: string;
       value: number;
     }
+    export const Value = iot.type({
+        _type: iot.literal("Value")
+      , account: iot.string
+      , value: iot.number
+    });
 
     export type SplitByPercent = {
       _type: "SplitByPercent";
       where: Clause.t;
       splits: Percent[];
     }
+    export const SplitByPercent = iot.type({
+        _type: iot.literal("SplitByPercent")
+      , where: Clause.t
+      , splits: iot.array(Percent)
+    });
 
     export type SplitByValue = {
       _type: "SplitByValue";
@@ -86,8 +158,15 @@ export namespace Internal {
       splits: Value[];
       remainder: string;
     }
+    export const SplitByValue = iot.type({
+        _type: iot.literal("SplitByValue")
+      , where: Clause.t
+      , splits: iot.array(Value)
+      , remainder: iot.string
+    });
 
     export type t = SplitByPercent | SplitByValue
+    export const t = iot.union([SplitByPercent, SplitByValue]);
   }
 
   export namespace Include {
@@ -95,9 +174,14 @@ export namespace Internal {
       _type: "Include";
       where: Clause.t;
     }
+    export const t = iot.type({
+        _type: iot.literal("Include")
+      , where: Clause.t
+    });
   }
 
   export type Rule = Attach.t | Split.t | Include.t
+  export const Rule = iot.union([Attach.t, Split.t, Include.t]);
 
   export const collectAttach = (rule: Rule): O.Option<Attach.t> => {
     switch (rule._type) {
@@ -138,195 +222,51 @@ export namespace Internal {
     }
   };
 
-  export type t = {
-    id: O.Option<string>;
-    accountId: string;
-    rule: Rule;
-  }
+
+  const t = iot.type({
+      id: iot.string
+    , accountId: iot.string
+    , rule: Rule
+  });
+
+  export type t = iot.TypeOf<typeof t>
+  export const Json = new JsonFormatter(t);
+  export const Database = new class implements Formatter<t> {
+    TableType = iot.type({
+        id: iot.string
+      , account_id: iot.string
+      , rule: Internal.Rule
+    });    
+
+    public from = (obj: any): E.Either<Exception.t, t> => {
+      return pipe(
+          obj
+        , this.TableType.decode
+        , E.mapLeft((_) => Exception.throwInternalError)
+        , E.map(({ id, account_id, rule }) => { return { id: id, accountId: account_id, rule: rule } })
+      );
+    }
+
+    public to = (obj: t): any => {
+      return {
+          id: obj.id
+        , account_id: obj.accountId
+        , rule: obj.rule
+      }
+    }
+  };
 }
 
 export namespace Channel {
   export namespace Request {
-    type t = iot.TypeOf<typeof Json.Request>;
+    export namespace Create {
+      const t = iot.type({
+          accountId: iot.string
+        , rule: Internal.Rule
+      });
 
-    export const from = (rule: any): E.Either<Exception.t, Internal.t> => {
-      return Json.from(rule);
-    };
-
-    export const to = (rule: Internal.t): t => {
-      return Json.to(rule);
-    };
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new JsonFormatter(t);
+    }
   }
-
-  export namespace Response {
-    type t = {
-      id: string;
-      accountId: string;
-      rule: Internal.Rule;
-    };
-
-    export const from = (rule: any): E.Either<Exception.t, Internal.t> => {
-      return E.right({
-          ...rule
-        , id: O.some(rule.id)
-      })
-    };
-
-    export const to = (rule: Internal.t): t => {
-      return {
-          ...rule
-        , id: O.match(() => "", (id: string) => id)(rule.id)
-      };
-    };
-  }
-}
-
-export namespace Json {
-  export namespace Clause {
-    export const StringOperator = iot.union([
-        iot.literal("Eq")
-      , iot.literal("Neq")
-    ]);
-
-    export const NumberOperator = iot.union([
-        iot.literal("Eq")
-      , iot.literal("Neq")
-      , iot.literal("Gt")
-      , iot.literal("Lt")
-      , iot.literal("Gte")
-      , iot.literal("Lte")
-    ]);
-
-    export const Operator = iot.union([
-        StringOperator
-      , NumberOperator
-    ]);
-
-    export const And: iot.Type<Internal.Clause.And> = iot.recursion("t", () => iot.type({
-        _type: iot.literal("And")
-      , left: t
-      , right: t
-    }));
-
-    export const Not: iot.Type<Internal.Clause.Not> = iot.recursion("t", () => iot.type({
-        _type: iot.literal("Not")
-      , clause: t
-    }));
-
-    export const StringMatch: iot.Type<Internal.Clause.StringMatch> = iot.type({
-        _type: iot.literal("StringMatch")
-      , field: Transaction.Json.Field.StringField
-      , operator: StringOperator
-      , value: iot.string
-    });
-
-    export const NumberMatch: iot.Type<Internal.Clause.NumberMatch> = iot.type({
-        _type: iot.literal("NumberMatch")
-      , field: Transaction.Json.Field.NumberField
-      , operator: NumberOperator
-      , value: iot.number
-    });
-
-    export const Exists: iot.Type<Internal.Clause.Exists> = iot.type({
-        _type: iot.literal("Exists")
-      , field: Transaction.Json.Field.OptionNumberField
-    });
-
-    export const StringGlob: iot.Type<Internal.Clause.StringGlob> = iot.type({
-        _type: iot.literal("StringGlob")
-      , field: Transaction.Json.Field.StringField
-      , value: iot.string
-    });
-
-    export const t = iot.recursion<Internal.Clause.t>("t", () => iot.union([And, Not, StringMatch, NumberMatch, Exists, StringGlob]));
-  }
-
-  export namespace Attach {
-    export const t = iot.type({
-        _type: iot.literal("Attach")
-      , where: Clause.t
-      , field: iot.string
-      , value: iot.string
-    });
-  }
-
-  export namespace Split {
-    export const Percent = iot.type({
-        _type: iot.literal("Percent")
-      , account: iot.string
-      , percent: iot.number
-    });
-
-    export const Value = iot.type({
-        _type: iot.literal("Value")
-      , account: iot.string
-      , value: iot.number
-    });
-
-    export const SplitByPercent = iot.type({
-        _type: iot.literal("SplitByPercent")
-      , where: Clause.t
-      , splits: iot.array(Percent)
-    });
-
-    export const SplitByValue = iot.type({
-        _type: iot.literal("SplitByValue")
-      , where: Clause.t
-      , splits: iot.array(Value)
-      , remainder: iot.string
-    });
-
-    export const t = iot.union([SplitByPercent, SplitByValue]);
-  }
-
-  export namespace Include {
-    export const t = iot.type({
-        _type: iot.literal("Include")
-      , where: Clause.t
-    });
-  }
-
-  export const Rule = iot.union([Attach.t, Split.t, Include.t]);
-
-  export const Request = iot.type({
-      accountId: iot.string
-    , rule: Rule
-  });
-
-  export const from = (rule: any): E.Either<Exception.t, Internal.t> => {
-    return pipe(
-        rule
-      , Request.decode
-      , E.map(rule => { return { ...rule, id: O.none }; })
-      , E.mapLeft((_) => Exception.throwMalformedJson)
-    );
-  };
-
-  export const to = (rule: Internal.t): any => {
-    const id = pipe(rule.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }));
-
-    return {
-        ...id
-      , accountId: rule.accountId
-      , rule: rule.rule
-    };
-  };
-}
-
-export namespace Database {
-  export const t = iot.type({
-      id: iot.string
-    , account_id: iot.string
-    , rule: Json.Rule
-  });
-
-  export const from = (rule: any): E.Either<Error, Internal.t> => {
-    return pipe(
-        rule
-      , t.decode
-      , E.map(camelcaseKeys)
-      , E.map(rule => { return { ...rule, id: O.some(rule.id) }; })
-      , E.mapLeft(E.toError)
-    );
-  };
 }

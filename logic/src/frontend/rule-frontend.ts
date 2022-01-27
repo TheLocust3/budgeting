@@ -14,21 +14,24 @@ export namespace RuleFrontend {
     return pipe(
         EngineChannel.push(`/rules?accountId=${accountId}`)('GET')()
       , TE.map((response) => response.rules)
-      , Channel.toArrayOf(Rule.Channel.Response.from)
+      , Channel.toArrayOf(Rule.Internal.Json.from)
     );
   };
 
   export const getById = (accountId: string) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         EngineChannel.push(`/rules/${id}?accountId=${accountId}`)('GET')()
-      , Channel.to(Rule.Channel.Response.from)
+      , Channel.to(Rule.Internal.Json.from)
     );
   };
 
   export const create = (rule: Rule.Internal.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
-        EngineChannel.push(`/rules/`)('POST')(O.some(Rule.Channel.Request.to(rule)))
-      , Channel.to(Rule.Channel.Response.from)
+        rule
+      , Rule.Channel.Request.Create.Json.to
+      , O.some
+      , EngineChannel.push(`/rules/`)('POST')
+      , Channel.to(Rule.Internal.Json.from)
     );
   };
 
