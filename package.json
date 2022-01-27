@@ -22,6 +22,8 @@
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "eslint": "^8.7.0"
+    "buffer": "^6.0.3",
+    "eslint": "^8.7.0",
+    "stream-browserify": "^3.0.0"
   }
 }
