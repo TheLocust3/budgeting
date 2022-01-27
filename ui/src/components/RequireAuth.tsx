@@ -3,13 +3,13 @@ import { useLocation, Navigate } from "react-router-dom";
 
 import UserFrontend from "../frontend/user-frontend";
 
-function RequireAuth({ children }: { children: JSX.Element }) {
+function RequireAuth() {
   const location = useLocation();
 
-  if (UserFrontend.isAuthenticated()) {
-    return children;
-  } else {
+  if (!UserFrontend.isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  } else {
+    return <div />;
   }
 }
 

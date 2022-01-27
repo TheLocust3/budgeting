@@ -14,10 +14,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-
-          <RequireAuth>
+          
+          <Route element={<RequireAuth />}>
             <Route path="*" element={<NotFound />} />
-          </RequireAuth>
+          </Route>
         </Routes>
       </BrowserRouter>
     </div>
