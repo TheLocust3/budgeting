@@ -3,7 +3,6 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
-import camelcaseKeys from "camelcase-keys";
 
 import { Formatter, JsonFormatter } from "./util";
 
@@ -55,7 +54,7 @@ export namespace Frontend {
       export const Json = new JsonFormatter(t);
     }
 
-    export namespace CreateUser {
+    export namespace Create {
       const t = iot.type({
           email: iot.string
         , password: iot.string
@@ -76,23 +75,4 @@ export namespace Frontend {
       export const Json = new JsonFormatter(t);
     }
   }
-}
-
-export namespace Database {
-  export const t = iot.type({
-      id: iot.string
-    , email: iot.string
-    , password: iot.string
-    , role: iot.string
-  });
-
-  export const from = (user: any): E.Either<Error, Internal.t> => {
-    return pipe(
-        user
-      , t.decode
-      , E.map(camelcaseKeys)
-      , E.map(user => { return { ...user, id: user.id }; })
-      , E.mapLeft(E.toError)
-    );
-  };
 }

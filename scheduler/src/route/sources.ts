@@ -19,7 +19,7 @@ router
       , Route.fromQuery
       , TE.fromEither
       , TE.chain(SourceFrontend.all(ctx.db))
-      , TE.map(A.map(Source.Channel.Response.to))
+      , TE.map(A.map(Source.Internal.Json.to))
       , TE.match(
             Message.respondWithError(ctx)
           , (sources) => {
@@ -35,7 +35,7 @@ router
       , Route.fromQuery
       , TE.fromEither
       , TE.chain((userId) => SourceFrontend.getById(ctx.db)(userId)(sourceId))
-      , TE.map(Source.Channel.Response.to)
+      , TE.map(Source.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (source) => {
@@ -47,10 +47,11 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Source.Channel.Request.from
+      , Source.Channel.Request.Create.Json.from
+      , E.map((createSource) => { return { ...createSource, id: "" } })
       , TE.fromEither
       , TE.chain(SourceFrontend.create(ctx.db))
-      , TE.map(Source.Channel.Response.to)
+      , TE.map(Source.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (source) => {

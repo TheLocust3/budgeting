@@ -14,21 +14,25 @@ export namespace SourceFrontend {
     return pipe(
         SchedulerChannel.push(`/sources?userId=${userId}`)('GET')()
       , TE.map((response) => response.sources)
-      , Channel.toArrayOf(Source.Channel.Response.from)
+      , Channel.toArrayOf(Source.Internal.Json.from)
     );
   };
 
   export const getById = (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         SchedulerChannel.push(`/sources/${id}?userId=${userId}`)('GET')()
-      , Channel.to(Source.Channel.Response.from)
+      , Channel.to(Source.Internal.Json.from)
     );
   };
 
   export const create = (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
+    const request: Source.Channel.Request.Create.t = { userId: source.userId, name: source.name };
     return pipe(
-        SchedulerChannel.push(`/sources/`)('POST')(O.some(Source.Channel.Request.to(source)))
-      , Channel.to(Source.Channel.Response.from)
+        { userId: source.userId, name: source.name }
+      , Source.Channel.Request.Create.Json.to
+      , O.some
+      , SchedulerChannel.push(`/sources/`)('POST')
+      , Channel.to(Source.Internal.Json.from)
     );
   };
 

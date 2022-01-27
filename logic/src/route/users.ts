@@ -34,8 +34,8 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , User.Frontend.Request.CreateUser.Json.from
-      , E.map(({ email, password }) => { return { id: "", email: email, password: password, role: User.DEFAULT_ROLE }; })
+      , User.Frontend.Request.Create.Json.from
+      , E.map((createUser) => { return { ...createUser, id: "", role: User.DEFAULT_ROLE }; })
       , TE.fromEither
       , TE.chain(UserFrontend.create(ctx.db))
       , TE.map(User.Internal.Json.to)

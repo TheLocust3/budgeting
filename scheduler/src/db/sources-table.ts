@@ -94,7 +94,8 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Sourc
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Source.Database.from)
+        , A.map(Source.Internal.Database.from)
+        , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
   );
@@ -108,7 +109,8 @@ export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEi
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Source.Database.from)
+        , A.map(Source.Internal.Database.from)
+        , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
@@ -132,6 +134,6 @@ export const create = (pool: Pool) => (source: Source.Internal.t) : TE.TaskEithe
         E.toError
       )
     , Db.expectOne
-    , TE.chain(res => TE.fromEither(Source.Database.from(res.rows[0])))
+    , TE.chain(res => pipe(res.rows[0], Source.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
   );
 };

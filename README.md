@@ -51,6 +51,7 @@ Run the test suite:
 ## todo
 
 ### next
+ - types for query paraments (+ decoders)
  - Frontend
    - Move plaid logic to frontend + add sources from frontend
  - Model logic APIs in "model" package and add frontends to UI
@@ -69,7 +70,6 @@ Run the test suite:
    - manage business logic
 
 ### miscellaneous
- - types for query paraments (+ decoders)
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
  - validate email

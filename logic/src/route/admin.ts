@@ -57,9 +57,7 @@ router
         , TE.chain(({ sources }) => {
             return pipe(
                 sources
-              , A.map((source) => source.id)
-              , Pipe.flattenOption
-              , A.map(SourceFrontend.deleteById(userId))
+              , A.map((source) => SourceFrontend.deleteById(userId)(source.id))
               , A.sequence(TE.ApplicativeSeq)
             );
           })
