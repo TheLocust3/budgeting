@@ -22,7 +22,7 @@ router
       , Route.fromQuery
       , TE.fromEither
       , TE.chain(AccountFrontend.all(ctx.db))
-      , TE.map(A.map(Account.Channel.Response.to))
+      , TE.map(A.map(Account.Internal.Json.to))
       , TE.match(
             Message.respondWithError(ctx)
           , (accounts) => {
@@ -38,7 +38,7 @@ router
       , Route.fromQuery
       , TE.fromEither
       , TE.chain((userId) => AccountFrontend.getByIdAndUserId(ctx.db)(userId)(accountId))
-      , TE.map(Account.Channel.Response.to)
+      , TE.map(Account.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (account) => {
@@ -72,10 +72,11 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Account.Channel.Request.from
+      , Account.Channel.Request.Create.Json.from
+      , E.map((createAccount) => { return { ...createAccount, id: "", rules: [], children: [] } })
       , TE.fromEither
       , TE.chain(AccountFrontend.create(ctx.db))
-      , TE.map(Account.Channel.Response.to)
+      , TE.map(Account.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (account) => {

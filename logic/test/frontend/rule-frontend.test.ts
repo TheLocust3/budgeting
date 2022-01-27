@@ -16,21 +16,21 @@ let accountId: string;
 let accountId2: string;
 beforeAll(async () => {
   await pipe(
-      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test", name: "test", rules: [], children: [] })
+      AccountFrontend.create({ id: "", parentId: O.none, userId: "test", name: "test", rules: [], children: [] })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
-            accountId = O.match(() => "", (account: string) => account)(account.id);
+            accountId = account.id;
           }
       )
   )();
 
   await pipe(
-      AccountFrontend.create({ id: O.none, parentId: O.none, userId: "test", name: "test", rules: [], children: [] })
+      AccountFrontend.create({ id: "", parentId: O.none, userId: "test", name: "test", rules: [], children: [] })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
-            accountId2 = O.match(() => "", (account: string) => account)(account.id);
+            accountId2 = account.id;
           }
       )
   )();

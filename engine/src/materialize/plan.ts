@@ -28,7 +28,6 @@ export type t = {
 }
 
 const buildStage = (account: Account.Internal.t): Stage => {
-  const accountId = O.match(() => "", (account: string) => account)(account.id); // TODO: JK should really have a strict "Materialize" Account type
   const rules = A.map((rule: Rule.Internal.t) => rule.rule)(account.rules);
 
   const attach = pipe(rules, A.map(Rule.Internal.collectAttach), Pipe.flattenOption);
@@ -38,7 +37,7 @@ const buildStage = (account: Account.Internal.t): Stage => {
   if (include.length > 0) { // INVARIANT: rule validation prevents intermixing split + include in a single account
     return {
         _type: "IncludeStage"
-      , tag: accountId
+      , tag: account.id
       , attach: attach
       , include: include
       , children: account.children
@@ -46,7 +45,7 @@ const buildStage = (account: Account.Internal.t): Stage => {
   } else {
     return {
         _type: "SplitStage"
-      , tag: accountId
+      , tag: account.id
       , attach: attach
       , split: split
     };

@@ -6,97 +6,65 @@ import * as types from "io-ts-types";
 import camelcaseKeys from "camelcase-keys";
 
 import * as Rule from "./rule";
+import { Formatter, JsonFormatter } from "./util";
+
 import { Exception } from "magic";
 
 export namespace Internal {
-  export type t = {
-    id: O.Option<string>;
-    parentId: O.Option<string>;
-    userId: string;
-    name: string;
-    rules: Rule.Internal.t[];
-    children: string[];
-  }
+  const t = iot.type({
+      id: iot.string
+    , parentId: types.option(iot.string)
+    , userId: iot.string
+    , name: iot.string
+    , rules: iot.array(Rule.Internal.t)
+    , children: iot.array(iot.string)
+  });
+
+  export type t = iot.TypeOf<typeof t>;
+  export const Json = new JsonFormatter(t);
+  export const Database = new class implements Formatter<t> {
+    TableType = iot.type({
+        id: iot.string
+      , parent_id: types.optionFromNullable(iot.string)
+      , user_id: iot.string
+      , name: iot.string
+    });
+
+    public from = (obj: any): E.Either<Exception.t, t> => {
+      return pipe(
+          obj
+        , this.TableType.decode
+        , E.mapLeft((_) => Exception.throwInternalError)
+        , E.map(({ id, parent_id, user_id, name }) => {
+            return { id: id, parentId: parent_id, userId: user_id, name: name, rules: [], children: [] }
+          })
+      );
+    }
+
+    public to = (obj: t): any => {
+      return {
+          id: obj.id
+        , parent_id: obj.parentId
+        , user_id: obj.userId
+        , name: obj.name
+      }
+    }
+  };
 }
 
 export namespace Channel {
   export namespace Request {
-    const t = iot.type({
-        parentId: types.option(iot.string)
-      , userId: iot.string
-      , name: iot.string
-    });
-    type t = iot.TypeOf<typeof t>;
+    export namespace Create {
+      const t = iot.type({
+          parentId: types.option(iot.string)
+        , userId: iot.string
+        , name: iot.string
+      });
 
-    export const from = (account: any): E.Either<Exception.t, Internal.t> => {
-      return pipe(
-          account
-        , t.decode
-        , E.map((account) => { return { ...account, id: O.none, rules: [], children: [] }; })
-        , E.mapLeft((_) => Exception.throwMalformedJson)
-      );
-    };
-
-    export const to = (account: Internal.t): t => {
-      return {
-          parentId: account.parentId
-        , userId: account.userId
-        , name: account.name
-      };
-    };
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new JsonFormatter(t);
+    }
   }
-
-  export namespace Response {
-    type t = {
-      id: string;
-      parentId: O.Option<string>;
-      userId: string;
-      name: string;
-      rules: Rule.Internal.t[];
-      children: string[];
-    };
-
-    export const from = (account: any): E.Either<Exception.t, Internal.t> => {
-      return E.right({
-          ...account
-        , id: O.some(account.id)
-      })
-    };
-
-    export const to = (account: Internal.t): t => {
-      return {
-          ...account
-        , id: O.match(() => "", (id: string) => id)(account.id)
-      };
-    };
-  }
-}
-
-export namespace Json {
-  export const Request = iot.type({
-      parentId: types.optionFromNullable(iot.string)
-    , userId: iot.string
-    , name: iot.string
-  });
-
-  export const from = (account: any): E.Either<Exception.t, Internal.t> => {
-    return pipe(
-        account
-      , Request.decode
-      , E.map((account) => { return { ...account, id: O.none, rules: [], children: [] }; })
-      , E.mapLeft((_) => Exception.throwMalformedJson)
-    );
-  };
-
-  export const to = (account: Internal.t): any => {
-    const id = pipe(account.id, O.map(id => { return { id: id }; }), O.getOrElse(() => { return {}; }));
-
-    return {
-        ...id
-      , userId: account.userId
-      , name: account.name
-    };
-  };
 }
 
 export namespace Database {
@@ -112,7 +80,7 @@ export namespace Database {
         account
       , t.decode
       , E.map(camelcaseKeys)
-      , E.map(account => { return { ...account, id: O.some(account.id), rules: [], children: [] }; })
+      , E.map(account => { return { ...account, id: account.id, rules: [], children: [] }; })
       , E.mapLeft(E.toError)
     );
   };

@@ -48,8 +48,7 @@ export namespace AccountFrontend {
   export const withRules = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
     return pipe(
         account.id
-      , O.match(() => <TE.TaskEither<Exception.t, string>>TE.throwError(Exception.throwInternalError), (id) => TE.of(id))
-      , TE.chain(RuleFrontend.getByAccountId(pool))
+      , RuleFrontend.getByAccountId(pool)
       , TE.map((rules) => { return { ...account, rules: rules }; })
     );
   };
@@ -57,8 +56,8 @@ export namespace AccountFrontend {
   export const withChildren = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
     return pipe(
         account.id
-      , O.match(() => <TE.TaskEither<Exception.t, string>>TE.throwError(Exception.throwInternalError), (id) => TE.of(id))
-      , TE.chain((id) => pipe(id, AccountsTable.childrenOf(pool), TE.mapLeft((_) => Exception.throwInternalError)))
+      , AccountsTable.childrenOf(pool)
+      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.map((children) => { return { ...account, children: children }; })
     );
   };

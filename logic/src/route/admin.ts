@@ -65,9 +65,7 @@ router
         , TE.chain(({ accounts }) => {
             return pipe(
                 accounts
-              , A.map((account) => account.id)
-              , Pipe.flattenOption
-              , A.map(AccountFrontend.deleteById(userId))
+              , A.map((account) => AccountFrontend.deleteById(userId)(account.id))
               , A.sequence(TE.ApplicativeSeq)
             );
           })

@@ -223,7 +223,7 @@ export namespace Internal {
   };
 
 
-  const t = iot.type({
+  export const t = iot.type({
       id: iot.string
     , accountId: iot.string
     , rule: Rule
