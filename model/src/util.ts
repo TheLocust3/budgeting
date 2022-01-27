@@ -6,30 +6,23 @@ import * as types from "io-ts-types";
 
 import { Exception } from "magic";
 
-export class JSONFormatter<T> {
-    constructor(private readonly type: iot.Type<T>) {}
+export type Formatter<T> = {
+  from: (json: any) => E.Either<Exception.t, T>;
+  to: (obj: T) => any;
+}
 
-    public from = (json: any): E.Either<Exception.t, T> => {
-      return pipe(
-          json
-        , this.type.decode
-        , E.mapLeft((_) => Exception.throwMalformedJson)
-      ); 
-    }
+export class JsonFormatter<T> implements Formatter<T> {
+  constructor(private readonly type: iot.Type<T>) {}
 
-    public to = (obj: T): any => {
-      return pipe(
-          obj
-        , this.type.encode
-      ); 
-    }
+  public from = (json: any): E.Either<Exception.t, T> => {
+    return pipe(
+        json
+      , this.type.decode
+      , E.mapLeft((_) => Exception.throwMalformedJson)
+    ); 
   }
 
-export namespace JSON {
-  export const from = <T>(decoder: (json: any) => iot.Validation<T>) => (json: any): E.Either<Exception.t, T> => {
-    return pipe(
-        decoder(json)
-      , E.mapLeft((_) => Exception.throwMalformedJson)
-    );
+  public to = (obj: T): any => {
+    return this.type.encode(obj);
   }
 }

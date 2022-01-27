@@ -5,17 +5,42 @@ import * as iot from "io-ts";
 import * as types from "io-ts-types";
 import camelcaseKeys from "camelcase-keys";
 
-import { JSONFormatter, JSON } from "./util";
+import { Formatter, JsonFormatter } from "./util";
 
 import { Exception } from "magic";
 
+export const DEFAULT_ROLE = "user";
+
 export namespace Internal {
-  export type t = {
-    id: string;
-    email: string;
-    password: string;
-    role: string;
-  }
+  const t = iot.type({
+      id: iot.string
+    , email: iot.string
+    , password: iot.string
+    , role: iot.string
+  });
+
+  export type t = iot.TypeOf<typeof t>
+  export const Json = new JsonFormatter(t);
+  export const Database = new class implements Formatter<t> {
+    TableType = iot.type({
+        id: iot.string
+      , email: iot.string
+      , password: iot.string
+      , role: iot.string
+    });    
+
+    public from = (obj: any): E.Either<Exception.t, t> => {
+      return pipe(
+          obj
+        , this.TableType.decode
+        , E.mapLeft((_) => Exception.throwInternalError)
+      );
+    }
+
+    public to = (obj: t): any => {
+      return this.TableType.encode(obj);
+    }
+  };
 }
 
 export namespace Frontend {
@@ -27,7 +52,17 @@ export namespace Frontend {
       });
       
       export type t = iot.TypeOf<typeof t>
-      export const JSON = new JSONFormatter(t);
+      export const Json = new JsonFormatter(t);
+    }
+
+    export namespace CreateUser {
+      const t = iot.type({
+          email: iot.string
+        , password: iot.string
+      });
+
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new JsonFormatter(t);
     }
   }
 
@@ -36,39 +71,11 @@ export namespace Frontend {
       const t = iot.type({
         token: iot.string
       });
-      type t = iot.TypeOf<typeof t>
-
-      export const toJson = (response: t): any => {
-        return {
-          token: response
-        };
-      };
+      
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new JsonFormatter(t);
     }
   }
-}
-
-export namespace Json {
-  export const Request = iot.type({
-      email: iot.string
-    , password: iot.string
-  });
-
-  export const from = (user: any): E.Either<Exception.t, Internal.t> => {
-    return pipe(
-        user
-      , Request.decode
-      , E.map((user) => { return { ...user, id: "", role: "user" }; })
-      , E.mapLeft((_) => Exception.throwMalformedJson)
-    );
-  };
-
-  export const to = (user: Internal.t): any => {
-    return {
-        id: user.id
-      , email: user.email
-      , password: user.password
-    };
-  };
 }
 
 export namespace Database {

@@ -22,7 +22,7 @@ router
   .get('/', async (ctx, next) => {
     await pipe(
         UserFrontend.all(ctx.db)()
-      , TE.map(A.map(User.Json.to))
+      , TE.map(A.map(User.Internal.Json.to))
       , TE.match(
             Message.respondWithError(ctx)
           , (users) => {
@@ -36,7 +36,7 @@ router
     await pipe(
         userId
       , UserFrontend.getById(ctx.db)
-      , TE.map(User.Json.to)
+      , TE.map(User.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (user) => {
@@ -97,6 +97,5 @@ router
       );
     });
 
-    console.log("TESTEST")
     ctx.body = Message.ok;
   });

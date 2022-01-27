@@ -18,14 +18,15 @@ router
   .post("/login", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , User.Frontend.Request.Credentials.JSON.from
+      , User.Frontend.Request.Credentials.Json.from
       , TE.fromEither
       , TE.chain(({ email, password }) => UserFrontend.login(ctx.db)(email, password))
       , TE.map(JWT.sign)
+      , TE.map((token) => User.Frontend.Response.Token.Json.to({ token: token }))
       , TE.match(
             Message.respondWithError(ctx)
           , (token) => {
-              ctx.body = { token: token };
+              ctx.body = token;
             }
         )
     )();
@@ -33,10 +34,11 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , User.Json.from
+      , User.Frontend.Request.CreateUser.Json.from
+      , E.map(({ email, password }) => { return { id: "", email: email, password: password, role: User.DEFAULT_ROLE }; })
       , TE.fromEither
       , TE.chain(UserFrontend.create(ctx.db))
-      , TE.map(User.Json.to)
+      , TE.map(User.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (user) => {
