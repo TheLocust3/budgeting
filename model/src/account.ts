@@ -3,7 +3,6 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
-import camelcaseKeys from "camelcase-keys";
 
 import * as Rule from "./rule";
 import { Formatter, JsonFormatter } from "./util";
@@ -65,23 +64,4 @@ export namespace Channel {
       export const Json = new JsonFormatter(t);
     }
   }
-}
-
-export namespace Database {
-  export const t = iot.type({
-      id: iot.string
-    , parent_id: types.optionFromNullable(iot.string)
-    , user_id: iot.string
-    , name: iot.string
-  });
-
-  export const from = (account: any): E.Either<Error, Internal.t> => {
-    return pipe(
-        account
-      , t.decode
-      , E.map(camelcaseKeys)
-      , E.map(account => { return { ...account, id: account.id, rules: [], children: [] }; })
-      , E.mapLeft(E.toError)
-    );
-  };
 }

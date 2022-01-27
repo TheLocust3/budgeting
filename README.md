@@ -51,9 +51,10 @@ Run the test suite:
 ## todo
 
 ### next
+  - Model logic APIs in "model" package and add frontends to UI
+    - Add tests
  - Frontend
    - Move plaid logic to frontend + add sources from frontend
- - Model logic APIs in "model" package and add frontends to UI
  - Create user through UI + login
  - `integration` table which stores JSON blob with Plaid keys
  - `source` has optional integration id

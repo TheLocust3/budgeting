@@ -1,5 +1,4 @@
 import { Pool } from "pg";
-import bcrypt from "bcrypt";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";

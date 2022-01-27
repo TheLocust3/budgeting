@@ -2,7 +2,6 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
-import camelcaseKeys from "camelcase-keys";
 
 import { Formatter, JsonFormatter } from "./util";
 

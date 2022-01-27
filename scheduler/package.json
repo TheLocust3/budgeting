@@ -27,11 +27,9 @@
   },
   "dependencies": {
     "@koa/router": "^10.1.1",
-    "@types/camelcase-keys": "^5.1.1",
     "@types/jest": "^27.4.0",
     "@types/koa-bodyparser": "^4.3.5",
     "@types/pg": "^8.6.3",
-    "camelcase-keys": "^7.0.1",
     "fp-ts": "^2.11.6",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
