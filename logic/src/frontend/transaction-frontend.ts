@@ -14,21 +14,25 @@ export namespace TransactionFrontend {
     return pipe(
         EngineChannel.push(`/transactions?userId=${userId}`)('GET')()
       , TE.map((response) => response.transactions)
-      , Channel.toArrayOf(Transaction.Channel.Response.from)
+      , Channel.toArrayOf(Transaction.Internal.Json.from)
     );
   };
 
   export const getById = (userId: string) => (id: string): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
         EngineChannel.push(`/transactions/${id}?userId=${userId}`)('GET')()
-      , Channel.to(Transaction.Channel.Response.from)
+      , Channel.to(Transaction.Internal.Json.from)
     );
   };
 
-  export const create = (account: Transaction.Internal.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+  export const create = (transaction: Transaction.Internal.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+    const { custom: _, ...createTransaction} = transaction // remove `custom`
     return pipe(
-        EngineChannel.push(`/transactions/`)('POST')(O.some(Transaction.Channel.Request.to(account)))
-      , Channel.to(Transaction.Channel.Response.from)
+        { ...createTransaction, authorizedAt: transaction.authorizedAt.getTime(), capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(transaction.capturedAt) }
+      , Transaction.Channel.Request.Create.Json.to
+      , O.some
+      , EngineChannel.push(`/transactions/`)('POST')
+      , Channel.to(Transaction.Internal.Json.from)
     );
   };
 

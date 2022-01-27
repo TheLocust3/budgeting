@@ -12,13 +12,16 @@ export type Formatter<T> = {
 }
 
 export class JsonFormatter<T> implements Formatter<T> {
-  constructor(private readonly type: iot.Type<T>) {}
+  constructor(private readonly type: iot.Type<T, any>) {}
 
   public from = (json: any): E.Either<Exception.t, T> => {
     return pipe(
         json
       , this.type.decode
-      , E.mapLeft((_) => Exception.throwMalformedJson)
+      , E.mapLeft((e) => {
+          console.log(JSON.stringify(e, null, 2));
+          return Exception.throwMalformedJson;
+        })
     ); 
   }
 

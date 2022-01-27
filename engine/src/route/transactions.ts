@@ -20,7 +20,7 @@ router
       , Route.fromQuery
       , TE.fromEither
       , TE.chain(TransactionFrontend.all(ctx.db))
-      , TE.map(A.map(Transaction.Channel.Response.to))
+      , TE.map(A.map(Transaction.Internal.Json.to))
       , TE.match(
             Message.respondWithError(ctx)
           , (transactions) => {
@@ -36,7 +36,7 @@ router
       , Route.fromQuery
       , TE.fromEither
       , TE.chain((userId) => TransactionFrontend.getById(ctx.db)(userId)(transactionId))
-      , TE.map(Transaction.Channel.Response.to)
+      , TE.map(Transaction.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (transaction) => {
@@ -48,10 +48,14 @@ router
   .post("/", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Transaction.Channel.Request.from
+      , Transaction.Channel.Request.Create.Json.from
+      , E.map((createTransaction) => {
+          const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(createTransaction.capturedAt);
+          return { ...createTransaction, id: "", authorizedAt: new Date(createTransaction.authorizedAt), capturedAt: capturedAt, custom: {} };
+        })
       , TE.fromEither
       , TE.chain(TransactionFrontend.create(ctx.db))
-      , TE.map(Transaction.Channel.Response.to)
+      , TE.map(Transaction.Internal.Json.to)
       , TE.match(
             Message.respondWithError(ctx)
           , (transaction) => {

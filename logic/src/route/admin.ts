@@ -73,9 +73,7 @@ router
         , TE.chain(({ transactions }) => {
             return pipe(
                 transactions
-              , A.map((transaction) => transaction.id)
-              , Pipe.flattenOption
-              , A.map(TransactionFrontend.deleteById(userId))
+              , A.map((transaction) => TransactionFrontend.deleteById(userId)(transaction.id))
               , A.sequence(TE.ApplicativeSeq)
             );
           })

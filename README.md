@@ -51,25 +51,21 @@ Run the test suite:
 ## todo
 
 ### next
- - types for query paraments (+ decoders)
  - Frontend
    - Move plaid logic to frontend + add sources from frontend
  - Model logic APIs in "model" package and add frontends to UI
  - Create user through UI + login
  - `integration` table which stores JSON blob with Plaid keys
  - `source` has optional integration id
- - Cleanup
-   - Add names to pipe functions
  - Scheduler
    - Setup core scheduler loop
    - Spin off puller subprocesses
    - puller adds transactions via `POST@engine /puller/transaction` and completes via `POST@scheduler /puller/complete`
  - Engine
    - Optional remander in SplitByValue
- - Business logic layer
-   - manage business logic
 
 ### miscellaneous
+ - types for query paraments (+ decoders)
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
  - validate email

@@ -21,35 +21,36 @@ import { Exception } from "magic";
 
 export type t = {
   conflicts: Materializer.Conflict[];
-  tagged: Map<string, Transaction.Materialize.t[]>;
-  untagged: Transaction.Materialize.t[];
+  tagged: Map<string, Transaction.Internal.t[]>;
+  untagged: Transaction.Internal.t[];
 };
 
+// TODO: JK use new json stuff + move to model folder
 export namespace Json {
   namespace Conflict {
     export const to = (conflict: Materializer.Conflict): any => {
       return {
-          element: pipe(conflict.element, Transaction.Materialize.to, Transaction.Channel.Response.to)
+          element: pipe(conflict.element, Transaction.Internal.Json.to)
         , rules: conflict.rules
       };
     };
   }
 
   namespace Tagged {
-    export const to = (tagged: { [tag: string]: Transaction.Materialize.t[] }) => (tag: string): any => {
-      return { [tag]: pipe(tagged[tag], A.map(Transaction.Materialize.to), A.map(Transaction.Channel.Response.to)) };
+    export const to = (tagged: { [tag: string]: Transaction.Internal.t[] }) => (tag: string): any => {
+      return { [tag]: pipe(tagged[tag], A.map(Transaction.Internal.Json.to)) };
     };
   }
 
   export const to = (materialized: t): any => {
-    const tagged = A.reduce({}, (tagged: object, [tag, transactions]: [string, Transaction.Materialize.t[]]) => {
-      return { ...tagged, [tag]: pipe(transactions, A.map(Transaction.Materialize.to), A.map(Transaction.Channel.Response.to)) };
+    const tagged = A.reduce({}, (tagged: object, [tag, transactions]: [string, Transaction.Internal.t[]]) => {
+      return { ...tagged, [tag]: pipe(transactions, A.map(Transaction.Internal.Json.to)) };
     })(Array.from(materialized.tagged.entries()));
 
     return {
         conflicts: A.map(Conflict.to)(materialized.conflicts)
       , tagged: tagged
-      , untagged: pipe(materialized.untagged, A.map(Transaction.Materialize.to), A.map(Transaction.Channel.Response.to))
+      , untagged: pipe(materialized.untagged, A.map(Transaction.Internal.Json.to))
     };
   };
 }
@@ -75,7 +76,7 @@ const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
   const flow = Materializer.build(stage);
 
   const maybeElements = materialized.tagged.get(stage.tag);
-  const elements: Transaction.Materialize.t[] = maybeElements ? maybeElements : [];
+  const elements: Transaction.Internal.t[] = maybeElements ? maybeElements : [];
   return pipe(
       elements
     , A.map(flow)
@@ -101,7 +102,7 @@ const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
   );
 };
 
-const executePlan = (plan: Plan.t) => (transactions: Transaction.Materialize.t[]): t => {
+const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): t => {
   if (plan.stages.length < 1) {
     return {
         conflicts: []
@@ -136,7 +137,6 @@ export const execute = (id: string) => (pool: Pool) => (account: Account.Interna
 
         return pipe(
             TransactionFrontend.all(pool)(account.userId)
-          , TE.map(A.map(Transaction.Materialize.from))
           , TE.map(executePlan(plan))
         );
       })

@@ -19,20 +19,17 @@ const testTransaction = {
   , custom: {}
 };
 
-const expectTransaction = {
-    ...testTransaction
-  , authorizedAt: testTransaction.authorizedAt.toJSON()
-};
+const expectTransaction = testTransaction;
 
 it("can add transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: O.none, merchantName: merchantName })
+      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transaction) => {
             expect(transaction).toEqual(expect.objectContaining({ ...expectTransaction, merchantName: merchantName }));
-            expect(O.isSome(transaction.id)).toBe(true);
+            expect(transaction.id).not.toBe("");
           }
       )
   )();
@@ -41,13 +38,13 @@ it("can add transaction", async () => {
 it("can get transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: O.none, merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.getById(transaction.userId)(O.match(() => "", (transaction: string) => transaction)(transaction.id)))
+      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionFrontend.getById(transaction.userId)(transaction.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transaction) => {
             expect(transaction).toEqual(expect.objectContaining({ ...expectTransaction, merchantName: merchantName }));
-            expect(O.isSome(transaction.id)).toBe(true);
+            expect(transaction.id).not.toBe("");
           }
       )
   )();
@@ -56,8 +53,8 @@ it("can get transaction", async () => {
 it("can't get other user's transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: O.none, merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.getById("test2")(O.match(() => "", (transaction: string) => transaction)(transaction.id)))
+      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionFrontend.getById("test2")(transaction.id))
     , TE.match(
           (res) => { expect(res._type).toBe("NotFound"); }
         , (_) => { throw new Error("Got unexpected successful response"); }
@@ -68,7 +65,7 @@ it("can't get other user's transaction", async () => {
 it("can list transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: O.none, merchantName: merchantName })
+      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
     , TE.chain((_) => TransactionFrontend.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -76,7 +73,7 @@ it("can list transaction", async () => {
             const transaction = transactions.filter((transaction) => transaction.merchantName === merchantName)[0];
 
             expect(transaction).toEqual(expect.objectContaining({ ...expectTransaction, merchantName: merchantName }));
-            expect(O.isSome(transaction.id)).toBe(true);
+            expect(transaction.id).not.toBe("");
 
             transactions.map((transaction) => expect(transaction.userId).toBe("test"));
           }
@@ -87,8 +84,8 @@ it("can list transaction", async () => {
 it("can delete transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: O.none, merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.deleteById("test")(O.match(() => "", (transaction: string) => transaction)(transaction.id)))
+      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionFrontend.deleteById("test")(transaction.id))
     , TE.chain((_) => TransactionFrontend.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -104,8 +101,8 @@ it("can delete transaction", async () => {
 it("can't delete other user's transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: O.none, userId: "test2", merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.deleteById("test")(O.match(() => "", (transaction: string) => transaction)(transaction.id)))
+      TransactionFrontend.create({ ...testTransaction, id: "", userId: "test2", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionFrontend.deleteById("test")(transaction.id))
     , TE.chain((_) => TransactionFrontend.all("test2"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -113,7 +110,7 @@ it("can't delete other user's transaction", async () => {
             const transaction = transactions.filter((transaction) => transaction.merchantName === merchantName)[0];
 
             expect(transaction).toEqual(expect.objectContaining({ merchantName: merchantName }));
-            expect(O.isSome(transaction.id)).toBe(true);
+            expect(transaction.id).not.toBe("");
           }
       )
   )();

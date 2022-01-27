@@ -55,47 +55,47 @@ export namespace Internal {
 
     export type StringMatch = { 
       _type: "StringMatch";
-      field: Transaction.Materialize.Field.StringField;
+      field: Transaction.Internal.Field.StringField;
       operator: StringOperator;
       value: string;
     }
     export const StringMatch: iot.Type<StringMatch> = iot.type({
         _type: iot.literal("StringMatch")
-      , field: Transaction.Json.Field.StringField
+      , field: Transaction.Internal.Field.StringField
       , operator: StringOperator
       , value: iot.string
     });
 
     export type NumberMatch = { 
       _type: "NumberMatch";
-      field: Transaction.Materialize.Field.NumberField;
+      field: Transaction.Internal.Field.NumberField;
       operator: NumberOperator;
       value: number;
     }
     export const NumberMatch: iot.Type<NumberMatch> = iot.type({
         _type: iot.literal("NumberMatch")
-      , field: Transaction.Json.Field.NumberField
+      , field: Transaction.Internal.Field.NumberField
       , operator: NumberOperator
       , value: iot.number
     });
 
     export type Exists = { 
       _type: "Exists";
-      field: Transaction.Materialize.Field.OptionNumberField;
+      field: Transaction.Internal.Field.OptionNumberField;
     }
     export const Exists: iot.Type<Exists> = iot.type({
         _type: iot.literal("Exists")
-      , field: Transaction.Json.Field.OptionNumberField
+      , field: Transaction.Internal.Field.OptionNumberField
     });
 
     export type StringGlob = { 
       _type: "StringGlob";
-      field: Transaction.Materialize.Field.StringField;
+      field: Transaction.Internal.Field.StringField;
       value: string;
     }
     export const StringGlob: iot.Type<StringGlob> = iot.type({
         _type: iot.literal("StringGlob")
-      , field: Transaction.Json.Field.StringField
+      , field: Transaction.Internal.Field.StringField
       , value: iot.string
     });
 

@@ -7,7 +7,6 @@ import { Pool } from "pg";
 import { router as transactionsRouter } from "./route/transactions";
 import { router as accountsRouter } from "./route/accounts";
 import { router as rulesRouter } from "./route/rules";
-import { router as pullerTransactionsRouter } from "./route/puller/transactions";
 
 type State = {
   id: string;
@@ -25,7 +24,6 @@ const router = new Router();
 router.use("/channel/transactions", transactionsRouter.routes(), transactionsRouter.allowedMethods());
 router.use("/channel/accounts", accountsRouter.routes(), accountsRouter.allowedMethods());
 router.use("/channel/rules", rulesRouter.routes(), rulesRouter.allowedMethods());
-router.use("/puller/transactions", pullerTransactionsRouter.routes(), pullerTransactionsRouter.allowedMethods());
 
 app.use(async (ctx, next) => {
   const start = Date.now();
