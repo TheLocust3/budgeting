@@ -5,17 +5,21 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import LogicChannel from '../channel/logic-channel';
+import { Cookie } from './util';
 
 import { User } from "model";
 import { Channel, Exception } from "magic";
 
 export namespace SourceFrontend {
+  export const isAuthenticated = () => O.isSome(Cookie.get("token"))
+
   export const login = (email: string, password: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         LogicChannel.push(`/login`)('POST')()
       , Channel.to(User.Frontend.Response.Token.Json.from)
       , TE.map(({ token }) => {
-          console.log(token); // TODO: JK
+          console.log(token);
+          Cookie.set("token", token);
           return;
         })
     );
@@ -23,7 +27,10 @@ export namespace SourceFrontend {
 
   export const logout = (): TE.TaskEither<Exception.t, void> => {
     return TE.tryCatch(
-        async () => { return; } // TODO: JK
+        async () => {
+          Cookie.set("token", "");
+          return;
+        }
       , () => Exception.throwInternalError
     )
   };
