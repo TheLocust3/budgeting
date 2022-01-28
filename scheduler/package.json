@@ -10,7 +10,8 @@
     "start-node": "nodemon dist/index.js",
     "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" \"npm run start-ts\" \"npm run start-node\"",
     "migrate": "npm run build; node dist/db/migrate.js",
-    "rollback": "npm run build; node dist/db/rollback.js"
+    "rollback": "npm run build; node dist/db/rollback.js",
+    "test": "jest --forceExit --verbose"
   },
   "devDependencies": {
     "@types/koa": "^2.13.4",

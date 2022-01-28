@@ -11,9 +11,37 @@ export const uuid = (): string => crypto.randomUUID();
 export class System {
   constructor(readonly host: string = "localhost", readonly port: string = "3002") {}
 
+  addIntegration(name: string, userId: string, credentials: any): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask("/integrations/")("POST")(O.some({ name: name, userId: userId, credentials: credentials }))
+      , TE.chain(this.json)
+    );
+  }
+
+  getIntegration(id: string, userId: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/integrations/${id}?userId=${userId}`)("GET")()
+      , TE.chain(this.json)
+    );
+  }
+
+  listIntegrations(userId: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/integrations?userId=${userId}`)("GET")()
+      , TE.chain(this.json)
+    );
+  }
+
+  deleteIntegration(id: string, userId: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/integrations/${id}?userId=${userId}`)("DELETE")()
+      , TE.chain(this.json)
+    );
+  }
+
   addSource(name: string, userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask("/sources/")("POST")(O.some({ name: name, userId: userId }))
+        this.fetchTask("/sources/")("POST")(O.some({ name: name, userId: userId, integrationId: O.none }))
       , TE.chain(this.json)
     );
   }

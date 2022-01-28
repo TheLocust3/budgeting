@@ -7,38 +7,37 @@ import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as iot from "io-ts";
 
-import { Source } from "model";
+import { Integration } from "model";
 import { Db } from "magic";
 
 namespace Query {
   export const createTable = `
-    CREATE TABLE sources (
+    CREATE TABLE integrations (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id TEXT NOT NULL,
       name TEXT NOT NULL,
-      integration_id TEXT,
-      FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE
+      credentials JSONB NOT NULL
     )
   `;
 
-  export const dropTable = "DROP TABLE sources";
+  export const dropTable = "DROP TABLE integrations";
 
-  export const create = (userId: string, name: string, integrationId: string | null) => {
+  export const create = (userId: string, name: string, credentials: any) => {
     return {
       text: `
-        INSERT INTO sources (user_id, name, integration_id)
+        INSERT INTO integrations (user_id, name, credentials)
         VALUES ($1, $2, $3)
         RETURNING *
       `,
-      values: [userId, name, integrationId]
+      values: [userId, name, credentials]
     };
   };
 
   export const all = (userId: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id
-        FROM sources
+        SELECT id, user_id, name, credentials
+        FROM integrations
         WHERE user_id = $1
       `,
       values: [userId]
@@ -48,8 +47,8 @@ namespace Query {
   export const byId = (userId: string, id: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id
-        FROM sources
+        SELECT id, user_id, name, credentials
+        FROM integrations
         WHERE user_id = $1 AND id = $2
         LIMIT 1
       `,
@@ -60,7 +59,7 @@ namespace Query {
   export const deleteById = (userId: string, id: string) => {
     return {
       text: `
-        DELETE FROM sources
+        DELETE FROM integrations
         WHERE user_id = $1 AND id = $2
       `,
       values: [userId, id]
@@ -88,7 +87,7 @@ export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   }
 };
 
-export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Source.Internal.t[]> => {
+export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Integration.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.all(userId)),
@@ -96,14 +95,14 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Sourc
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Source.Internal.Database.from)
+        , A.map(Integration.Internal.Database.from)
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
   );
 };
 
-export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, O.Option<Source.Internal.t>> => {
+export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, O.Option<Integration.Internal.t>> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.byId(userId, id)),
@@ -111,7 +110,7 @@ export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEi
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
-        , A.map(Source.Internal.Database.from)
+        , A.map(Integration.Internal.Database.from)
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
@@ -129,13 +128,13 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
   );
 };
 
-export const create = (pool: Pool) => (source: Source.Internal.t) : TE.TaskEither<Error, Source.Internal.t> => {
+export const create = (pool: Pool) => (integration: Integration.Internal.t) : TE.TaskEither<Error, Integration.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(source.userId, source.name, O.match(() => null, (id: string) => id)(source.integrationId))),
+        () => pool.query(Query.create(integration.userId, integration.name, integration.credentials)),
         E.toError
       )
     , Db.expectOne
-    , TE.chain(res => pipe(res.rows[0], Source.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
+    , TE.chain(res => pipe(res.rows[0], Integration.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
   );
 };

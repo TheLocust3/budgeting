@@ -9,11 +9,20 @@ import { Formatter, JsonFormatter } from "./util";
 import { Exception } from "magic";
 
 export namespace Internal {
+  const PlaidCredentials = iot.type({
+      _type: iot.literal("Plaid")
+    , itemId: iot.string
+    , accessToken: iot.string
+  });
+
+  export const Credentials = PlaidCredentials;
+  export type Credentials = iot.TypeOf<typeof Credentials>;
+
   const t = iot.type({
       id: iot.string
     , userId: iot.string
     , name: iot.string
-    , integrationId: types.option(iot.string)
+    , credentials: PlaidCredentials
   });
 
   export type t = iot.TypeOf<typeof t>
@@ -23,7 +32,7 @@ export namespace Internal {
         id: iot.string
       , user_id: iot.string
       , name: iot.string
-      , integration_id: types.optionFromNullable(iot.string)
+      , credentials: PlaidCredentials
     });    
 
     public from = (obj: any): E.Either<Exception.t, t> => {
@@ -31,8 +40,8 @@ export namespace Internal {
           obj
         , this.TableType.decode
         , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, user_id, name, integration_id }) => {
-            return { id: id, userId: user_id, name: name, integrationId: integration_id };
+        , E.map(({ id, user_id, name, credentials }) => {
+            return { id: id, userId: user_id, name: name, credentials: credentials }
           })
       );
     }
@@ -42,7 +51,7 @@ export namespace Internal {
           id: obj.id
         , user_id: obj.userId
         , name: obj.name
-        , integration_id: obj.integrationId
+        , credentials: obj.credentials
       }
     }
   };
@@ -54,21 +63,7 @@ export namespace Channel {
       const t = iot.type({
           userId: iot.string
         , name: iot.string
-        , integrationId: types.option(iot.string)
-      });
-
-      export type t = iot.TypeOf<typeof t>
-      export const Json = new JsonFormatter(t);
-    }
-  }
-}
-
-export namespace Frontend {
-  export namespace Request {
-    export namespace Create {
-      const t = iot.type({
-          name: iot.string
-        , integrationId: types.option(iot.string)
+        , credentials: Internal.Credentials
       });
 
       export type t = iot.TypeOf<typeof t>

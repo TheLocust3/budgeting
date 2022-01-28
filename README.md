@@ -51,16 +51,16 @@ Run the test suite:
 ## todo
 
 ### next
- - `integration` table which stores JSON blob with Plaid keys
- - `source` has optional integration id
  - Frontend
    - Move plaid logic to frontend + add sources from frontend
  - Scheduler
    - Setup core scheduler loop
-   - Spin off puller subprocesses
-   - puller adds transactions via `POST@engine /puller/transaction` and completes via `POST@scheduler /puller/complete`
  - Engine
    - Optional remander in SplitByValue
+ - The line between the logic engine and the scheduler is pretty blurry
+   - Scheduler is read only?
+   - Move sources + integrations to logic, would remove a lot of rapidly changing boilerplate code
+ - Integrate transaction puller
 
 ### miscellaneous
  - token timeout on UI + JWT
