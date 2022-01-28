@@ -1,5 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { usePlaidLink, PlaidLinkOptions, PlaidLinkOnSuccess } from "react-plaid-link";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
+
+import PlaidFrontend from "../frontend/plaid-frontend";
 
 interface Props {
   token: string;
@@ -9,14 +13,18 @@ const PlaidLink = ({ token }: Props) => {
   const onSuccess = useCallback<PlaidLinkOnSuccess>(
       async (publicToken, metadata) => {
         console.log(publicToken);
-        console.log(metadata);
+        console.log(metadata); // TODO: JK will want to use this to drive sources/account creation
 
-        let response = await fetch(
-            "http://localhost:3001/plaid/exchange_public_token"
-          , { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ publicToken: publicToken }) }
-        );
-        const out = await response.json();
-        console.log(out);
+        await pipe(
+            PlaidFrontend.exchangePublicToken(publicToken)
+          , TE.match(
+                (error) => {
+                  console.log("Failed to exchange public token");
+                  console.log(error);
+                }
+              , (out) => console.log(out)
+            )
+        )();
       }
     , []
   );
@@ -36,10 +44,16 @@ const Linker = () => {
 
   React.useEffect(() => {
     async function createLinkToken() {
-      // TODO: JK need to model all of this
-      let response = await fetch("http://localhost:3001/plaid/create_link_token", { method: "POST" });
-      const { token } = await response.json();
-      setToken(token);
+      await pipe(
+          PlaidFrontend.createLinkToken()
+        , TE.match(
+              (error) => {
+                console.log("Failed to create link token");
+                console.log(error);
+              }
+            , (token) => setToken(token)
+          )
+      )();
     }
     createLinkToken();
   }, []);

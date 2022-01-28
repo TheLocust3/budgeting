@@ -29,7 +29,7 @@ type Context = {
 }
 
 const plaidConfig = new Configuration({
-  basePath: PlaidEnvironments.development,
+  basePath: PlaidEnvironments.sandbox,
   baseOptions: {
     headers: {
       'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,

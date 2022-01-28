@@ -10,24 +10,24 @@ import { Source } from "model";
 import { Channel, Exception } from "magic";
 
 export namespace SourceFrontend {
-  export const all = (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+  export const all = (): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     return pipe(
-        LogicChannel.push(`/sources?userId=${userId}`)('GET')()
+        LogicChannel.push(`/sources`)('GET')()
       , TE.map((response) => response.sources)
       , Channel.toArrayOf(Source.Internal.Json.from)
     );
   };
 
-  export const getById = (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
+  export const getById = (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
-        LogicChannel.push(`/sources/${id}?userId=${userId}`)('GET')()
+        LogicChannel.push(`/sources/${id}`)('GET')()
       , Channel.to(Source.Internal.Json.from)
     );
   };
 
   export const create = (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
-        { userId: source.userId, name: source.name, integrationId: source.integrationId }
+        { name: source.name, integrationId: source.integrationId }
       , Source.Frontend.Request.Create.Json.to
       , O.some
       , LogicChannel.push(`/sources/`)('POST')
@@ -35,9 +35,9 @@ export namespace SourceFrontend {
     );
   };
 
-  export const deleteById = (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
-        LogicChannel.push(`/sources/${id}?userId=${userId}`)('DELETE')()
+        LogicChannel.push(`/sources/${id}`)('DELETE')()
       , Channel.toVoid
     );
   };

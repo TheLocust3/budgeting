@@ -22,3 +22,5 @@ export namespace Cookie {
     document.cookie = `${key}=${value}`;
   }
 }
+
+export const token = O.match(() => "", (token: string) => token)(Cookie.get("token"))

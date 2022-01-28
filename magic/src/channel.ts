@@ -14,6 +14,16 @@ export const push =
   (uri: string) =>
   (method: string) =>
   (body: O.Option<any> = O.none): TE.TaskEither<Exception.t, any> => {
+  return pushWithToken(host)(port)(uri)(method)("")(body)
+};
+
+export const pushWithToken =
+  (host: string) =>
+  (port: string) =>
+  (uri: string) =>
+  (method: string) =>
+  (token: string) =>
+  (body: O.Option<any> = O.none): TE.TaskEither<Exception.t, any> => {
   const resolved = O.match(
     () => { return {}; },
     (body) => { return { body: JSON.stringify(body) }; }
@@ -23,7 +33,7 @@ export const push =
       TE.tryCatch(
           () => fetch(
               `http://${host}:${port}${uri}`
-            , { method: method, ...resolved, headers: { "Content-Type": "application/json" } }
+            , { method: method, ...resolved, headers: { "Content-Type": "application/json", "Authorization": token } }
           )
         , E.toError
       )

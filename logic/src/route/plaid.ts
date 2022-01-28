@@ -10,34 +10,18 @@ import { CountryCode, LinkTokenCreateRequest, LinkTokenCreateResponse, ItemPubli
 import SourceFrontend from "../frontend/source-frontend";
 import { AuthenticationFor } from "./util";
 
-import { Source } from "model";
+import { Source, Plaid } from "model";
 import { Exception, Message } from "magic";
 
 export const router = new Router();
 
-namespace Request {
-  export namespace ExchangePublicToken {
-    const t = iot.type({
-      publicToken: iot.string
-    });
-    type t = iot.TypeOf<typeof t>
-
-    export const from = (request: any): E.Either<Exception.t, t> => {
-      return pipe(
-          request
-        , t.decode
-        , E.mapLeft((_) => Exception.throwMalformedJson)
-      );
-    };
-  }
-}
-
 router
-  // TODO: JK
-  // .use(AuthenticationFor.user)
+  .use(AuthenticationFor.user)
   .post("/create_link_token", async (ctx, next) => {
+    const user = ctx.state.user;
+
     const req: LinkTokenCreateRequest = {
-      user: { client_user_id: "test" }, // TODO: JK
+      user: { client_user_id: user.id },
       client_name: "Budgeting",
       products: [Products.Transactions],
       language: 'en',
@@ -54,10 +38,13 @@ router
         return e
       })
       , TE.mapLeft((_) => Exception.throwInternalError)
+      , TE.map((response: LinkTokenCreateResponse) => {
+          return Plaid.Frontend.Response.CreateLinkToken.Json.to({ token: response.data.link_token });
+        })
       , TE.match(
             Message.respondWithError(ctx)
-          , (response: LinkTokenCreateResponse) => {
-              ctx.body = { token: response.data.link_token };
+          , (response) => {
+              ctx.body = response;
             }
         )
     )();
@@ -65,11 +52,11 @@ router
   .post("/exchange_public_token", async (ctx, next) => {
     await pipe(
         ctx.request.body
-      , Request.ExchangePublicToken.from
+      , Plaid.Frontend.Request.ExchangePublicToken.Json.from
       , TE.fromEither
-      , TE.chain((publicToken) => {
+      , TE.chain(({ publicToken }) => {
           return TE.tryCatch(
-                () => <Promise<ItemPublicTokenExchangeResponse>>ctx.plaidClient.itemPublicTokenExchange({ publicToken })
+                () => <Promise<ItemPublicTokenExchangeResponse>>ctx.plaidClient.itemPublicTokenExchange({ public_token: publicToken })
               , (e) => {
                   console.log(e)
                   return Exception.throwInternalError
@@ -79,7 +66,13 @@ router
       , TE.match(
             Message.respondWithError(ctx)
           , (response) => {
-              console.log(response);
+              /*
+                data: {
+                  access_token: ???,
+                  item_id: ???,
+                  request_id: ???
+                }
+              */
               ctx.body = Message.ok;
             }
         )

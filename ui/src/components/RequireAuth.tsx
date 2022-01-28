@@ -6,7 +6,7 @@ import UserFrontend from "../frontend/user-frontend";
 function RequireAuth() {
   const location = useLocation();
 
-  if (!UserFrontend.isAuthenticated()) {
+  if (!UserFrontend.isAuthenticated() && location.pathname !== "/login") {
     return <Navigate to="/login" state={{ from: location }} replace />;
   } else {
     return <div />;

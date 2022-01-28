@@ -51,15 +51,15 @@ Run the test suite:
 ## todo
 
 ### next
- - Frontend
-   - Move plaid logic to frontend + add sources from frontend
- - Scheduler
-   - Setup core scheduler loop
- - Engine
-   - Optional remander in SplitByValue
  - The line between the logic engine and the scheduler is pretty blurry
    - Scheduler is read only?
    - Move sources + integrations to logic, would remove a lot of rapidly changing boilerplate code
+ - Engine
+   - Optional remander in SplitByValue
+ - Scheduler
+   - Setup core scheduler loop
+ - Create sources/accounts on integration add
+   - Use information from plaid payload
  - Integrate transaction puller
 
 ### miscellaneous
