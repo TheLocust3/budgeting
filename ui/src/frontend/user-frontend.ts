@@ -13,10 +13,12 @@ export namespace SourceFrontend {
 
   export const login = (email: string, password: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
-        LogicChannel.push(`/login`)('POST')()
+        { email: email, password: password }
+      , User.Frontend.Request.Credentials.Json.to
+      , O.some
+      , LogicChannel.push(`/users/login`)('POST')
       , Channel.to(User.Frontend.Response.Token.Json.from)
       , TE.map(({ token }) => {
-          console.log(token);
           Cookie.set("token", token);
           return;
         })
@@ -38,7 +40,7 @@ export namespace SourceFrontend {
         { email: email, password: password }
       , User.Frontend.Request.Create.Json.to
       , O.some
-      , LogicChannel.push(`/sources/`)('POST')
+      , LogicChannel.push(`/users/`)('POST')
       , Channel.toVoid
     );
   };

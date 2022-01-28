@@ -8,7 +8,7 @@ export namespace SchedulerChannel {
   const port = "3002" // TODO: JK
 
   export const push = (uri: string) => (method: string) => (body: O.Option<any> = O.none): TE.TaskEither<Exception.t, any> => {
-    return Channel.push(host)(port)(uri)(method)(body);
+    return Channel.push(host)(port)(`/channel${uri}`)(method)(body);
   }
 }
 
