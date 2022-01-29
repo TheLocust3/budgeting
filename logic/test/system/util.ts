@@ -62,6 +62,34 @@ export class System {
     );
   }
 
+  addIntegration(name: string, credentials: any): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask("/integrations/")("POST")(O.some({ name: name, credentials: credentials }))
+      , TE.chain(this.json)
+    );
+  }
+
+  getIntegration(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/integrations/${id}`)("GET")()
+      , TE.chain(this.json)
+    );
+  }
+
+  listIntegrations(): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask("/integrations")("GET")()
+      , TE.chain(this.json)
+    );
+  }
+
+  deleteIntegration(id: string): TE.TaskEither<Error, any> {
+    return pipe(
+        this.fetchTask(`/integrations/${id}`)("DELETE")()
+      , TE.chain(this.json)
+    );
+  }
+
   login(email: string, password: string): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask("/users/login")("POST")(O.some({ email: email, password: password }))

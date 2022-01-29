@@ -8,6 +8,7 @@ import * as iot from "io-ts";
 
 import UserFrontend from "../frontend/user-frontend";
 import SourceFrontend from "../frontend/source-frontend";
+import IntegrationFrontend from "../frontend/integration-frontend";
 import AccountFrontend from "../frontend/account-frontend";
 import TransactionFrontend from "../frontend/transaction-frontend";
 import { AuthenticationFor } from "./util";
@@ -58,6 +59,14 @@ router
             return pipe(
                 sources
               , A.map((source) => SourceFrontend.deleteById(ctx.db)(userId)(source.id))
+              , A.sequence(TE.ApplicativeSeq)
+            );
+          })
+        , TE.bind('integrations', () => IntegrationFrontend.all(ctx.db)(userId))
+        , TE.chain(({ integrations }) => {
+            return pipe(
+                integrations
+              , A.map((integration) => IntegrationFrontend.deleteById(ctx.db)(userId)(integration.id))
               , A.sequence(TE.ApplicativeSeq)
             );
           })

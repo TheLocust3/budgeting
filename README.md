@@ -51,8 +51,6 @@ Run the test suite:
 ## todo
 
 ### next
- - Engine
-   - Optional remander in SplitByValue
  - Scheduler
    - Setup core scheduler loop
  - Create sources/accounts on integration add
@@ -64,22 +62,17 @@ Run the test suite:
  - types for query paraments (+ decoders)
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
- - validate email
-   - both formatting + send email to user
- - pull jwt secret fron environment
- - JWT expiry
- - distinguish between channel errors and user facing errors
- - a productized path for adding superusers
+ - Optional remander in SplitByValue
 
 ### future
  - Global service configuration
+   - various secret keys
  - Authenticate requests between components
  - basic rule pushdowns
    - all include rules are up for grabs
- - Aggregations
- - split database in separate instances
+ - Engine aggregations
  - move handling of write transaction requests away from engine
- - have pullers pull jobs from queue fed by some cron job
+ - a productized path for adding superusers
  - Stateful reaper jobs
     - Make services stateless, can restart jobs on crash
     - How to implicitly divide work between clusters?
