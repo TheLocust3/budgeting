@@ -53,11 +53,11 @@ router
       // TODO: JK really don't want to pull all user's resources into memory
       return pipe(
           TE.Do
-        , TE.bind('sources', () => SourceFrontend.all(userId))
+        , TE.bind('sources', () => SourceFrontend.all(ctx.db)(userId))
         , TE.chain(({ sources }) => {
             return pipe(
                 sources
-              , A.map((source) => SourceFrontend.deleteById(userId)(source.id))
+              , A.map((source) => SourceFrontend.deleteById(ctx.db)(userId)(source.id))
               , A.sequence(TE.ApplicativeSeq)
             );
           })

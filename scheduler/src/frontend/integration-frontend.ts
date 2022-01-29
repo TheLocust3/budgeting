@@ -28,22 +28,6 @@ export namespace IntegrationFrontend {
         ))
     );
   };
-
-  export const create = (pool: Pool) => (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Integration.Internal.t> => {
-    return pipe(
-        integration
-      , IntegrationTable.create(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
-  };
-
-  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
-    return pipe(
-        id
-      , IntegrationTable.deleteById(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
-  };
 }
 
 export default IntegrationFrontend;

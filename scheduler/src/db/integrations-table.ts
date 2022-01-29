@@ -10,29 +10,8 @@ import * as iot from "io-ts";
 import { Integration } from "model";
 import { Db } from "magic";
 
+// TODO: JK could really slim this down
 namespace Query {
-  export const createTable = `
-    CREATE TABLE integrations (
-      id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id TEXT NOT NULL,
-      name TEXT NOT NULL,
-      credentials JSONB NOT NULL
-    )
-  `;
-
-  export const dropTable = "DROP TABLE integrations";
-
-  export const create = (userId: string, name: string, credentials: any) => {
-    return {
-      text: `
-        INSERT INTO integrations (user_id, name, credentials)
-        VALUES ($1, $2, $3)
-        RETURNING *
-      `,
-      values: [userId, name, credentials]
-    };
-  };
-
   export const all = (userId: string) => {
     return {
       text: `
@@ -55,37 +34,7 @@ namespace Query {
       values: [userId, id]
     };
   };
-
-  export const deleteById = (userId: string, id: string) => {
-    return {
-      text: `
-        DELETE FROM integrations
-        WHERE user_id = $1 AND id = $2
-      `,
-      values: [userId, id]
-    };
-  };
 }
-
-export const migrate = (pool: Pool): T.Task<boolean> => async () => {
-  try {
-    await pool.query(Query.createTable);
-    return true;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-};
-
-export const rollback = (pool: Pool): T.Task<boolean> => async () => {
-  try {
-    await pool.query(Query.dropTable);
-    return true;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-};
 
 export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Integration.Internal.t[]> => {
   return pipe(
@@ -115,26 +64,5 @@ export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEi
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-  );
-};
-
-export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, void> => {
-  return pipe(
-      TE.tryCatch(
-        () => pool.query(Query.deleteById(userId, id)),
-        E.toError
-      )
-    , TE.map(x => { return; })
-  );
-};
-
-export const create = (pool: Pool) => (integration: Integration.Internal.t) : TE.TaskEither<Error, Integration.Internal.t> => {
-  return pipe(
-      TE.tryCatch(
-        () => pool.query(Query.create(integration.userId, integration.name, integration.credentials)),
-        E.toError
-      )
-    , Db.expectOne
-    , TE.chain(res => pipe(res.rows[0], Integration.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
   );
 };

@@ -28,22 +28,6 @@ export namespace SourceFrontend {
         ))
     );
   };
-
-  export const create = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
-    return pipe(
-        source
-      , SourcesTable.create(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
-  };
-
-  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
-    return pipe(
-        id
-      , SourcesTable.deleteById(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
-  };
 }
 
 export default SourceFrontend;

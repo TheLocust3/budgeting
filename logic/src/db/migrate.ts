@@ -1,11 +1,15 @@
 import { Pool } from "pg";
 
 import * as UsersTable from "./users-table";
+import * as SourcesTable from "./sources-table";
+import * as IntegrationsTable from "./integrations-table";
 import UserFrontend from "../frontend/user-frontend";
 
 const migrate = async (pool: Pool) => {
   await UsersTable.migrate(pool)();
   await UserFrontend.create(pool)({ id: "", email: "jake.kinsella@gmail.com", password: "foobar", role: "superuser" })();
+  await IntegrationsTable.migrate(pool)();
+  await SourcesTable.migrate(pool)();
   console.log("Migrate complete");
   process.exit(0);
 };

@@ -51,9 +51,6 @@ Run the test suite:
 ## todo
 
 ### next
- - The line between the logic engine and the scheduler is pretty blurry
-   - Scheduler is read only?
-   - Move sources + integrations to logic, would remove a lot of rapidly changing boilerplate code
  - Engine
    - Optional remander in SplitByValue
  - Scheduler

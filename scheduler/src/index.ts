@@ -6,9 +6,6 @@ import { Pool } from "pg";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { router as sourceRouter } from "./route/sources";
-import { router as integrationRouter } from "./route/integrations";
-
 import { User } from "model";
 
 type State = {
@@ -23,9 +20,6 @@ const app = new Koa<State, Context>();
 app.context.db = new Pool();
 
 const router = new Router();
-
-router.use("/channel/sources", sourceRouter.routes(), sourceRouter.allowedMethods());
-router.use("/channel/integrations", integrationRouter.routes(), integrationRouter.allowedMethods());
 
 app.use(async (ctx, next) => {
   const start = Date.now();
