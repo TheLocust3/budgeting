@@ -15,10 +15,12 @@ export namespace Frontend {
           id: iot.string
         , name: iot.string
       });
+      export type Account = iot.TypeOf<typeof Account>;
 
       const t = iot.type({
           publicToken: iot.string
         , accounts: iot.array(Account)
+        , institutionName: iot.string
       });
 
       export type t = iot.TypeOf<typeof t>;

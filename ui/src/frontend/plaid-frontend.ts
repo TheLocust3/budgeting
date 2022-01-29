@@ -19,9 +19,15 @@ export namespace PlaidFrontend {
   };
 
   export const exchangePublicToken = (publicToken: string, metadata: PlaidLinkOnSuccessMetadata): TE.TaskEither<Exception.t, void> => {
+    // TODO: JK clean this up
+    let institutionName = "Plaid Integration";
+    if (metadata.institution !== null) {
+      institutionName = metadata.institution.name;
+    }
+    
     const accounts = A.map((account: PlaidAccount) => { return { id: account.id, name: account.name }; })(metadata.accounts);
     return pipe(
-        { publicToken: publicToken, accounts: accounts }
+        { publicToken: publicToken, accounts: accounts, institutionName: institutionName }
       , Plaid.Frontend.Request.ExchangePublicToken.Json.to
       , O.some
       , LogicChannel.push(`/plaid/exchange_public_token`)('POST')

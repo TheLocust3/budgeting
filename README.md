@@ -51,8 +51,6 @@ Run the test suite:
 ## todo
 
 ### next
- - Create sources/accounts on integration add
-   - Use information from plaid payload to create sources with "integration information"
  - Frontend
    - User onboarding
 
