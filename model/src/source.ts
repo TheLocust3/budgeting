@@ -13,6 +13,7 @@ export namespace Internal {
       _type: iot.literal("Plaid")
     , accountId: iot.string
   });
+  export type PlaidMetadata = iot.TypeOf<typeof PlaidMetadata>
 
   const t = iot.type({
       id: iot.string

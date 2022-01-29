@@ -53,8 +53,6 @@ Run the test suite:
 ### next
  - Create sources/accounts on integration add
    - Use information from plaid payload to create sources with "integration information"
- - Scheduler
-   - Integrate transaction puller
  - Frontend
    - User onboarding
 
