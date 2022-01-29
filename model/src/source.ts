@@ -9,11 +9,17 @@ import { Formatter, JsonFormatter } from "./util";
 import { Exception } from "magic";
 
 export namespace Internal {
+  const PlaidMetadata = iot.type({
+      _type: iot.literal("Plaid")
+    , accountId: iot.string
+  });
+
   const t = iot.type({
       id: iot.string
     , userId: iot.string
     , name: iot.string
     , integrationId: types.option(iot.string)
+    , metadata: types.option(PlaidMetadata)
     , createdAt: types.option(types.DateFromISOString)
   });
 
@@ -25,6 +31,7 @@ export namespace Internal {
       , user_id: iot.string
       , name: iot.string
       , integration_id: types.optionFromNullable(iot.string)
+      , metadata: types.optionFromNullable(PlaidMetadata)
       , created_at: types.date
     });    
 
@@ -33,8 +40,8 @@ export namespace Internal {
           obj
         , this.TableType.decode
         , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, user_id, name, integration_id, created_at }) => {
-            return { id: id, userId: user_id, name: name, integrationId: integration_id, createdAt: O.some(created_at) };
+        , E.map(({ id, user_id, name, integration_id, created_at, metadata }) => {
+            return { id: id, userId: user_id, name: name, integrationId: integration_id, metadata: metadata, createdAt: O.some(created_at) };
           })
       );
     }
@@ -45,6 +52,7 @@ export namespace Internal {
         , user_id: obj.userId
         , name: obj.name
         , integration_id: obj.integrationId
+        , metadata: obj.metadata
         , created_at: obj.createdAt
       }
     }

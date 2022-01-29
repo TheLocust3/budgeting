@@ -16,13 +16,13 @@ const PlaidLink = ({ token }: Props) => {
         console.log(metadata); // TODO: JK will want to use this to drive sources/account creation
 
         await pipe(
-            PlaidFrontend.exchangePublicToken(publicToken)
+            PlaidFrontend.exchangePublicToken(publicToken, metadata)
           , TE.match(
                 (error) => {
                   console.log("Failed to exchange public token");
                   console.log(error);
                 }
-              , (out) => console.log(out)
+              , () => {}
             )
         )();
       }

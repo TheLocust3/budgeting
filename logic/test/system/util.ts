@@ -36,7 +36,7 @@ export class System {
 
   addSource(name: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask("/sources/")("POST")(O.some({ name: name, integrationId: O.none }))
+        this.fetchTask("/sources/")("POST")(O.some({ name: name, integrationId: O.none, metadata: O.none }))
       , TE.chain(this.json)
     );
   }

@@ -14,7 +14,7 @@ namespace Query {
   const isExpired = `last_refreshed < now() - '10 minutes' :: interval AND integration_id IS NOT NULL`
 
   export const allExpired = `
-    SELECT id, user_id, name, integration_id, created_at
+    SELECT id, user_id, name, integration_id, metadata, created_at
     FROM sources
     WHERE ${isExpired}
   `;

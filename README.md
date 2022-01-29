@@ -59,6 +59,8 @@ Run the test suite:
    - User onboarding
 
 ### miscellaneous
+ - Redirect from login _after_ cookie is set
+ - If UI ever get's "Unauthorized" should delete token cookie
  - token timeout on UI + JWT
  - types for query paraments (+ decoders)
  - expect unordered lists in tests

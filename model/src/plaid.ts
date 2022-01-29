@@ -11,8 +11,14 @@ import { Exception } from "magic";
 export namespace Frontend {
   export namespace Request {
     export namespace ExchangePublicToken {
+      const Account = iot.type({
+          id: iot.string
+        , name: iot.string
+      });
+
       const t = iot.type({
-        publicToken: iot.string
+          publicToken: iot.string
+        , accounts: iot.array(Account)
       });
 
       export type t = iot.TypeOf<typeof t>;

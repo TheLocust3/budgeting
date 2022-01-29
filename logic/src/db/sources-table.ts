@@ -17,6 +17,7 @@ namespace Query {
       user_id TEXT NOT NULL,
       name TEXT NOT NULL,
       integration_id TEXT,
+      metadata JSONB,
       created_at TIMESTAMP NOT NULL DEFAULT now(),
       last_refreshed TIMESTAMP NOT NULL DEFAULT to_timestamp(0),
       FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE
@@ -25,21 +26,21 @@ namespace Query {
 
   export const dropTable = "DROP TABLE sources";
 
-  export const create = (userId: string, name: string, integrationId: string | null) => {
+  export const create = (userId: string, name: string, integrationId: string | null, metadata: object | null) => {
     return {
       text: `
-        INSERT INTO sources (user_id, name, integration_id)
-        VALUES ($1, $2, $3)
+        INSERT INTO sources (user_id, name, integration_id, metadata)
+        VALUES ($1, $2, $3, $4)
         RETURNING *
       `,
-      values: [userId, name, integrationId]
+      values: [userId, name, integrationId, metadata]
     };
   };
 
   export const all = (userId: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id, created_at
+        SELECT id, user_id, name, integration_id, metadata, created_at
         FROM sources
         WHERE user_id = $1
       `,
@@ -50,7 +51,7 @@ namespace Query {
   export const byId = (userId: string, id: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id, created_at
+        SELECT id, user_id, name, integration_id, metadata, created_at
         FROM sources
         WHERE user_id = $1 AND id = $2
         LIMIT 1
@@ -134,7 +135,12 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
 export const create = (pool: Pool) => (source: Source.Internal.t) : TE.TaskEither<Error, Source.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(source.userId, source.name, O.match(() => null, (id: string) => id)(source.integrationId))),
+        () => pool.query(Query.create(
+            source.userId
+          , source.name
+          , O.match(() => null, (id: string) => id)(source.integrationId)
+          , O.match(() => null, (metadata: object) => metadata)(source.metadata)
+        )),
         E.toError
       )
     , Db.expectOne
