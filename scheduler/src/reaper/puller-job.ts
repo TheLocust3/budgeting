@@ -8,6 +8,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import SourceFrontend from "../frontend/source-frontend";
 import IntegrationFrontend from "../frontend/integration-frontend";
+import TransactionFrontend from "../frontend/transaction-frontend";
 
 import { Source, Integration, Transaction } from "model";
 
@@ -52,13 +53,18 @@ const pullTransactions = (context: Context): TE.TaskEither<PullerException, Tran
   return TE.of([]); // TODO: JK
 }
 
-const pushTransactions = (transaction: Transaction.Internal.t[]): TE.TaskEither<PullerException, void> => {
-  const push = (transaction: Transaction.Internal.t): TE.TaskEither<PullerException, boolean> => {
-    return TE.of(true); // TODO: JK
+const pushTransactions = (pool: Pool) => (transactions: Transaction.Internal.t[]): TE.TaskEither<PullerException, void> => {
+  const push = (transaction: Transaction.Internal.t): TE.TaskEither<PullerException, void> => {
+    return pipe(
+        transaction
+      , TransactionFrontend.create(pool)
+      , TE.mapLeft(() => <PullerException>"Exception")
+      , TE.map((_) => { return; })
+    );
   }
 
   return pipe(
-      transaction
+      transactions
     , A.map(push)
     , A.sequence(TE.ApplicativeSeq)
     , TE.map((_) => { return; })
@@ -74,7 +80,7 @@ export const run = (pool: Pool) => (source: Source.Internal.t) => (id: string) =
     , TE.chain(withIntegration(pool))
     , TE.map((integration) => { return { source: source, integration: integration }; })
     , TE.chain(pullTransactions)
-    , TE.chain(pushTransactions)
+    , TE.chain(pushTransactions(pool))
     , TE.match(
           (error) => {
             console.log(`Scheduler.puller[${id}] - failed for ${source.id} - ${error}`);
