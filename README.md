@@ -57,6 +57,7 @@ Run the test suite:
    - User onboarding
 
 ### miscellaneous
+ - Merge common table accessors
  - Redirect from login _after_ cookie is set
  - If UI ever get's "Unauthorized" should delete token cookie
  - token timeout on UI + JWT
@@ -66,6 +67,7 @@ Run the test suite:
  - Optional remander in SplitByValue
 
 ### future
+ - Create "summary" transaction of account value on initial pull
  - Global service configuration
    - various secret keys
  - Authenticate requests between components

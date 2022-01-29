@@ -78,7 +78,8 @@ const pullTransactions = (plaidClient: PlaidApi) => (context: Context): TE.TaskE
     , TE.map(A.filter((transaction) => transaction.account_id === accountId))
     , TE.map(A.map((transaction) => {
         return <Transaction.Internal.t>{
-            sourceId: context.source.id
+            id: transaction.transaction_id
+          , sourceId: context.source.id
           , userId: context.source.userId
           , amount: transaction.amount
           , merchantName: String(transaction.merchant_name)

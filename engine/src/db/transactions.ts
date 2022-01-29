@@ -13,7 +13,7 @@ import { Db } from "magic";
 namespace Query {
   export const createTable = `
     CREATE TABLE transactions (
-      id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
+      id TEXT NOT NULL UNIQUE PRIMARY KEY,
       source_id TEXT NOT NULL,
       user_id TEXT NOT NULL,
       amount NUMERIC NOT NULL,
@@ -28,7 +28,8 @@ namespace Query {
   export const dropTable = "DROP TABLE transactions";
 
   export const create = (
-      sourceId: string
+      id: string
+    , sourceId: string
     , userId: string
     , amount: number
     , merchantName: string
@@ -39,11 +40,13 @@ namespace Query {
   ) => {
     return {
       text: `
-        INSERT INTO transactions (source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO transactions (id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (id)
+        DO UPDATE SET amount=excluded.amount, merchant_name=excluded.merchant_name, description=excluded.description, authorized_at=excluded.authorized_at, captured_at=excluded.captured_at, metadata=excluded.metadata
         RETURNING *
       `,
-      values: [sourceId, userId, amount, merchantName, description, authorizedAt, capturedAt, metadata]
+      values: [id, sourceId, userId, amount, merchantName, description, authorizedAt, capturedAt, metadata]
     };
   };
 
@@ -146,7 +149,8 @@ export const create = (pool: Pool) => (transaction: Transaction.Internal.t) : TE
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(
-            transaction.sourceId
+            transaction.id
+          , transaction.sourceId
           , transaction.userId
           , transaction.amount
           , transaction.merchantName

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Router from "@koa/router";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -51,7 +52,7 @@ router
       , Transaction.Channel.Request.Create.Json.from
       , E.map((createTransaction) => {
           const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(createTransaction.capturedAt);
-          return { ...createTransaction, id: "", authorizedAt: new Date(createTransaction.authorizedAt), capturedAt: capturedAt, custom: {} };
+          return { ...createTransaction, id: crypto.randomUUID(), authorizedAt: new Date(createTransaction.authorizedAt), capturedAt: capturedAt, custom: {} };
         })
       , TE.fromEither
       , TE.chain(TransactionFrontend.create(ctx.db))
