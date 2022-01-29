@@ -14,6 +14,7 @@ export namespace Internal {
     , userId: iot.string
     , name: iot.string
     , integrationId: types.option(iot.string)
+    , createdAt: types.option(types.DateFromISOString)
   });
 
   export type t = iot.TypeOf<typeof t>
@@ -24,6 +25,7 @@ export namespace Internal {
       , user_id: iot.string
       , name: iot.string
       , integration_id: types.optionFromNullable(iot.string)
+      , created_at: types.date
     });    
 
     public from = (obj: any): E.Either<Exception.t, t> => {
@@ -31,8 +33,8 @@ export namespace Internal {
           obj
         , this.TableType.decode
         , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, user_id, name, integration_id }) => {
-            return { id: id, userId: user_id, name: name, integrationId: integration_id };
+        , E.map(({ id, user_id, name, integration_id, created_at }) => {
+            return { id: id, userId: user_id, name: name, integrationId: integration_id, createdAt: O.some(created_at) };
           })
       );
     }
@@ -43,6 +45,7 @@ export namespace Internal {
         , user_id: obj.userId
         , name: obj.name
         , integration_id: obj.integrationId
+        , created_at: obj.createdAt
       }
     }
   };

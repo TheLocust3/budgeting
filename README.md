@@ -52,10 +52,11 @@ Run the test suite:
 
 ### next
  - Scheduler
-   - Setup core scheduler loop
+   - Integrate transaction puller
+ - Frontend
+   - User onboarding
  - Create sources/accounts on integration add
    - Use information from plaid payload
- - Integrate transaction puller
 
 ### miscellaneous
  - token timeout on UI + JWT

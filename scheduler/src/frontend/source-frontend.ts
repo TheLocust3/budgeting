@@ -5,27 +5,25 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { Source } from "model";
+import IntegrationFrontend from "./integration-frontend";
 import * as SourcesTable from "../db/sources-table";
+
+import { Source } from "model";
 import { Exception } from "magic";
 
 export namespace SourceFrontend {
-  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+  export const allExpired = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     return pipe(
-        SourcesTable.all(pool)(userId)
+        SourcesTable.allExpired(pool)()
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
-  export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
+  export const tryLockById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, boolean> => {
     return pipe(
         id
-      , SourcesTable.byId(pool)(userId)
+      , SourcesTable.tryLockById(pool)
       , TE.mapLeft((_) => Exception.throwInternalError)
-      , TE.chain(O.fold(
-            (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
-          , (source) => TE.of(source)
-        ))
     );
   };
 }

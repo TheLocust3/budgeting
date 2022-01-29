@@ -10,52 +10,25 @@ import * as iot from "io-ts";
 import { Integration } from "model";
 import { Db } from "magic";
 
-// TODO: JK could really slim this down
 namespace Query {
-  export const all = (userId: string) => {
+  export const byId = (id: string) => {
     return {
       text: `
         SELECT id, user_id, name, credentials
         FROM integrations
-        WHERE user_id = $1
-      `,
-      values: [userId]
-    };
-  };
-
-  export const byId = (userId: string, id: string) => {
-    return {
-      text: `
-        SELECT id, user_id, name, credentials
-        FROM integrations
-        WHERE user_id = $1 AND id = $2
+        WHERE id = $1
         LIMIT 1
       `,
-      values: [userId, id]
+      values: [id]
     };
   };
 }
 
-export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Integration.Internal.t[]> => {
+export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<Integration.Internal.t>> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.all(userId)),
-        E.toError
-      )
-    , TE.chain(res => TE.fromEither(pipe(
-          res.rows
-        , A.map(Integration.Internal.Database.from)
-        , A.map(E.mapLeft(E.toError))
-        , A.sequence(E.Applicative)
-      )))
-  );
-};
-
-export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, O.Option<Integration.Internal.t>> => {
-  return pipe(
-      TE.tryCatch(
-        () => pool.query(Query.byId(userId, id)),
-        E.toError
+          () => pool.query(Query.byId(id))
+        , E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows

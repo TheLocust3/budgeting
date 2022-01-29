@@ -6,6 +6,8 @@ import { Pool } from "pg";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
+import * as Reaper from "./reaper/index";
+
 import { User } from "model";
 
 type State = {
@@ -39,3 +41,5 @@ app.use(router.allowedMethods());
 
 app.listen(3002);
 console.log("Listening at localhost:3002");
+
+Reaper.tick(app.context.db);

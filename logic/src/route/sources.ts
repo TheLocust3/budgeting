@@ -48,7 +48,7 @@ router
     await pipe(
         ctx.request.body
       , Source.Frontend.Request.Create.Json.from
-      , E.map((createSource) => { return { ...createSource, id: "", userId: user.id } })
+      , E.map((createSource) => { return { ...createSource, id: "", userId: user.id, createdAt: O.none } })
       , TE.fromEither
       , TE.chain(SourceFrontend.create(ctx.db))
       , TE.map(Source.Internal.Json.to)

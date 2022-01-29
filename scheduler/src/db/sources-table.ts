@@ -10,37 +10,36 @@ import * as iot from "io-ts";
 import { Source } from "model";
 import { Db } from "magic";
 
-// TODO: JK could really slim this down
 namespace Query {
-  export const all = (userId: string) => {
-    return {
-      text: `
-        SELECT id, user_id, name, integration_id
-        FROM sources
-        WHERE user_id = $1
-      `,
-      values: [userId]
-    };
-  };
+  const isExpired = `last_refreshed < now() - '10 minutes' :: interval AND integration_id IS NOT NULL`
 
-  export const byId = (userId: string, id: string) => {
+  export const allExpired = `
+    SELECT id, user_id, name, integration_id, created_at
+    FROM sources
+    WHERE ${isExpired}
+  `;
+
+  export const tryLockById = (id: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id
-        FROM sources
-        WHERE user_id = $1 AND id = $2
-        LIMIT 1
+        UPDATE sources
+        SET last_refreshed = now()
+        WHERE id = $1 AND (${isExpired})
+        RETURNING *
       `,
-      values: [userId, id]
+      values: [id]
     };
   };
 }
 
-export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Source.Internal.t[]> => {
+export const allExpired = (pool: Pool) => () : TE.TaskEither<Error, Source.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.all(userId)),
-        E.toError
+        () => pool.query(Query.allExpired),
+        (e) => {
+          console.log(e)
+          throw e;
+        }
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
@@ -51,18 +50,12 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Sourc
   );
 };
 
-export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, O.Option<Source.Internal.t>> => {
+export const tryLockById = (pool: Pool) => (id: string) : TE.TaskEither<Error, boolean> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.byId(userId, id)),
-        E.toError
+          () => pool.query(Query.tryLockById(id))
+        , E.toError
       )
-    , TE.chain(res => TE.fromEither(pipe(
-          res.rows
-        , A.map(Source.Internal.Database.from)
-        , A.map(E.mapLeft(E.toError))
-        , A.sequence(E.Applicative)
-      )))
-    , TE.map(A.lookup(0))
+    , TE.map((res) => res.rows.length === 1) // if we managaed to update a single row, we've acquired the "lock"
   );
 };
