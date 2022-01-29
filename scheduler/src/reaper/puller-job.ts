@@ -11,6 +11,7 @@ import SourceFrontend from "../frontend/source-frontend";
 import IntegrationFrontend from "../frontend/integration-frontend";
 import TransactionFrontend from "../frontend/transaction-frontend";
 
+import { Plaid } from "magic";
 import { Source, Integration, Transaction } from "model";
 
 // given a source:
@@ -51,30 +52,13 @@ const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEith
 }
 
 const pullTransactions = (plaidClient: PlaidApi) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
-  // INVARIANT: the accountId must exist on `source`
+  // INVARIANT: the accountId + createdAt must exist on `source`
   const accountId = O.match(() => "", (metadata: Source.Internal.PlaidMetadata) => metadata.accountId)(context.source.metadata);
-
-  const pull = (): TE.TaskEither<PullerException, TransactionsGetResponse> => {
-    return TE.tryCatch(
-        async () => {
-          // INVARIANT: the createdAt must exist on `source`
-          const createdAt = O.match(() => new Date(), (createdAt: Date) => createdAt)(context.source.createdAt);
-
-          const response = await plaidClient.transactionsGet({
-              access_token: context.integration.credentials.accessToken
-            , start_date: String(createdAt)
-            , end_date: String(new Date())
-          });
-
-          return response.data;
-        }
-      , (_) => <PullerException>"Exception"
-    );
-  }
+  const createdAt = O.match(() => new Date(), (createdAt: Date) => createdAt)(context.source.createdAt);
 
   return pipe(
-      pull()
-    , TE.map((response) => response.transactions)
+      Plaid.getTransactions(plaidClient)(context.integration.credentials.accessToken, createdAt, new Date())
+    , TE.mapLeft((_) => <PullerException>"Exception")
     , TE.map(A.filter((transaction) => transaction.account_id === accountId))
     , TE.map(A.map((transaction) => {
         return <Transaction.Internal.t>{
