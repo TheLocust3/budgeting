@@ -51,12 +51,12 @@ Run the test suite:
 ## todo
 
 ### next
+ - Create sources/accounts on integration add
+   - Use information from plaid payload to create sources with "integration information"
  - Scheduler
    - Integrate transaction puller
  - Frontend
    - User onboarding
- - Create sources/accounts on integration add
-   - Use information from plaid payload
 
 ### miscellaneous
  - token timeout on UI + JWT

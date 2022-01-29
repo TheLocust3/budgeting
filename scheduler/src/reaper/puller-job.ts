@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { PlaidApi } from "plaid";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -49,7 +50,7 @@ const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEith
   );
 }
 
-const pullTransactions = (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
+const pullTransactions = (plaidClient: PlaidApi) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
   return TE.of([]); // TODO: JK
 }
 
@@ -71,7 +72,7 @@ const pushTransactions = (pool: Pool) => (transactions: Transaction.Internal.t[]
   );
 }
 
-export const run = (pool: Pool) => (source: Source.Internal.t) => (id: string) => {
+export const run = (pool: Pool) => (plaidClient: PlaidApi) => (source: Source.Internal.t) => (id: string) => {
   console.log(`Scheduler.puller[${id}] - start for ${source.id}`)
 
   return pipe(
@@ -79,7 +80,7 @@ export const run = (pool: Pool) => (source: Source.Internal.t) => (id: string) =
     , tryLock(pool)
     , TE.chain(withIntegration(pool))
     , TE.map((integration) => { return { source: source, integration: integration }; })
-    , TE.chain(pullTransactions)
+    , TE.chain(pullTransactions(plaidClient))
     , TE.chain(pushTransactions(pool))
     , TE.match(
           (error) => {
