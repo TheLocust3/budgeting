@@ -13,8 +13,8 @@ export namespace TransactionFrontend {
   export const all = (userId: string): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     return pipe(
         EngineChannel.push(`/transactions?userId=${userId}`)('GET')()
-      , TE.map((response) => response.transactions)
-      , Channel.toArrayOf(Transaction.Internal.Json.from)
+      , Channel.to(Transaction.Channel.Response.TransactionList.Json.from)
+      , TE.map(({ transactions }) => transactions)
     );
   };
 

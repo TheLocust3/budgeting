@@ -54,11 +54,3 @@ export const toVoid = (task: TE.TaskEither<Exception.t, any>): TE.TaskEither<Exc
 export const to = <T>(from: (response: any) => E.Either<Exception.t, T>) => (task: TE.TaskEither<Exception.t, any>): TE.TaskEither<Exception.t, T> => {
   return TE.chain((response: any) => pipe(response, from, TE.fromEither))(task)
 }
-
-export const toArrayOf = <T>(from: (response: any) => E.Either<Exception.t, T>) => (task: TE.TaskEither<Exception.t, any>): TE.TaskEither<Exception.t, T[]> => {
-  return TE.chain((response: any) => TE.fromEither(pipe(
-      response
-    , A.map(from)
-    , A.sequence(E.Applicative)
-  )))(task);
-}

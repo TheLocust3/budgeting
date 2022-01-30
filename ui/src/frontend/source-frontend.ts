@@ -13,8 +13,8 @@ export namespace SourceFrontend {
   export const all = (): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     return pipe(
         LogicChannel.push(`/sources`)('GET')()
-      , TE.map((response) => response.sources)
-      , Channel.toArrayOf(Source.Internal.Json.from)
+      , Channel.to(Source.Frontend.Response.SourceList.Json.from)
+      , TE.map(({ sources }) => sources)
     );
   };
 

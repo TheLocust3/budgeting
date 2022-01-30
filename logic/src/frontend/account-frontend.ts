@@ -13,8 +13,8 @@ export namespace AccountFrontend {
   export const all = (userId: string): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
     return pipe(
         EngineChannel.push(`/accounts?userId=${userId}`)('GET')()
-      , TE.map((response) => response.accounts)
-      , Channel.toArrayOf(Account.Internal.Json.from)
+      , Channel.to(Account.Channel.Response.AccountList.Json.from)
+      , TE.map(({ accounts }) => accounts)
     );
   };
 

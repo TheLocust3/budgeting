@@ -13,8 +13,8 @@ export namespace RuleFrontend {
   export const all = (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
     return pipe(
         EngineChannel.push(`/rules?accountId=${accountId}`)('GET')()
-      , TE.map((response) => response.rules)
-      , Channel.toArrayOf(Rule.Internal.Json.from)
+      , Channel.to(Rule.Channel.Response.RuleList.Json.from)
+      , TE.map(({ rules }) => rules)
     );
   };
 
