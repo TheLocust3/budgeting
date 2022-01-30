@@ -14,66 +14,44 @@ import { Message, Route } from "magic";
 export const router = new Router();
 
 router
-  .get("/", async (ctx, next) => {
-    await pipe(
-        ctx.query.accountId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain(RuleFrontend.getByAccountId(ctx.db))
-      , TE.map(A.map(Rule.Internal.Json.to))
-      , TE.match(
-          Message.respondWithError(ctx),
-          (rules) => {
-            ctx.body = { rules: rules };
-          }
-        )
-    )();
+  .get("/", (context) => {
+    return pipe(
+        Route.parseQuery(context)(Rule.Channel.Query.Json)
+      , TE.chain(({ accountId }) => RuleFrontend.getByAccountId(context.db)(accountId))
+      , TE.map((rules) => { return { rules: rules }; })
+      , Route.respondWith(context)(Rule.Channel.Response.RuleList.Json)
+    );
   })
-  .get("/:ruleId", async (ctx, next) => {
-    const ruleId = ctx.params.ruleId;
-    await pipe(
-        ctx.query.accountId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain((accountId) => RuleFrontend.getById(ctx.db)(accountId)(ruleId))
-      , TE.map(Rule.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (rule) => {
-              ctx.body = rule;
-            }
-        )
-    )();
-  })
-  .post("/", async (ctx, next) => {
-    await pipe(
-        ctx.request.body
-      , Rule.Channel.Request.Create.Json.from
-      , E.map((createRule) => { return { ...createRule, id: "" } })
-      , TE.fromEither
-      , TE.chain(RuleFrontend.create(ctx.db))
-      , TE.map(Rule.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (rule) => {
-              ctx.body = rule;
-            }
-        )
-    )();
-  })
-  .delete("/:ruleId", async (ctx, next) => {
-    const ruleId = ctx.params.ruleId;
-    await pipe(
-        ctx.query.accountId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain((accountId) => RuleFrontend.deleteById(ctx.db)(accountId)(ruleId))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (_) => {
-              ctx.body = Message.ok;
-            }
-        )
-    )();
+
+router
+  .get("/:ruleId", (context) => {
+    const ruleId = context.params.ruleId;
+
+    return pipe(
+        Route.parseQuery(context)(Rule.Channel.Query.Json)
+      , TE.chain(({ accountId }) => RuleFrontend.getById(context.db)(accountId)(ruleId))
+      , Route.respondWith(context)(Rule.Internal.Json)
+    );
+  });
+
+router
+  .post("/", (context) => {
+    return pipe(
+        Route.parseBody(context)(Rule.Channel.Request.Create.Json)
+      , TE.map((createRule) => { return { ...createRule, id: "" } })
+      , TE.chain(RuleFrontend.create(context.db))
+      , Route.respondWith(context)(Rule.Internal.Json)
+    );
+  });
+
+router
+  .delete("/:ruleId", (context) => {
+    const ruleId = context.params.ruleId;
+
+    return pipe(
+        Route.parseQuery(context)(Rule.Channel.Query.Json)
+      , TE.chain(({ accountId }) => RuleFrontend.deleteById(context.db)(accountId)(ruleId))
+      , Route.respondWithOk(context)
+    );
   });
 

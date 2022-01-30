@@ -9,7 +9,7 @@ import * as Rule from "./rule";
 import { Exception, Format } from "magic";
 
 export namespace Internal {
-  const t = iot.type({
+  export const t = iot.type({
       id: iot.string
     , parentId: types.option(iot.string)
     , userId: iot.string
@@ -51,12 +51,32 @@ export namespace Internal {
 }
 
 export namespace Channel {
+  export namespace Query {
+    const t = iot.type({
+        userId: iot.string
+    });
+
+    export type t = iot.TypeOf<typeof t>
+    export const Json = new Format.JsonFormatter(t);
+  }
+  
   export namespace Request {
     export namespace Create {
       const t = iot.type({
           parentId: types.option(iot.string)
         , userId: iot.string
         , name: iot.string
+      });
+
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new Format.JsonFormatter(t);
+    }
+  }
+
+  export namespace Response {
+    export namespace AccountList {
+      const t = iot.type({
+        accounts: iot.array(Internal.t)
       });
 
       export type t = iot.TypeOf<typeof t>

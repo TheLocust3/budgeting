@@ -255,11 +255,31 @@ export namespace Internal {
 }
 
 export namespace Channel {
+  export namespace Query {
+    const t = iot.type({
+        accountId: iot.string
+    });
+
+    export type t = iot.TypeOf<typeof t>
+    export const Json = new Format.JsonFormatter(t);
+  }
+
   export namespace Request {
     export namespace Create {
       const t = iot.type({
           accountId: iot.string
         , rule: Internal.Rule
+      });
+
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new Format.JsonFormatter(t);
+    }
+  }
+
+  export namespace Response {
+    export namespace RuleList {
+      const t = iot.type({
+          rules: iot.array(Internal.t)
       });
 
       export type t = iot.TypeOf<typeof t>

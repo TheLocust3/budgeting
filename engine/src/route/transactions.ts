@@ -15,69 +15,47 @@ import { Message, Route } from "magic";
 export const router = new Router();
 
 router
-  .get("/", async (ctx, next) => {
-    await pipe(
-        ctx.query.userId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain(TransactionFrontend.all(ctx.db))
-      , TE.map(A.map(Transaction.Internal.Json.to))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (transactions) => {
-              ctx.body = { transactions: transactions };
-            }
-        )
-    )();
-  })
-  .get("/:transactionId", async (ctx, next) => {
-    const transactionId = ctx.params.transactionId;
-    await pipe(
-        ctx.query.userId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain((userId) => TransactionFrontend.getById(ctx.db)(userId)(transactionId))
-      , TE.map(Transaction.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (transaction) => {
-              ctx.body = transaction;
-            }
-        )
-    )();
-  })
-  .post("/", async (ctx, next) => {
-    await pipe(
-        ctx.request.body
-      , Transaction.Channel.Request.Create.Json.from
-      , E.map((createTransaction) => {
+  .get("/", (context) => {
+    return pipe(
+        Route.parseQuery(context)(Transaction.Channel.Query.Json)
+      , TE.chain(({ userId }) => TransactionFrontend.all(context.db)(userId))
+      , TE.map((transactions) => { return { transactions: transactions }; })
+      , Route.respondWith(context)(Transaction.Channel.Response.TransactionList.Json)
+    );
+  });
+
+router
+  .get("/:transactionId", (context) => {
+    const transactionId = context.params.transactionId;
+
+    return pipe(
+        Route.parseQuery(context)(Transaction.Channel.Query.Json)
+      , TE.chain(({ userId }) => TransactionFrontend.getById(context.db)(userId)(transactionId))
+      , Route.respondWith(context)(Transaction.Internal.Json)
+    );
+  });
+
+router
+  .post("/", (context) => {
+    return pipe(
+        Route.parseBody(context)(Transaction.Channel.Request.Create.Json)
+      , TE.map((createTransaction) => {
           const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(createTransaction.capturedAt);
           return { ...createTransaction, id: crypto.randomUUID(), authorizedAt: new Date(createTransaction.authorizedAt), capturedAt: capturedAt, custom: {} };
         })
-      , TE.fromEither
-      , TE.chain(TransactionFrontend.create(ctx.db))
-      , TE.map(Transaction.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (transaction) => {
-              ctx.body = transaction;
-            }
-        )
-    )();
-  })
-  .delete("/:transactionId", async (ctx, next) => {
-    const transactionId = ctx.params.transactionId;
-    await pipe(
-        ctx.query.userId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain((userId) => TransactionFrontend.deleteById(ctx.db)(userId)(transactionId))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (_) => {
-              ctx.body = Message.ok;
-            }
-        )
-    )();
+      , TE.chain(TransactionFrontend.create(context.db))
+      , Route.respondWith(context)(Transaction.Internal.Json)
+    );
+  });
+
+router
+  .delete("/:transactionId", (context) => {
+    const transactionId = context.params.transactionId;
+
+    return pipe(
+        Route.parseQuery(context)(Transaction.Channel.Query.Json)
+      , TE.chain(({ userId }) => TransactionFrontend.deleteById(context.db)(userId)(transactionId))
+      , Route.respondWithOk(context)
+    );
   });
 

@@ -16,87 +16,57 @@ import { Message, Route } from "magic";
 export const router = new Router();
 
 router
-  .get("/", async (ctx, next) => {
-    await pipe(
-        ctx.query.userId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain(AccountFrontend.all(ctx.db))
-      , TE.map(A.map(Account.Internal.Json.to))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (accounts) => {
-              ctx.body = { accounts: accounts };
-            }
-        )
-    )();
+  .get("/", (context) => {
+    return pipe(
+        Route.parseQuery(context)(Account.Channel.Query.Json)
+      , TE.chain(({ userId }) => AccountFrontend.all(context.db)(userId))
+      , TE.map((accounts) => { return { accounts: accounts }; })
+      , Route.respondWith(context)(Account.Channel.Response.AccountList.Json)
+    );
+  });
+
+router
+  .get("/:accountId", (context) => {
+    const accountId = context.params.accountId;
+
+    return pipe(
+        Route.parseQuery(context)(Account.Channel.Query.Json)
+      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.db)(userId)(accountId))
+      , Route.respondWith(context)(Account.Internal.Json)
+    );
   })
-  .get("/:accountId", async (ctx, next) => {
-    const accountId = ctx.params.accountId;
-    await pipe(
-        ctx.query.userId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain((userId) => AccountFrontend.getByIdAndUserId(ctx.db)(userId)(accountId))
-      , TE.map(Account.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (account) => {
-              ctx.body = account;
-            }
-        )
-    )();
-  })
-  .get("/:accountId/materialize", async (ctx, next) => {
-    const accountId = ctx.params.accountId;
-    await pipe(
-        ctx.query.userId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain((userId) => AccountFrontend.getByIdAndUserId(ctx.db)(userId)(accountId))
-      , TE.chain(AccountFrontend.withRules(ctx.db))
-      , TE.chain(AccountFrontend.withChildren(ctx.db))
-      , TE.chain((account) => pipe(
-            account
-          , Materialize.execute(ctx.state.id)(ctx.db)
-          , TE.map(Materialize.Json.to)
-        ))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (transactions) => {
-              ctx.body = transactions;
-            }
-        )
-    )();
-  })
-  .post("/", async (ctx, next) => {
-    await pipe(
-        ctx.request.body
-      , Account.Channel.Request.Create.Json.from
-      , E.map((createAccount) => { return { ...createAccount, id: "", rules: [], children: [] } })
-      , TE.fromEither
-      , TE.chain(AccountFrontend.create(ctx.db))
-      , TE.map(Account.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (account) => {
-              ctx.body = account;
-            }
-        )
-    )();
-  })
-  .delete("/:accountId", async (ctx, next) => {
-    const accountId = ctx.params.accountId;
-    await pipe(
-        ctx.query.userId
-      , Route.fromQuery
-      , TE.fromEither
-      , TE.chain((userId) => AccountFrontend.deleteById(ctx.db)(userId)(accountId))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (_) => {
-              ctx.body = Message.ok;
-            }
-        )
-    )();
+
+router
+  .get("/:accountId/materialize", (context) => {
+    const accountId = context.params.accountId;
+
+    return pipe(
+        Route.parseQuery(context)(Account.Channel.Query.Json)
+      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.db)(userId)(accountId))
+      , TE.chain(AccountFrontend.withRules(context.db))
+      , TE.chain(AccountFrontend.withChildren(context.db))
+      , TE.chain((account) => Materialize.execute(context.state.id)(context.db)(account))
+      , Route.respondWith(context)(Materialize.Json)
+    );
+  });
+
+router
+  .post("/", (context) => {
+    return pipe(
+        Route.parseBody(context)(Account.Channel.Request.Create.Json)
+      , TE.map((createAccount) => { return { ...createAccount, id: "", rules: [], children: [] } })
+      , TE.chain(AccountFrontend.create(context.db))
+      , Route.respondWith(context)(Account.Internal.Json)
+    );
+  });
+
+router
+  .delete("/:accountId", (context) => {
+    const accountId = context.params.accountId;
+
+    return pipe(
+        Route.parseQuery(context)(Account.Channel.Query.Json)
+      , TE.chain(({ userId }) => AccountFrontend.deleteById(context.db)(userId)(accountId))
+      , Route.respondWithOk(context)
+    );
   });

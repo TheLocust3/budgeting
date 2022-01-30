@@ -17,7 +17,7 @@ import { Rule } from "model";
 import { Account } from "model";
 import * as Plan from "./plan";
 import * as Materializer from "./materializer";
-import { Exception } from "magic";
+import { Exception, Format } from "magic";
 
 export type t = {
   conflicts: Materializer.Conflict[];
@@ -25,24 +25,27 @@ export type t = {
   untagged: Transaction.Internal.t[];
 };
 
-// TODO: JK use new json stuff + move to model folder
-export namespace Json {
-  namespace Conflict {
-    export const to = (conflict: Materializer.Conflict): any => {
-      return {
-          element: pipe(conflict.element, Transaction.Internal.Json.to)
-        , rules: conflict.rules
-      };
+namespace Conflict {
+  export const to = (conflict: Materializer.Conflict): any => {
+    return {
+        element: pipe(conflict.element, Transaction.Internal.Json.to)
+      , rules: conflict.rules
     };
+  };
+}
+
+namespace Tagged {
+  export const to = (tagged: { [tag: string]: Transaction.Internal.t[] }) => (tag: string): any => {
+    return { [tag]: pipe(tagged[tag], A.map(Transaction.Internal.Json.to)) };
+  };
+}
+
+export const Json = new class implements Format.Formatter<t> {
+  public from = (obj: any): E.Either<Exception.t, t> => {
+    return E.throwError(Exception.throwInternalError) // TODO: JK
   }
 
-  namespace Tagged {
-    export const to = (tagged: { [tag: string]: Transaction.Internal.t[] }) => (tag: string): any => {
-      return { [tag]: pipe(tagged[tag], A.map(Transaction.Internal.Json.to)) };
-    };
-  }
-
-  export const to = (materialized: t): any => {
+  public to = (materialized: t): any => {
     const tagged = A.reduce({}, (tagged: object, [tag, transactions]: [string, Transaction.Internal.t[]]) => {
       return { ...tagged, [tag]: pipe(transactions, A.map(Transaction.Internal.Json.to)) };
     })(Array.from(materialized.tagged.entries()));
@@ -52,7 +55,7 @@ export namespace Json {
       , tagged: tagged
       , untagged: pipe(materialized.untagged, A.map(Transaction.Internal.Json.to))
     };
-  };
+  }
 }
 
 const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t[]> => {

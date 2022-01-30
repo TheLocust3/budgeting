@@ -7,7 +7,7 @@ import * as types from "io-ts-types";
 import { Exception, Format } from "magic";
 
 export namespace Internal {
-  const t = iot.type({
+  export const t = iot.type({
       id: iot.string
     , sourceId: iot.string
     , userId: iot.string
@@ -91,6 +91,15 @@ export namespace Internal {
 }
 
 export namespace Channel {
+  export namespace Query {
+    const t = iot.type({
+        userId: iot.string
+    });
+
+    export type t = iot.TypeOf<typeof t>
+    export const Json = new Format.JsonFormatter(t);
+  }
+
   export namespace Request {
     export namespace Create {
       const t = iot.type({
@@ -102,6 +111,17 @@ export namespace Channel {
         , authorizedAt: iot.number
         , capturedAt: types.option(iot.number)
         , metadata: iot.object
+      });
+
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new Format.JsonFormatter(t);
+    }
+  }
+
+  export namespace Response {
+    export namespace TransactionList {
+      const t = iot.type({
+        transactions: iot.array(Internal.t)
       });
 
       export type t = iot.TypeOf<typeof t>

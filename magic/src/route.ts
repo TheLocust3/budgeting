@@ -22,16 +22,26 @@ export const fromQuery = (value: string | string[] | undefined): E.Either<Except
 
 export const parseBody =
   (context: Koa.Context) =>
-  <T>(formatter: Format.JsonFormatter<T>): TE.TaskEither<Exception.t, T> => {
+  <T>(formatter: Format.Formatter<T>): TE.TaskEither<Exception.t, T> => {
   return pipe(
       formatter.from(context.request.body)
     , TE.fromEither
   );
 }
 
+export const parseQuery =
+  (context: Koa.Context) =>
+  <T>(formatter: Format.Formatter<T>): TE.TaskEither<Exception.t, T> => {
+  return pipe(
+      context.query
+    , formatter.from
+    , TE.fromEither
+  );    
+}
+
 export const respondWith =
   (context: Koa.Context) =>
-  <T>(formatter: Format.JsonFormatter<T>) =>
+  <T>(formatter: Format.Formatter<T>) =>
   (response: TE.TaskEither<Exception.t, T>): Promise<void> => {
   return pipe(
       response
