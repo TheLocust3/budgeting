@@ -4,7 +4,7 @@ import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
 
-import { Exception } from "magic";
+import * as Exception from "./exception";
 
 export type Formatter<T> = {
   from: (json: any) => E.Either<Exception.t, T>;

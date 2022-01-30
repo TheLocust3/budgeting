@@ -50,29 +50,33 @@ Run the test suite:
 
 ## todo
 
-### next
- - Frontend
-   - User onboarding
+### next (frontend)
+ - User onboarding
+
+### next (backend)
+ - expose accounts API
+ - create basic transaction splits
+ - add/delete transactions manually
 
 ### miscellaneous
  - Merge common table accessors
- - token timeout on UI + JWT
+ - token timeout on JWT
  - types for query paraments (+ decoders)
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
- - Optional remander in SplitByValue
+ - Optional remainder in SplitByValue
 
 ### future
  - Better puller
    - Create "summary" transaction of account value on initial pull
    - Retry on failure
+   - Don't re-add "deleted" transactions
  - Global service configuration
    - various secret keys
  - Authenticate requests between components
  - basic rule pushdowns
    - all include rules are up for grabs
  - Engine aggregations
- - move handling of write transaction requests away from engine
  - a productized path for adding superusers
  - Stateful reaper jobs
     - Make services stateless, can restart jobs on crash

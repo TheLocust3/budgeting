@@ -4,14 +4,12 @@ import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
 
-import { Formatter, JsonFormatter } from "./util";
-
-import { Exception } from "magic";
+import { Exception, Format } from "magic";
 
 export const DEFAULT_ROLE = "user";
 
 export namespace Internal {
-  const t = iot.type({
+  export const t = iot.type({
       id: iot.string
     , email: iot.string
     , password: iot.string
@@ -19,8 +17,8 @@ export namespace Internal {
   });
 
   export type t = iot.TypeOf<typeof t>
-  export const Json = new JsonFormatter(t);
-  export const Database = new class implements Formatter<t> {
+  export const Json = new Format.JsonFormatter(t);
+  export const Database = new class implements Format.Formatter<t> {
     TableType = iot.type({
         id: iot.string
       , email: iot.string
@@ -51,7 +49,7 @@ export namespace Frontend {
       });
       
       export type t = iot.TypeOf<typeof t>
-      export const Json = new JsonFormatter(t);
+      export const Json = new Format.JsonFormatter(t);
     }
 
     export namespace Create {
@@ -61,7 +59,7 @@ export namespace Frontend {
       });
 
       export type t = iot.TypeOf<typeof t>
-      export const Json = new JsonFormatter(t);
+      export const Json = new Format.JsonFormatter(t);
     }
   }
 
@@ -72,7 +70,16 @@ export namespace Frontend {
       });
       
       export type t = iot.TypeOf<typeof t>
-      export const Json = new JsonFormatter(t);
+      export const Json = new Format.JsonFormatter(t);
+    }
+
+    export namespace UserList {
+      const t = iot.type({
+          users: iot.array(Internal.t)
+      });
+
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new Format.JsonFormatter(t);
     }
   }
 }

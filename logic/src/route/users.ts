@@ -10,40 +10,27 @@ import UserFrontend from "../frontend/user-frontend";
 import { JWT } from "./util";
 
 import { User } from "model";
-import { Exception, Message } from "magic";
+import { Exception, Message, Route } from "magic";
 
 export const router = new Router();
 
 router
-  .post("/login", async (ctx, next) => {
-    await pipe(
-        ctx.request.body
-      , User.Frontend.Request.Credentials.Json.from
-      , TE.fromEither
-      , TE.chain(({ email, password }) => UserFrontend.login(ctx.db)(email, password))
+  .post("/login", (context) => {
+    return pipe(
+        Route.parseBody(context)(User.Frontend.Request.Credentials.Json)
+      , TE.chain(({ email, password }) => UserFrontend.login(context.db)(email, password))
       , TE.map(JWT.sign)
-      , TE.map((token) => User.Frontend.Response.Token.Json.to({ token: token }))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (token) => {
-              ctx.body = token;
-            }
-        )
-    )();
-  })
-  .post("/", async (ctx, next) => {
-    await pipe(
-        ctx.request.body
-      , User.Frontend.Request.Create.Json.from
-      , E.map((createUser) => { return { ...createUser, id: "", role: User.DEFAULT_ROLE }; })
-      , TE.fromEither
-      , TE.chain(UserFrontend.create(ctx.db))
-      , TE.map(User.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (user) => {
-              ctx.body = user;
-            }
-        )
-    )();
+      , TE.map((token) => { return { token: token }; })
+      , Route.respondWith(context)(User.Frontend.Response.Token.Json)
+    );
+  });
+
+router
+  .post("/", (context) => {
+    return pipe(
+        Route.parseBody(context)(User.Frontend.Request.Create.Json)
+      , TE.map((createUser) => { return { ...createUser, id: "", role: User.DEFAULT_ROLE }; })
+      , TE.chain(UserFrontend.create(context.db))
+      , Route.respondWith(context)(User.Internal.Json)
+    );
   });

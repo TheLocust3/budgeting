@@ -49,8 +49,7 @@ it("can get source", async () => {
     , TE.chain((source) => system.getSource(source.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (_source) => {
-            const source = _source.source;
+        , (source) => {
             expect(source).toEqual(expect.objectContaining({ userId: userId, name: name }));
             expect(typeof source.id).toBe("string");
           }

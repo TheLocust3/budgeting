@@ -3,10 +3,8 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 
-import { Formatter, JsonFormatter } from "./util";
-
 import * as Transaction from "./transaction";
-import { Exception } from "magic";
+import { Exception, Format } from "magic";
 
 export namespace Internal {
   export namespace Clause {
@@ -229,8 +227,8 @@ export namespace Internal {
   });
 
   export type t = iot.TypeOf<typeof t>
-  export const Json = new JsonFormatter(t);
-  export const Database = new class implements Formatter<t> {
+  export const Json = new Format.JsonFormatter(t);
+  export const Database = new class implements Format.Formatter<t> {
     TableType = iot.type({
         id: iot.string
       , account_id: iot.string
@@ -265,7 +263,7 @@ export namespace Channel {
       });
 
       export type t = iot.TypeOf<typeof t>
-      export const Json = new JsonFormatter(t);
+      export const Json = new Format.JsonFormatter(t);
     }
   }
 }

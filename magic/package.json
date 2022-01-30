@@ -29,6 +29,8 @@
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "moment": "^2.29.1",
+    "monocle-ts": "^2.3.12",
+    "newtype-ts": "^0.3.5",
     "node-fetch": "2.6",
     "nodemon": "^2.0.15",
     "pg": "^8.7.1",

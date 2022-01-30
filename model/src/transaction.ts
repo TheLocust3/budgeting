@@ -4,9 +4,7 @@ import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
 
-import { JsonFormatter, Formatter } from "./util";
-
-import { Exception } from "magic";
+import { Exception, Format } from "magic";
 
 export namespace Internal {
   const t = iot.type({
@@ -23,8 +21,8 @@ export namespace Internal {
   });
 
   export type t = iot.TypeOf<typeof t>
-  export const Json = new JsonFormatter(t);
-  export const Database = new class implements Formatter<t> {
+  export const Json = new Format.JsonFormatter(t);
+  export const Database = new class implements Format.Formatter<t> {
     TableType = iot.type({
         id: iot.string
       , source_id: iot.string
@@ -107,7 +105,7 @@ export namespace Channel {
       });
 
       export type t = iot.TypeOf<typeof t>
-      export const Json = new JsonFormatter(t);
+      export const Json = new Format.JsonFormatter(t);
     }
   }
 }

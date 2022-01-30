@@ -4,9 +4,7 @@ import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
 
-import { Formatter, JsonFormatter } from "./util";
-
-import { Exception } from "magic";
+import { Exception, Format } from "magic";
 
 export namespace Frontend {
   export namespace Request {
@@ -24,7 +22,7 @@ export namespace Frontend {
       });
 
       export type t = iot.TypeOf<typeof t>;
-      export const Json = new JsonFormatter(t);
+      export const Json = new Format.JsonFormatter(t);
     }
   }
 
@@ -35,7 +33,7 @@ export namespace Frontend {
       });
 
       export type t = iot.TypeOf<typeof t>;
-      export const Json = new JsonFormatter(t);
+      export const Json = new Format.JsonFormatter(t);
     }
   }
 }

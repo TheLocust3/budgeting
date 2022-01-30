@@ -9,68 +9,54 @@ import SourceFrontend from "../frontend/source-frontend";
 import { AuthenticationFor } from "./util";
 
 import { Source } from "model";
-import { Message } from "magic";
+import { Message, Route } from "magic";
 
 export const router = new Router();
 
 router
   .use(AuthenticationFor.user)
-  .get("/", async (ctx, next) => {
-    const user = ctx.state.user;
-    await pipe(
-        SourceFrontend.all(ctx.db)(user.id)
-      , TE.map(A.map(Source.Internal.Json.to))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (sources) => {
-              ctx.body = { sources: sources };
-            }
-        )
-    )();
-  })
-  .get("/:sourceId", async (ctx, next) => {
-    const user = ctx.state.user;
-    const sourceId = ctx.params.sourceId;
-    await pipe(
-        sourceId
-      , SourceFrontend.getById(ctx.db)(user.id)
-      , TE.map(Source.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (source) => {
-              ctx.body = { source: source };
-            }
-        )
-    )();
-  })
-  .post("/", async (ctx, next) => {
-    const user = ctx.state.user;
-    await pipe(
-        ctx.request.body
-      , Source.Frontend.Request.Create.Json.from
-      , E.map((createSource) => { return { ...createSource, id: "", userId: user.id, metadata: O.none, createdAt: O.none } })
-      , TE.fromEither
-      , TE.chain(SourceFrontend.create(ctx.db))
-      , TE.map(Source.Internal.Json.to)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (source) => {
-              ctx.body = source;
-            }
-        )
-    )();
-  })
-  .delete("/:sourceId", async (ctx, next) => {
-    const user = ctx.state.user;
-    const sourceId = ctx.params.sourceId;
-    await pipe(
-        sourceId
-      , SourceFrontend.deleteById(ctx.db)(user.id)
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (_) => {
-              ctx.body = Message.ok;
-            }
-        )
-    )();
+
+router
+  .get("/", (context) => {
+    const user = context.state.user;
+
+    return pipe(
+        SourceFrontend.all(context.db)(user.id)
+      , TE.map((sources) => { return { sources: sources }; })
+      , Route.respondWith(context)(Source.Frontend.Response.SourceList.Json)
+    );
+  });
+
+router
+  .get("/:sourceId", (context) => {
+    const user = context.state.user;
+    const sourceId = context.params.sourceId;
+
+    return pipe(
+        SourceFrontend.getById(context.db)(user.id)(sourceId)
+      , Route.respondWith(context)(Source.Internal.Json)
+    );
+  });
+
+router
+  .post("/", (context) => {
+    const user = context.state.user;
+
+    return pipe(
+        Route.parseBody(context)(Source.Frontend.Request.Create.Json)
+      , TE.map((createSource) => { return { ...createSource, id: "", userId: user.id, metadata: O.none, createdAt: O.none } })
+      , TE.chain(SourceFrontend.create(context.db))
+      , Route.respondWith(context)(Source.Internal.Json)
+    );
+  });
+
+router
+  .delete("/:sourceId", (context) => {
+    const user = context.state.user;
+    const sourceId = context.params.sourceId;
+
+    return pipe(
+        SourceFrontend.deleteById(context.db)(user.id)(sourceId)
+      , Route.respondWithOk(context)
+    );
   });

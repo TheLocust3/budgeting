@@ -1,3 +1,4 @@
+import Koa from "koa";
 import { Pool } from "pg";
 import Router from "@koa/router";
 import * as A from "fp-ts/Array";
@@ -13,51 +14,40 @@ import IntegrationFrontend from "../frontend/integration-frontend";
 import { AuthenticationFor } from "./util";
 
 import { Source, Integration, Plaid } from "model";
-import { Exception, Message, Plaid as PlaidHelper } from "magic";
+import { Exception, Message, Plaid as PlaidHelper, Route } from "magic";
 
 export const router = new Router();
 
 router
   .use(AuthenticationFor.user)
-  .post("/create_link_token", async (ctx, next) => {
-    const user = ctx.state.user;
+  .post("/create_link_token", (context) => {
+    const user = context.state.user;
 
-    await pipe(
-        PlaidHelper.createLinkToken(ctx.plaidClient)(user.id)
-      , TE.map((token) => {
-          return Plaid.Frontend.Response.CreateLinkToken.Json.to({ token: token });
-        })
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (response) => {
-              ctx.body = response;
-            }
-        )
-    )();
-  })
-  .post("/exchange_public_token", async (ctx, next) => {
-    await pipe(
-        TE.Do
-      , TE.bind("request", () => pipe(ctx.request.body, Plaid.Frontend.Request.ExchangePublicToken.Json.from, TE.fromEither))
-      , TE.bind("publicToken", ({ request }) => PlaidHelper.exchangePublicToken(ctx.plaidClient)(request.publicToken))
-      , TE.chain(({ request, publicToken }) => build(ctx)(request)(publicToken))
-      , TE.match(
-            Message.respondWithError(ctx)
-          , (_) => {
-              ctx.body = Message.ok;
-            }
-        )
-    )();
+    return pipe(
+        PlaidHelper.createLinkToken(context.plaidClient)(user.id)
+      , TE.map((token) => { return { token: token }; })
+      , Route.respondWith(context)(Plaid.Frontend.Response.CreateLinkToken.Json)
+    );
   });
 
-// TODO: JK really need to type this
+router
+  .post("/exchange_public_token", (context) => {
+    return pipe(
+        TE.Do
+      , TE.bind("request", () => Route.parseBody(context)(Plaid.Frontend.Request.ExchangePublicToken.Json))
+      , TE.bind("publicToken", ({ request }) => PlaidHelper.exchangePublicToken(context.plaidClient)(request.publicToken))
+      , TE.chain(({ request, publicToken }) => build(context)(request)(publicToken))
+      , Route.respondWithOk(context)
+    );
+  });
+
 const build =
-  (ctx: any) =>
+  (context: Koa.Context) =>
   (request: Plaid.Frontend.Request.ExchangePublicToken.t) =>
   (publicToken: ItemPublicTokenExchangeResponse): TE.TaskEither<Exception.t, void> => {
-  const requestId = ctx.state.id;
-  const user = ctx.state.user;
-  const pool = ctx.db
+  const requestId = context.state.id;
+  const user = context.state.user;
+  const pool = context.db
 
   console.log(`[${requestId}] - building integration/sources`);
 
