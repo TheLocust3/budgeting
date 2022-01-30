@@ -14,6 +14,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
+import moment from "moment";
 
 import { Exception } from "./index";
 
@@ -26,8 +27,8 @@ export const getTransactions =
         async () => {
           const response = await plaidClient.transactionsGet({
               access_token: accessToken
-            , start_date: String(startDate)
-            , end_date: String(endDate)
+            , start_date: moment(startDate).format("YYYY-MM-DD")
+            , end_date: moment(endDate).format("YYYY-MM-DD")
           });
 
           return response.data;

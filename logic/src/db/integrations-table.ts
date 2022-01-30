@@ -90,8 +90,8 @@ export const rollback = (pool: Pool): T.Task<boolean> => async () => {
 export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Integration.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.all(userId)),
-        E.toError
+          () => pool.query(Query.all(userId))
+        , E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
@@ -105,8 +105,8 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Integ
 export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, O.Option<Integration.Internal.t>> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.byId(userId, id)),
-        E.toError
+          () => pool.query(Query.byId(userId, id))
+        , E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
           res.rows
@@ -121,8 +121,8 @@ export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEi
 export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.deleteById(userId, id)),
-        E.toError
+          () => pool.query(Query.deleteById(userId, id))
+        , E.toError
       )
     , TE.map(x => { return; })
   );
@@ -131,8 +131,8 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
 export const create = (pool: Pool) => (integration: Integration.Internal.t) : TE.TaskEither<Error, Integration.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(integration.userId, integration.name, integration.credentials)),
-        E.toError
+          () => pool.query(Query.create(integration.userId, integration.name, integration.credentials))
+        , E.toError
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Integration.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))

@@ -18,16 +18,20 @@ import { Source } from "model";
 export const tick = (pool: Pool) => async (plaidClient: PlaidApi) => {
   console.log("Scheduler.tick - start");
 
-  await pipe(
-      SourceFrontend.allExpired(pool)()
-    , TE.map((expiredSources: Source.Internal.t[]) => {
-        console.log(`Scheduler.tick - found ${expiredSources.length} expired sources`);
-        return expiredSources;
-      })
-    , TE.map(A.map((expired) => {
-        Reaper.enqueue(PullerJob.run(pool)(plaidClient)(expired));
-      }))
-  )();
+  try {
+    await pipe(
+        SourceFrontend.allExpired(pool)()
+      , TE.map((expiredSources: Source.Internal.t[]) => {
+          console.log(`Scheduler.tick - found ${expiredSources.length} expired sources`);
+          return expiredSources;
+        })
+      , TE.map(A.map((expired) => {
+          Reaper.enqueue(PullerJob.run(pool)(plaidClient)(expired));
+        }))
+    )();
+  } catch (error) {
+    console.log(error);
+  }
 
-  setTimeout(() => tick(pool), 5000);
+  setTimeout(() => tick(pool)(plaidClient), 5000);
 }
