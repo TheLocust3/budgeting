@@ -8,8 +8,9 @@ import { Cookie } from './util';
 import { User } from "model";
 import { Channel, Exception } from "magic";
 
-export namespace SourceFrontend {
-  export const isAuthenticated = () => O.isSome(Cookie.get("token"))
+export namespace UserFrontend {
+  export const isAuthenticated = () =>
+    O.match(() => false, (token: string) => token !== undefined && token !== null && token !== "")(Cookie.get("token"))
 
   export const login = (email: string, password: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
@@ -46,4 +47,4 @@ export namespace SourceFrontend {
   };
 }
 
-export default SourceFrontend;
+export default UserFrontend;

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
@@ -94,7 +93,6 @@ const Submit = styled.button`
 `;
 
 function Login() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -106,7 +104,7 @@ function Login() {
         UserFrontend.login(email, password)
       , TE.match(
             () => setError("Invalid email/password")
-          , () => navigate("/")
+          , () => { window.location.href = "/"; }
         )
     )();
   }

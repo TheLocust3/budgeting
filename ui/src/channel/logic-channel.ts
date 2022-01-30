@@ -1,7 +1,8 @@
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/lib/pipeable";
 
-import { token } from '../frontend/util';
+import { Cookie, token } from '../frontend/util';
 
 import { Channel, Exception } from "magic";
 
@@ -10,7 +11,17 @@ export namespace LogicChannel {
   const port = "3001" // TODO: JK
 
   export const push = (uri: string) => (method: string) => (body: O.Option<any> = O.none): TE.TaskEither<Exception.t, any> => {
-    return Channel.pushWithToken(host)(port)(uri)(method)(token)(body);
+    return pipe(
+        Channel.pushWithToken(host)(port)(uri)(method)(token)(body)
+      , TE.mapLeft((error) => {
+          if (error._type === "Unauthorized") {
+            Cookie.set("token", "");
+            window.location.reload();
+          }
+
+          return error;
+        })
+    );
   }
 }
 

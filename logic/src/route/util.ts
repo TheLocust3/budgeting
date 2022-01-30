@@ -77,6 +77,7 @@ export namespace JWT {
         , Payload.from
         , TE.fromEither
         , TE.chain(({ userId }) => UserFrontend.getById(pool)(userId))
+        , TE.mapLeft((_) => Exception.throwUnauthorized)
       );
     } else {
       return TE.throwError(Exception.throwUnauthorized);
