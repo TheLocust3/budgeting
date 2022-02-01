@@ -19,7 +19,7 @@ router
     return pipe(
         Route.parseBody(context)(User.Frontend.Request.Credentials.Json)
       , TE.chain(({ email, password }) => UserFrontend.login(context.db)(email, password))
-      , TE.map(JWT.sign)
+      , TE.map((user) => JWT.sign(user))
       , TE.map((token) => { return { token: token }; })
       , Route.respondWith(context)(User.Frontend.Response.Token.Json)
     );

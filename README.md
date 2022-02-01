@@ -50,33 +50,39 @@ Run the test suite:
 
 ## todo
 
-### next (frontend)
- - User onboarding
-
-### next (backend)
- - expose accounts API
- - create basic transaction splits
- - add/delete transactions manually
+### next
+ - remove react frontend
+ - graphql API
+ - some way to manually insert Plaid credentials
+ - Better puller
+   - Create "summary" transaction of account value on initial pull
+   - Retry on failure
 
 ### miscellaneous
  - Merge common table accessors
  - token timeout on JWT
- - types for query paraments (+ decoders)
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
  - Optional remainder in SplitByValue
 
 ### future
- - Better puller
-   - Create "summary" transaction of account value on initial pull
-   - Retry on failure
-   - Don't re-add "deleted" transactions
+ - Move everything to S3 and get rid of Postgres
+   - /${user}/accounts.json
+   - /${user}/sources.json
+   - /${user}/transactions/${month}.json
+   - How to synchronize writes so that services don't clobber eachother?
+     - _Eventually_ a Storage Writer service
+     - Push updates to a queue, Storage Writers "own" specific users/types of writes
+     - `accounts` Storage Writer, `sources` Storage writer, then some sort of way to distribute users based on load
+     - For now, direct writes
+ - Engine aggregations
  - Global service configuration
    - various secret keys
+ - Deployment
+ - Amazon Cognito?
  - Authenticate requests between components
  - basic rule pushdowns
    - all include rules are up for grabs
- - Engine aggregations
  - a productized path for adding superusers
  - Stateful reaper jobs
     - Make services stateless, can restart jobs on crash
