@@ -1,5 +1,4 @@
-import Koa from "koa";
-import Router from "@koa/router";
+import Express from "express";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -12,6 +11,45 @@ import * as Exception from "./exception";
 import * as Message from "./message";
 import * as Format from "./format";
 
+type Context = {
+  request: Express.Request;
+  query: any;
+  body: any;
+  status: number;
+}
+
+type Handler = (context: Context) => Promise<void>;
+
+// provide some basic Koa interop to make my life easier
+export class Router {
+  private router = Express.Router();
+
+  public use = (handler: Express.RequestHandler) => {
+    this.router.use(handler);
+  }
+
+  public get = (route: string, handler: Handler) => {
+    this.router.get(route, this.handleRoute(handler));
+  }
+
+  public post = (route: string, handler: Handler) => {
+    this.router.post(route, this.handleRoute(handler));
+  }
+
+  public delete = (route: string, handler: Handler) => {
+    this.router.delete(route, this.handleRoute(handler));
+  }
+
+  private handleRoute = (handler: Handler) => {
+    return async (request: Express.Request, response: Express.Response) => {
+      const context: Context = { request: request, query: request.query, body: "", status: 200 };
+      await handler(context);
+      response.sendStatus(context.status);
+      response.json(context.body);
+    }
+  }
+}
+
 export const fromQuery = (value: string | string[] | undefined): E.Either<Exception.t, string> => {
   return pipe(
       value
@@ -21,7 +59,7 @@ export const fromQuery = (value: string | string[] | undefined): E.Either<Except
 };
 
 export const parseBody =
-  (context: Koa.Context) =>
+  (context: Context) =>
   <T>(formatter: Format.Formatter<T>): TE.TaskEither<Exception.t, T> => {
   return pipe(
       formatter.from(context.request.body)
@@ -30,7 +68,7 @@ export const parseBody =
 }
 
 export const parseQuery =
-  (context: Koa.Context) =>
+  (context: Context) =>
   <T>(formatter: Format.Formatter<T>): TE.TaskEither<Exception.t, T> => {
   return pipe(
       context.query
@@ -40,7 +78,7 @@ export const parseQuery =
 }
 
 export const respondWith =
-  (context: Koa.Context) =>
+  (context: Context) =>
   <T>(formatter: Format.Formatter<T>) =>
   (response: TE.TaskEither<Exception.t, T>): Promise<void> => {
   return pipe(
@@ -56,7 +94,7 @@ export const respondWith =
 }
 
 export const respondWithOk =
-  (context: Koa.Context) =>
+  (context: Context) =>
   (response: TE.TaskEither<Exception.t, any>): Promise<void> => {
   return pipe(
       response
