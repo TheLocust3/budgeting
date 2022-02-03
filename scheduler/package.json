@@ -12,8 +12,7 @@
     "test": "jest --forceExit --verbose"
   },
   "devDependencies": {
-    "@types/koa": "^2.13.4",
-    "@types/koa__router": "^8.0.11",
+    "@types/express": "^4.17.13",
     "@types/node": "^17.0.8",
     "@types/node-fetch": "^2.5.12",
     "concurrently": "^7.0.0",
@@ -25,15 +24,12 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
-    "@koa/router": "^10.1.1",
     "@types/jest": "^27.4.0",
-    "@types/koa-bodyparser": "^4.3.5",
     "@types/pg": "^8.6.3",
+    "express": "^4.17.2",
     "fp-ts": "^2.11.6",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
-    "koa": "^2.13.4",
-    "koa-bodyparser": "^4.3.0",
     "monocle-ts": "^2.3.12",
     "newtype-ts": "^0.3.5",
     "nodemon": "^2.0.15",

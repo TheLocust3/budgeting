@@ -1,7 +1,5 @@
 import crypto from "crypto";
-import Koa from "koa";
-import Router from "@koa/router";
-import bodyParser from "koa-bodyparser";
+import Express from "express";
 import { Pool } from "pg";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
@@ -10,15 +8,6 @@ import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 import * as Reaper from "./reaper/index";
 
 import { User } from "model";
-
-type State = {
-  id: string;
-}
-
-type Context = {
-  db: Pool;
-  plaidClient: PlaidApi;
-}
 
 const plaidConfig = new Configuration({
   basePath: PlaidEnvironments.sandbox,
@@ -31,29 +20,25 @@ const plaidConfig = new Configuration({
 });
 const plaidClient = new PlaidApi(plaidConfig);
 
-const app = new Koa<State, Context>();
-app.context.db = new Pool();
-app.context.plaidClient = plaidClient;
+const app = Express();
+app.locals.db = new Pool();
+app.locals.plaidClient = plaidClient;
 
-const router = new Router();
-
-app.use(async (ctx, next) => {
+app.use(async (request, response, next) => {
   const start = Date.now();
 
-  ctx.state.id = crypto.randomUUID();
-  console.log(`[${ctx.state.id}] ${ctx.method}: ${ctx.url}`)
+  response.locals.id = crypto.randomUUID();
+  console.log(`[${response.locals.id}] ${request.method}: ${request.url}`)
 
   await next();
 
   const took = Date.now() - start;
-  console.log(`[${ctx.state.id}] took ${took}ms`)
+  console.log(`[${response.locals.id}] took ${took}ms`)
 });
 
-app.use(bodyParser());
-app.use(router.routes());
-app.use(router.allowedMethods());
+app.use(Express.json());
 
 app.listen(3002);
 console.log("Listening at localhost:3002");
 
-Reaper.tick(app.context.db)(app.context.plaidClient);
+Reaper.tick(app.locals.db)(app.locals.plaidClient);

@@ -1,4 +1,3 @@
-import Router from "@koa/router";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -12,13 +11,13 @@ import { JWT } from "./util";
 import { User } from "model";
 import { Exception, Message, Route } from "magic";
 
-export const router = new Router();
+export const router = new Route.Router();
 
 router
   .post("/login", (context) => {
     return pipe(
         Route.parseBody(context)(User.Frontend.Request.Credentials.Json)
-      , TE.chain(({ email, password }) => UserFrontend.login(context.db)(email, password))
+      , TE.chain(({ email, password }) => UserFrontend.login(context.request.app.locals.db)(email, password))
       , TE.map((user) => JWT.sign(user))
       , TE.map((token) => { return { token: token }; })
       , Route.respondWith(context)(User.Frontend.Response.Token.Json)
@@ -30,7 +29,7 @@ router
     return pipe(
         Route.parseBody(context)(User.Frontend.Request.Create.Json)
       , TE.map((createUser) => { return { ...createUser, id: "", role: User.DEFAULT_ROLE }; })
-      , TE.chain(UserFrontend.create(context.db))
+      , TE.chain(UserFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(User.Internal.Json)
     );
   });

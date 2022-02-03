@@ -1,4 +1,3 @@
-import Router from "@koa/router";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -13,13 +12,13 @@ import { Rule } from "model";
 import * as Materialize from "../materialize/index";
 import { Message, Route } from "magic";
 
-export const router = new Router();
+export const router = new Route.Router();
 
 router
   .get("/", (context) => {
     return pipe(
         Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.all(context.db)(userId))
+      , TE.chain(({ userId }) => AccountFrontend.all(context.request.app.locals.db)(userId))
       , TE.map((accounts) => { return { accounts: accounts }; })
       , Route.respondWith(context)(Account.Channel.Response.AccountList.Json)
     );
@@ -27,25 +26,25 @@ router
 
 router
   .get("/:accountId", (context) => {
-    const accountId = context.params.accountId;
+    const accountId = context.request.params.accountId;
 
     return pipe(
         Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.db)(userId)(accountId))
+      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.request.app.locals.db)(userId)(accountId))
       , Route.respondWith(context)(Account.Internal.Json)
     );
   })
 
 router
   .get("/:accountId/materialize", (context) => {
-    const accountId = context.params.accountId;
+    const accountId = context.request.params.accountId;
 
     return pipe(
         Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.db)(userId)(accountId))
-      , TE.chain(AccountFrontend.withRules(context.db))
-      , TE.chain(AccountFrontend.withChildren(context.db))
-      , TE.chain((account) => Materialize.execute(context.state.id)(context.db)(account))
+      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.request.app.locals.db)(userId)(accountId))
+      , TE.chain(AccountFrontend.withRules(context.request.app.locals.db))
+      , TE.chain(AccountFrontend.withChildren(context.request.app.locals.db))
+      , TE.chain((account) => Materialize.execute(context.request.app.locals.id)(context.request.app.locals.db)(account))
       , Route.respondWith(context)(Materialize.Json)
     );
   });
@@ -55,18 +54,18 @@ router
     return pipe(
         Route.parseBody(context)(Account.Channel.Request.Create.Json)
       , TE.map((createAccount) => { return { ...createAccount, id: "", rules: [], children: [] } })
-      , TE.chain(AccountFrontend.create(context.db))
+      , TE.chain(AccountFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(Account.Internal.Json)
     );
   });
 
 router
   .delete("/:accountId", (context) => {
-    const accountId = context.params.accountId;
+    const accountId = context.request.params.accountId;
 
     return pipe(
         Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.deleteById(context.db)(userId)(accountId))
+      , TE.chain(({ userId }) => AccountFrontend.deleteById(context.request.app.locals.db)(userId)(accountId))
       , Route.respondWithOk(context)
     );
   });

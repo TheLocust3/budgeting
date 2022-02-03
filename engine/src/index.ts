@@ -1,45 +1,31 @@
 import crypto from "crypto";
-import Koa from "koa";
-import Router from "@koa/router";
-import bodyParser from "koa-bodyparser";
+import Express from "express";
 import { Pool } from "pg";
 
 import { router as transactionsRouter } from "./route/transactions";
 import { router as accountsRouter } from "./route/accounts";
 import { router as rulesRouter } from "./route/rules";
 
-type State = {
-  id: string;
-};
+const app = Express();
+app.locals.db = new Pool();
 
-type Context = {
-  db: Pool;
-}
-
-const app = new Koa<State, Context>();
-app.context.db = new Pool();
-
-const router = new Router();
-
-router.use("/channel/transactions", transactionsRouter.routes(), transactionsRouter.allowedMethods());
-router.use("/channel/accounts", accountsRouter.routes(), accountsRouter.allowedMethods());
-router.use("/channel/rules", rulesRouter.routes(), rulesRouter.allowedMethods());
-
-app.use(async (ctx, next) => {
+app.use((request, response, next) => {
   const start = Date.now();
 
-  ctx.state.id = crypto.randomUUID();
-  console.log(`[${ctx.state.id}] ${ctx.method}: ${ctx.url}`)
+  response.locals.id = crypto.randomUUID();
+  console.log(`[${response.locals.id}] ${request.method}: ${request.url}`)
 
-  await next();
+  next();
 
   const took = Date.now() - start;
-  console.log(`[${ctx.state.id}] took ${took}ms`)
+  console.log(`[${response.locals.id.id}] took ${took}ms`)
 });
 
-app.use(bodyParser());
-app.use(router.routes());
-app.use(router.allowedMethods());
+app.use(Express.json());
+
+app.use("/channel/transactions", transactionsRouter.router);
+app.use("/channel/accounts", accountsRouter.router);
+app.use("/channel/rules", rulesRouter.router);
 
 app.listen(3000);
 console.log("Listening at localhost:3000");

@@ -1,5 +1,3 @@
-import Koa from "koa";
-import Router from "@koa/router";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -18,7 +16,7 @@ import { AuthenticationFor } from "./util";
 import { User } from "model";
 import { Exception, Reaper, Message, Pipe, Route } from "magic";
 
-export const router = new Router();
+export const router = new Route.Router();
 
 router
   .use(AuthenticationFor.admin)
@@ -26,7 +24,7 @@ router
 router
   .get('/', (context) => {
     return pipe(
-        UserFrontend.all(context.db)()
+        UserFrontend.all(context.request.app.locals.db)()
       , TE.map((users) => { return { users: users }; })
       , Route.respondWith(context)(User.Frontend.Response.UserList.Json)
     );
@@ -34,19 +32,19 @@ router
 
 router
   .get('/:userId', (context) => {
-    const userId = context.params.userId
+    const userId = context.request.params.userId
 
     return pipe(
-        UserFrontend.getById(context.db)(userId)
+        UserFrontend.getById(context.request.app.locals.db)(userId)
       , Route.respondWith(context)(User.Internal.Json)
     );
   });
 
 router
-  .delete('/:userId', (context) => {
+  .delete('/:userId', async (context) => {
     // start async job
     Reaper.enqueue((id) => {
-      console.log(`DeleteUser[${id}] user ${context.state.user.id}`);
+      console.log(`DeleteUser[${id}] user ${context.response.locals.user.id}`);
 
       return pipe(
           cleanup(context)
@@ -63,12 +61,12 @@ router
       );
     });
 
-    context.body = Message.ok;
+    context.response.json(Message.ok);
   });
 
 // TODO: JK really don't want to pull all user's resources into memory
-const cleanup = (context: Koa.Context): TE.TaskEither<Exception.t, void> => {
-  const userId = context.params.userId
+const cleanup = (context: Route.Context): TE.TaskEither<Exception.t, void> => {
+  const userId = context.request.params.userId
 
   const deleteAll =
     (deleteById: (id: string) => TE.TaskEither<Exception.t, void>) =>
@@ -83,17 +81,17 @@ const cleanup = (context: Koa.Context): TE.TaskEither<Exception.t, void> => {
 
   const cleanupSources = () => {
     return pipe(
-        SourceFrontend.all(context.db)(userId)
+        SourceFrontend.all(context.request.app.locals.db)(userId)
       , TE.map(A.map((source) => source.id))
-      , deleteAll(SourceFrontend.deleteById(context.db)(userId))
+      , deleteAll(SourceFrontend.deleteById(context.request.app.locals.db)(userId))
     );
   }
 
   const cleanupIntegrations = () => {
     return pipe(
-        IntegrationFrontend.all(context.db)(userId)
+        IntegrationFrontend.all(context.request.app.locals.db)(userId)
       , TE.map(A.map((source) => source.id))
-      , deleteAll(IntegrationFrontend.deleteById(context.db)(userId))
+      , deleteAll(IntegrationFrontend.deleteById(context.request.app.locals.db)(userId))
     );
   }
 
@@ -119,7 +117,7 @@ const cleanup = (context: Koa.Context): TE.TaskEither<Exception.t, void> => {
     , TE.chain((_) => cleanupAccounts())
     , TE.chain((_) => cleanupAccounts())
     , TE.chain((_) => cleanupTransactions())
-    , TE.chain((_) => UserFrontend.deleteById(context.db)(userId))
+    , TE.chain((_) => UserFrontend.deleteById(context.request.app.locals.db)(userId))
     , TE.map((_) => {})
   );
 }

@@ -1,4 +1,4 @@
-import Koa from "koa";
+import Express from "express";
 import { Pool } from "pg";
 import jwt from "jsonwebtoken";
 import * as O from "fp-ts/Option";
@@ -10,27 +10,27 @@ import * as iot from "io-ts";
 import UserFrontend from "../frontend/user-frontend";
 
 import { User } from "model";
-import { Exception, Message } from "magic";
+import { Exception, Message, Route } from "magic";
 
 export namespace AuthenticationFor {
-  export const user = async (ctx: Koa.Context, next: Koa.Next) => {
+  export const user = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
     await pipe(
-        ctx.get("Authorization")
-      , JWT.verify(ctx.db)
+        String(request.header("Authorization"))
+      , JWT.verify(request.app.locals.db)
       , TE.match(
-          Message.respondWithError(ctx)
+          Message.respondWithError({ request, response })
         , async (user) => {
-            ctx.state.user = user;
-            await next();
+            response.locals.user = user;
+            next();
           }
       )
     )();
   };
 
-  export const admin = async (ctx: Koa.Context, next: Koa.Next) => {
+  export const admin = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
     await pipe(
-        ctx.get("Authorization")
-      , JWT.verify(ctx.db)
+        String(request.header("Authorization"))
+      , JWT.verify(request.app.locals.db)
       , TE.chain((user) => {
           if (user.role === 'superuser') {
             return TE.of(user);
@@ -39,10 +39,10 @@ export namespace AuthenticationFor {
           }
         })
       , TE.match(
-          Message.respondWithError(ctx)
+          Message.respondWithError({ request, response })
         , async (user) => {
-            ctx.state.user = user;
-            await next();
+            response.locals.user = user;
+            next();
           }
       )
     )();

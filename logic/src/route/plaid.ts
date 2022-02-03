@@ -1,6 +1,4 @@
-import Koa from "koa";
 import { Pool } from "pg";
-import Router from "@koa/router";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -16,15 +14,17 @@ import { AuthenticationFor } from "./util";
 import { Source, Integration, Plaid } from "model";
 import { Exception, Message, Plaid as PlaidHelper, Route } from "magic";
 
-export const router = new Router();
+export const router = new Route.Router();
 
 router
-  .use(AuthenticationFor.user)
+  .use(AuthenticationFor.user);
+
+router
   .post("/create_link_token", (context) => {
-    const user = context.state.user;
+    const user = context.response.locals.user;
 
     return pipe(
-        PlaidHelper.createLinkToken(context.plaidClient)(user.id)
+        PlaidHelper.createLinkToken(context.request.app.locals.plaidClient)(user.id)
       , TE.map((token) => { return { token: token }; })
       , Route.respondWith(context)(Plaid.Frontend.Response.CreateLinkToken.Json)
     );
@@ -35,19 +35,19 @@ router
     return pipe(
         TE.Do
       , TE.bind("request", () => Route.parseBody(context)(Plaid.Frontend.Request.ExchangePublicToken.Json))
-      , TE.bind("publicToken", ({ request }) => PlaidHelper.exchangePublicToken(context.plaidClient)(request.publicToken))
+      , TE.bind("publicToken", ({ request }) => PlaidHelper.exchangePublicToken(context.request.app.locals.plaidClient)(request.publicToken))
       , TE.chain(({ request, publicToken }) => build(context)(request)(publicToken))
       , Route.respondWithOk(context)
     );
   });
 
 const build =
-  (context: Koa.Context) =>
+  (context: Route.Context) =>
   (request: Plaid.Frontend.Request.ExchangePublicToken.t) =>
   (publicToken: ItemPublicTokenExchangeResponse): TE.TaskEither<Exception.t, void> => {
-  const requestId = context.state.id;
-  const user = context.state.user;
-  const pool = context.db
+  const requestId = context.response.locals.id;
+  const user = context.response.locals.user;
+  const pool = context.request.app.locals.db
 
   console.log(`[${requestId}] - building integration/sources`);
 

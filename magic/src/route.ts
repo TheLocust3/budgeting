@@ -11,18 +11,16 @@ import * as Exception from "./exception";
 import * as Message from "./message";
 import * as Format from "./format";
 
-type Context = {
+export type Context = {
   request: Express.Request;
-  query: any;
-  body: any;
-  status: number;
+  response: Express.Response;
 }
 
 type Handler = (context: Context) => Promise<void>;
 
 // provide some basic Koa interop to make my life easier
 export class Router {
-  private router = Express.Router();
+  public router = Express.Router();
 
   public use = (handler: Express.RequestHandler) => {
     this.router.use(handler);
@@ -42,10 +40,7 @@ export class Router {
 
   private handleRoute = (handler: Handler) => {
     return async (request: Express.Request, response: Express.Response) => {
-      const context: Context = { request: request, query: request.query, body: "", status: 200 };
-      await handler(context);
-      response.sendStatus(context.status);
-      response.json(context.body);
+      await handler({ request, response });
     }
   }
 }
@@ -71,7 +66,7 @@ export const parseQuery =
   (context: Context) =>
   <T>(formatter: Format.Formatter<T>): TE.TaskEither<Exception.t, T> => {
   return pipe(
-      context.query
+      context.request.query
     , formatter.from
     , TE.fromEither
   );    
@@ -87,7 +82,7 @@ export const respondWith =
     , TE.match(
           Message.respondWithError(context)
         , (out: any) => {
-            context.body = out;
+            context.response.json(out);
           }
       )
   )();
@@ -101,7 +96,7 @@ export const respondWithOk =
     , TE.match(
           Message.respondWithError(context)
         , (out: any) => {
-            context.body = Message.ok;
+            context.response.json(Message.ok);
           }
       )
   )();

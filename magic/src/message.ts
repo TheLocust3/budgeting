@@ -1,5 +1,8 @@
+import Express from "express";
 import * as E from "fp-ts/Either";
+
 import * as Exception from "./exception";
+import * as Route from "./route";
 
 type OkMessage = {
   message: "ok";
@@ -17,33 +20,27 @@ export const error = (details: string): ErrorMessage => {
   return { message: "failed", error: details };
 };
 
-export const respondWithError = (ctx: any) => (exception: Exception.t): void => {
-  console.log(`[${ctx.state.id}] responding with ${exception._type}`)
+export const respondWithError = (context: Route.Context) => (exception: Exception.t): void => {
+  console.log(`[${context.response.locals.id}] responding with ${exception._type}`)
 
   switch (exception._type) {
     case "InvalidRule":
-      ctx.status = 400;
-      ctx.body = error("Invalid rule");
+      context.response.status(400).json(error("Invalid rule"));
       return;
     case "BadRequest":
-      ctx.status = 400;
-      ctx.body = error("Bad request");
+      context.response.status(400).json(error("Bad request"));
       return;
     case "MalformedJson":
-      ctx.status = 400;
-      ctx.body = error("Malformed Json");
+      context.response.status(400).json(error("Malformed Json"));
       return;
     case "NotFound":
-      ctx.status = 404;
-      ctx.body = error("Not found");
+      context.response.status(400).json(error("Not found"));
       return;
     case "InternalError":
-      ctx.status = 500;
-      ctx.body = error("Internal error");
+      context.response.status(500).json(error("Internal error"));
       return;
     case "Unauthorized":
-      ctx.status = 403;
-      ctx.body = error("Unauthorized");
+      context.response.status(403).json(error("Unauthorized"));
       return;
   }
 };

@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import Router from "@koa/router";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -12,13 +11,13 @@ import TransactionFrontend from "../frontend/transaction-frontend";
 import { Transaction } from "model";
 import { Message, Route } from "magic";
 
-export const router = new Router();
+export const router = new Route.Router();
 
 router
   .get("/", (context) => {
     return pipe(
         Route.parseQuery(context)(Transaction.Channel.Query.Json)
-      , TE.chain(({ userId }) => TransactionFrontend.all(context.db)(userId))
+      , TE.chain(({ userId }) => TransactionFrontend.all(context.request.app.locals.db)(userId))
       , TE.map((transactions) => { return { transactions: transactions }; })
       , Route.respondWith(context)(Transaction.Channel.Response.TransactionList.Json)
     );
@@ -26,11 +25,11 @@ router
 
 router
   .get("/:transactionId", (context) => {
-    const transactionId = context.params.transactionId;
+    const transactionId = context.request.params.transactionId;
 
     return pipe(
         Route.parseQuery(context)(Transaction.Channel.Query.Json)
-      , TE.chain(({ userId }) => TransactionFrontend.getById(context.db)(userId)(transactionId))
+      , TE.chain(({ userId }) => TransactionFrontend.getById(context.request.app.locals.db)(userId)(transactionId))
       , Route.respondWith(context)(Transaction.Internal.Json)
     );
   });
@@ -43,18 +42,18 @@ router
           const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(createTransaction.capturedAt);
           return { ...createTransaction, id: crypto.randomUUID(), authorizedAt: new Date(createTransaction.authorizedAt), capturedAt: capturedAt, custom: {} };
         })
-      , TE.chain(TransactionFrontend.create(context.db))
+      , TE.chain(TransactionFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(Transaction.Internal.Json)
     );
   });
 
 router
   .delete("/:transactionId", (context) => {
-    const transactionId = context.params.transactionId;
+    const transactionId = context.request.params.transactionId;
 
     return pipe(
         Route.parseQuery(context)(Transaction.Channel.Query.Json)
-      , TE.chain(({ userId }) => TransactionFrontend.deleteById(context.db)(userId)(transactionId))
+      , TE.chain(({ userId }) => TransactionFrontend.deleteById(context.request.app.locals.db)(userId)(transactionId))
       , Route.respondWithOk(context)
     );
   });
