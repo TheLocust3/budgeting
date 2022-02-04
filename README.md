@@ -51,7 +51,6 @@ Run the test suite:
 ## todo
 
 ### next
- - remove react frontend
  - graphql API
  - some way to manually insert Plaid credentials
  - Better puller
