@@ -55,7 +55,7 @@ export const fromQuery = (value: string | string[] | undefined): E.Either<Except
 
 export const parseBody =
   (context: Context) =>
-  <T>(formatter: Format.Formatter<T>): TE.TaskEither<Exception.t, T> => {
+  <T>(formatter: Format.Formatter<T, any>): TE.TaskEither<Exception.t, T> => {
   return pipe(
       formatter.from(context.request.body)
     , TE.fromEither
@@ -64,7 +64,7 @@ export const parseBody =
 
 export const parseQuery =
   (context: Context) =>
-  <T>(formatter: Format.Formatter<T>): TE.TaskEither<Exception.t, T> => {
+  <T>(formatter: Format.Formatter<T, any>): TE.TaskEither<Exception.t, T> => {
   return pipe(
       context.request.query
     , formatter.from
@@ -74,7 +74,7 @@ export const parseQuery =
 
 export const respondWith =
   (context: Context) =>
-  <T>(formatter: Format.Formatter<T>) =>
+  <T>(formatter: Format.Formatter<T, any>) =>
   (response: TE.TaskEither<Exception.t, T>): Promise<void> => {
   return pipe(
       response

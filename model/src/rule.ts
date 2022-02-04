@@ -228,7 +228,7 @@ export namespace Internal {
 
   export type t = iot.TypeOf<typeof t>
   export const Json = new Format.JsonFormatter(t);
-  export const Database = new class implements Format.Formatter<t> {
+  export const Database = new class implements Format.Formatter<t, any> {
     TableType = iot.type({
         id: iot.string
       , account_id: iot.string

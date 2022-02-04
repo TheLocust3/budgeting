@@ -40,7 +40,7 @@ namespace Tagged {
   };
 }
 
-export const Json = new class implements Format.Formatter<t> {
+export const Json = new class implements Format.Formatter<t, any> {
   public from = (obj: any): E.Either<Exception.t, t> => {
     return E.throwError(Exception.throwInternalError) // TODO: JK
   }

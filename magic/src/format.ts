@@ -6,12 +6,16 @@ import * as types from "io-ts-types";
 
 import * as Exception from "./exception";
 
-export type Formatter<T> = {
-  from: (json: any) => E.Either<Exception.t, T>;
-  to: (obj: T) => any;
+export type Conversion<FromType, ToType> = {
+  to: (obj: FromType) => ToType;
 }
 
-export class JsonFormatter<T> implements Formatter<T> {
+export type Formatter<To, From> = {
+  from: (json: From) => E.Either<Exception.t, To>;
+  to: (obj: To) => From;
+}
+
+export class JsonFormatter<T> implements Formatter<T, any> {
   constructor(private readonly type: iot.Type<T, any>) {}
 
   public from = (json: any): E.Either<Exception.t, T> => {

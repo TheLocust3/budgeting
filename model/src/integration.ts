@@ -7,7 +7,7 @@ import * as types from "io-ts-types";
 import { Exception, Format } from "magic";
 
 export namespace Internal {
-  const PlaidCredentials = iot.type({
+  export const PlaidCredentials = iot.type({
       _type: iot.literal("Plaid")
     , itemId: iot.string
     , accessToken: iot.string
@@ -25,7 +25,7 @@ export namespace Internal {
 
   export type t = iot.TypeOf<typeof t>
   export const Json = new Format.JsonFormatter(t);
-  export const Database = new class implements Format.Formatter<t> {
+  export const Database = new class implements Format.Formatter<t, any> {
     TableType = iot.type({
         id: iot.string
       , user_id: iot.string
