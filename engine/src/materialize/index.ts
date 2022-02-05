@@ -5,18 +5,13 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
-import TransactionFrontend from "../frontend/transaction-frontend";
 import AccountFrontend from "../frontend/account-frontend";
 import RuleFrontend from "../frontend/rule-frontend";
-
-import * as AccountsTable from "../db/accounts";
-import * as TransactionsTable from "../db/transactions";
-import * as RulesTable from "../db/rules";
-import { Transaction } from "model";
-import { Rule } from "model";
-import { Account } from "model";
 import * as Plan from "./plan";
 import * as Materializer from "./materializer";
+
+import { Account, Rule, Transaction } from "model";
+import { TransactionFrontend } from "storage";
 import { Exception, Format } from "magic";
 
 export type t = {
@@ -127,7 +122,7 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): 
   }
 };
 
-export const execute = (id: string) => (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
+export const execute = (id: string) => (userEmail: string) => (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
   // TODO: JK track materialize logs with id
   console.log(`[${id}] materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   
@@ -139,7 +134,7 @@ export const execute = (id: string) => (pool: Pool) => (account: Account.Interna
         console.log(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
 
         return pipe(
-            TransactionFrontend.all(pool)(account.userId)
+            TransactionFrontend.all(userEmail)
           , TE.map(executePlan(plan))
         );
       })

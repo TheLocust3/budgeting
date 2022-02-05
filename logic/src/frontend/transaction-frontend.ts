@@ -10,17 +10,17 @@ import { Transaction } from "model";
 import { Channel, Exception } from "magic";
 
 export namespace TransactionFrontend {
-  export const all = (userId: string): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
+  export const all = (userEmail: string): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     return pipe(
-        EngineChannel.push(`/transactions?userId=${userId}`)('GET')()
+        EngineChannel.push(`/transactions?userEmail=${userEmail}`)('GET')()
       , Channel.to(Transaction.Channel.Response.TransactionList.Json.from)
       , TE.map(({ transactions }) => transactions)
     );
   };
 
-  export const getById = (userId: string) => (id: string): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+  export const getById = (userEmail: string) => (id: string): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
-        EngineChannel.push(`/transactions/${id}?userId=${userId}`)('GET')()
+        EngineChannel.push(`/transactions/${id}?userEmail=${userEmail}`)('GET')()
       , Channel.to(Transaction.Internal.Json.from)
     );
   };
@@ -36,9 +36,9 @@ export namespace TransactionFrontend {
     );
   };
 
-  export const deleteById = (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (userEmail: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
-        EngineChannel.push(`/transactions/${id}?userId=${userId}`)('DELETE')()
+        EngineChannel.push(`/transactions/${id}?userEmail=${userEmail}`)('DELETE')()
       , Channel.toVoid
     );
   };

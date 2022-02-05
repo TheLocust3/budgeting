@@ -10,7 +10,6 @@ export namespace Internal {
   export const t = iot.type({
       id: iot.string
     , sourceId: iot.string
-    , userId: iot.string
     , amount: iot.number
     , merchantName: iot.string
     , description: iot.string
@@ -22,45 +21,6 @@ export namespace Internal {
 
   export type t = iot.TypeOf<typeof t>
   export const Json = new Format.JsonFormatter(t);
-  export const Database = new class implements Format.Formatter<t, any> {
-    TableType = iot.type({
-        id: iot.string
-      , source_id: iot.string
-      , user_id: iot.string
-      , amount: types.NumberFromString
-      , merchant_name: iot.string
-      , description: iot.string
-      , authorized_at: types.date
-      , captured_at: types.optionFromNullable(types.date)
-      , metadata: iot.object
-    });
-
-    public from = (obj: any): E.Either<Exception.t, t> => {
-      return pipe(
-          obj
-        , this.TableType.decode
-        , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata }) => {
-            return {
-                id: id
-              , sourceId: source_id
-              , userId: user_id
-              , amount: amount
-              , merchantName: merchant_name
-              , description: description
-              , authorizedAt: authorized_at
-              , capturedAt: captured_at
-              , metadata: metadata
-              , custom: {}
-            };
-          })
-      );
-    }
-
-    public to = (obj: t): any => {
-      return {} // TODO: JK we don't use this anywhere but should probably implement it
-    }
-  };
 
   export namespace Field {
     export type NumberField = "amount" | "authorizedAt" | "capturedAt";
@@ -73,11 +33,10 @@ export namespace Internal {
     export type OptionNumberField = "capturedAt";
     export const OptionNumberField: iot.Type<Internal.Field.OptionNumberField> = iot.literal("capturedAt");
 
-    export type StringField = "id" | "sourceId" | "userId" | "merchantName" | "description";
+    export type StringField = "id" | "sourceId" | "merchantName" | "description";
     export const StringField: iot.Type<Internal.Field.StringField> = iot.union([
         iot.literal("id")
       , iot.literal("sourceId")
-      , iot.literal("userId")
       , iot.literal("merchantName")
       , iot.literal("description")
     ]);
@@ -93,7 +52,7 @@ export namespace Internal {
 export namespace Channel {
   export namespace Query {
     const t = iot.type({
-        userId: iot.string
+        userEmail: iot.string
     });
 
     export type t = iot.TypeOf<typeof t>
@@ -104,7 +63,6 @@ export namespace Channel {
     export namespace Create {
       const t = iot.type({
           sourceId: iot.string
-        , userId: iot.string
         , amount: iot.number
         , merchantName: iot.string
         , description: iot.string

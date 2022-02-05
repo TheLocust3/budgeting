@@ -17,14 +17,14 @@ export namespace UserEntry {
 
   const storageWriter = Writers.overwriteWriter<User.Internal.t>();
 
-  export const idFor = (email: string) => hash(email);
+  export const idFor = (userEmail: string) => hash(userEmail);
 
   export const list = () : TE.TaskEither<Exception.t, string[]> => {
     return entry.listObjects();
   }
 
-  export const byEmail = (email: string) : TE.TaskEither<Exception.t, User.Internal.t> => {
-    const objectId = idFor(email);
+  export const byEmail = (userEmail: string) : TE.TaskEither<Exception.t, User.Internal.t> => {
+    const objectId = idFor(userEmail);
 
     return entry.getObject(objectId);
   }

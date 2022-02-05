@@ -75,6 +75,7 @@ Run the test suite:
  - Storage improvements
    - Spin off into separate repo
    - Migrations
+     - split transactions out by month
    - Make more generic
  - Engine aggregations
  - Global service configuration

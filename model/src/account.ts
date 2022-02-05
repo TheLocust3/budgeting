@@ -53,7 +53,7 @@ export namespace Internal {
 export namespace Channel {
   export namespace Query {
     const t = iot.type({
-        userId: iot.string
+        userEmail: iot.string
     });
 
     export type t = iot.TypeOf<typeof t>

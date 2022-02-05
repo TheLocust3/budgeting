@@ -18,7 +18,7 @@ router
   .get("/", (context) => {
     return pipe(
         Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.all(context.request.app.locals.db)(userId))
+      , TE.chain(({ userEmail }) => AccountFrontend.all(context.request.app.locals.db)(userEmail))
       , TE.map((accounts) => { return { accounts: accounts }; })
       , Route.respondWith(context)(Account.Channel.Response.AccountList.Json)
     );
@@ -30,7 +30,7 @@ router
 
     return pipe(
         Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.request.app.locals.db)(userId)(accountId))
+      , TE.chain(({ userEmail }) => AccountFrontend.getByIdAndUserId(context.request.app.locals.db)(userEmail)(accountId))
       , Route.respondWith(context)(Account.Internal.Json)
     );
   })
@@ -40,11 +40,16 @@ router
     const accountId = context.request.params.accountId;
 
     return pipe(
-        Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.request.app.locals.db)(userId)(accountId))
-      , TE.chain(AccountFrontend.withRules(context.request.app.locals.db))
-      , TE.chain(AccountFrontend.withChildren(context.request.app.locals.db))
-      , TE.chain((account) => Materialize.execute(context.request.app.locals.id)(context.request.app.locals.db)(account))
+        TE.Do
+      , TE.bind("query", () => Route.parseQuery(context)(Account.Channel.Query.Json))
+      , TE.bind("account", ({ query }) => {
+          return pipe(
+              AccountFrontend.getByIdAndUserId(context.request.app.locals.db)(query.userEmail)(accountId)
+            , TE.chain(AccountFrontend.withRules(context.request.app.locals.db))
+            , TE.chain(AccountFrontend.withChildren(context.request.app.locals.db))
+          );
+        })
+      , TE.chain(({ query, account }) => Materialize.execute(context.request.app.locals.id)(query.userEmail)(context.request.app.locals.db)(account))
       , Route.respondWith(context)(Materialize.Json)
     );
   });
@@ -65,7 +70,7 @@ router
 
     return pipe(
         Route.parseQuery(context)(Account.Channel.Query.Json)
-      , TE.chain(({ userId }) => AccountFrontend.deleteById(context.request.app.locals.db)(userId)(accountId))
+      , TE.chain(({ userEmail }) => AccountFrontend.deleteById(context.request.app.locals.db)(userEmail)(accountId))
       , Route.respondWithOk(context)
     );
   });
