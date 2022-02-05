@@ -6,6 +6,8 @@ import * as TE from "fp-ts/TaskEither";
 
 import { Passthrough, FilePassthrough } from "./passthrough";
 
+import { Exception } from "magic";
+
 export const rootPath = String(process.env.META);
 export const hash = (value: string) => uuidv5(value, uuidv5.URL);
 export const passthrough: Passthrough = new FilePassthrough();
@@ -28,3 +30,10 @@ export namespace Writers {
     };
   }
 }
+
+export const orNotFound = TE.chain((option: O.Option<any>) => {
+  return O.match(
+      () => TE.left(Exception.throwNotFound)
+    , (some: any) => TE.right(some)
+  )(option)
+});

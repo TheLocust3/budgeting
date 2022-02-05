@@ -9,45 +9,21 @@ import * as Rule from "./rule";
 import { Exception, Format } from "magic";
 
 export namespace Internal {
-  export const t = iot.type({
+  export type t = {
+    id: string;
+    name: string;
+    rules: Rule.Internal.t[];
+    children: t[]
+  }
+
+  export const t: iot.Type<t> = iot.recursion('t', () => iot.type({
       id: iot.string
-    , parentId: types.option(iot.string)
-    , userId: iot.string
     , name: iot.string
     , rules: iot.array(Rule.Internal.t)
-    , children: iot.array(iot.string)
-  });
+    , children: iot.array(t)
+  }));
 
-  export type t = iot.TypeOf<typeof t>;
   export const Json = new Format.JsonFormatter(t);
-  export const Database = new class implements Format.Formatter<t, any> {
-    TableType = iot.type({
-        id: iot.string
-      , parent_id: types.optionFromNullable(iot.string)
-      , user_id: iot.string
-      , name: iot.string
-    });
-
-    public from = (obj: any): E.Either<Exception.t, t> => {
-      return pipe(
-          obj
-        , this.TableType.decode
-        , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, parent_id, user_id, name }) => {
-            return { id: id, parentId: parent_id, userId: user_id, name: name, rules: [], children: [] }
-          })
-      );
-    }
-
-    public to = (obj: t): any => {
-      return {
-          id: obj.id
-        , parent_id: obj.parentId
-        , user_id: obj.userId
-        , name: obj.name
-      }
-    }
-  };
 }
 
 export namespace Channel {
@@ -64,7 +40,6 @@ export namespace Channel {
     export namespace Create {
       const t = iot.type({
           parentId: types.option(iot.string)
-        , userId: iot.string
         , name: iot.string
       });
 

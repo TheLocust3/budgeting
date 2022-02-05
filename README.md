@@ -54,6 +54,7 @@ Run the test suite:
 ### next
  - Block storage DB
    - Migrate all of engine
+   - transactions + accounts + integrations should be indexed by id
    - Rethink scheduler logic
  - graphql API
    - rewrite logic routes
@@ -73,10 +74,10 @@ Run the test suite:
 
 ### future
  - Storage improvements
-   - Spin off into separate repo
    - Migrations
      - split transactions out by month
-   - Make more generic
+     - split out rules by account
+   - Spin off into separate repo
  - Engine aggregations
  - Global service configuration
    - various secret keys
