@@ -10,34 +10,13 @@ export const DEFAULT_ROLE = "user";
 
 export namespace Internal {
   export const t = iot.type({
-      id: iot.string
-    , email: iot.string
+      email: iot.string
     , password: iot.string
     , role: iot.string
   });
 
   export type t = iot.TypeOf<typeof t>
   export const Json = new Format.JsonFormatter(t);
-  export const Database = new class implements Format.Formatter<t, any> {
-    TableType = iot.type({
-        id: iot.string
-      , email: iot.string
-      , password: iot.string
-      , role: iot.string
-    });    
-
-    public from = (obj: any): E.Either<Exception.t, t> => {
-      return pipe(
-          obj
-        , this.TableType.decode
-        , E.mapLeft((_) => Exception.throwInternalError)
-      );
-    }
-
-    public to = (obj: t): any => {
-      return this.TableType.encode(obj);
-    }
-  };
 }
 
 export namespace Frontend {

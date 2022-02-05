@@ -6,32 +6,61 @@ import * as TE from "fp-ts/TaskEither";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
 
-import { Passthrough } from "./passthrough";
-import { rootPath, hash } from "./util";
+import { Entry } from "./entry";
+import UserEntry from "./user-entry";
+import { rootPath, hash, passthrough, Writers } from "./util";
 
 import { Integration } from "model";
-import { Exception } from "magic";
+import { Exception, Format } from "magic";
 
-/*namespace IntegrationEntry {
+namespace IntegrationEntry {
   namespace Storage {
-    const Integration = iot.type({
-        name: iot.string
-      , credentials: Integration.Internal.PlaidCredentials
+    const t = iot.type({
+      integrations: iot.array(Integration.Internal.t)
     });
 
-    const t = iot.type({
-      integrations: iot.array(t)
-    });
+    export type t = iot.TypeOf<typeof t>
+    export const Json = new Format.JsonFormatter(t);
   }
 
-  const path = (userId: string) => `${rootPath}/users/${userId}/integrations.json`;
+  const entry = new Entry(passthrough, { root: rootPath, name: "integrations", format: Storage.Json });
 
-  export const all = (passthrough: Passthrough) => (userId: string) : TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
+  const storageWriter = Writers.orDefaultWriter<Storage.t>({ integrations: []});
+
+  export const all = (email: string) : TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
+    const id = UserEntry.idFor(email);
+
     return pipe(
-        path(email)
-      , passthrough.getObject(User.Internal.Json)
+        entry.getObject(id)
+      , TE.map((stored) => stored.integrations)
+    );
+  }
+
+  export const create =
+    (email: string) =>
+    (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
+    const id = UserEntry.idFor(email);
+    const writer = storageWriter((saved: Storage.t) => {
+      return { integrations: [integration] }; // TODO: JK
+    })
+
+    return pipe(
+        entry.putObject(id)(writer)
+      , TE.map(() => {})
+    );
+  }
+
+  export const deleteByEmail = (email: string) : TE.TaskEither<Exception.t, void> => {
+    const id = UserEntry.idFor(email);
+    const writer = storageWriter((saved: Storage.t) => {
+      return { integrations: [] }; // TODO: JK
+    })
+
+    return pipe(
+        entry.putObject(id)(writer)
+      , TE.map(() => {})
     );
   }
 }
 
-export default IntegrationEntry;*/
+export default IntegrationEntry;

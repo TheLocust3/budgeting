@@ -6,21 +6,22 @@ import * as TE from "fp-ts/TaskEither";
 
 import { Exception, Format } from "magic";
 
+type Writer = (savedObject: O.Option<any>) => E.Either<Exception.t, any>;
+
 export type Passthrough = {
-  putObject: <T>(formatter: Format.JsonFormatter<T>) => (writeFunc: (savedObject: O.Option<T>) => T) => (path: string) => TE.TaskEither<Exception.t, T>;
-  getObject: <T>(formatter: Format.JsonFormatter<T>) => (path: string) => TE.TaskEither<Exception.t, T>;
+  putObject: (writeFunc: Writer) => (path: string) => TE.TaskEither<Exception.t, any>;
+  getObject: (path: string) => TE.TaskEither<Exception.t, any>;
   deleteObject: (path: string) => TE.TaskEither<Exception.t, void>;
 }
 
 export class FilePassthrough implements Passthrough {
   public putObject =
-    <T>(formatter: Format.JsonFormatter<T>) =>
-    (writeFunc: (savedObject: O.Option<T>) => T) =>
-    (path: string): TE.TaskEither<Exception.t, T> => {
+    (writeFunc: Writer) =>
+    (path: string): TE.TaskEither<Exception.t, any> => {
     return TE.throwError(Exception.throwNotFound);
   }
 
-  public getObject = <T>(formatter: Format.JsonFormatter<T>) => (path: string): TE.TaskEither<Exception.t, T> => {
+  public getObject = (path: string): TE.TaskEither<Exception.t, any> => {
     return TE.throwError(Exception.throwNotFound);
   }
 

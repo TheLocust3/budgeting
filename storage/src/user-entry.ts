@@ -6,60 +6,32 @@ import * as TE from "fp-ts/TaskEither";
 import * as iot from "io-ts";
 import * as types from "io-ts-types";
 
-import { Passthrough } from "./passthrough";
-import { rootPath, hash } from "./util";
+import { Entry } from "./entry";
+import { rootPath, hash, passthrough, Writers } from "./util";
 
 import { User } from "model";
 import { Exception, Format } from "magic";
 
 namespace UserEntry {
-  namespace Storage {
-    export const t = iot.type({
-        email: iot.string
-      , password: iot.string
-      , role: iot.string
-    });
+  const entry = new Entry(passthrough, { root: rootPath, name: "user", format: User.Internal.Json });
 
-    export type t = iot.TypeOf<typeof t>
+  const storageWriter = Writers.overwriteWriter<User.Internal.t>();
 
-    export const Json = new Format.JsonFormatter(t);
+  export const idFor = (email: string) => hash(email);
 
-    export const ToInternal = new class implements Format.Conversion<t, User.Internal.t> {
-      public to = (user: t): User.Internal.t => {
-        return { id: idFor(user.email), email: user.email, password: user.password, role: user.role };
-      }
-    };
+  export const getByEmail = (email: string) : TE.TaskEither<Exception.t, User.Internal.t> => {
+    const id = idFor(email);
 
-    export const FromInternal = new class implements Format.Conversion<User.Internal.t, t> {
-      public to = (user: User.Internal.t): t => {
-        return { email: user.email, password: user.password, role: user.role };
-      }
-    };
+    return entry.getObject(id);
   }
 
-  const idFor = (email: string) => hash(email);
-  const pathFor = (email: string) => `${rootPath}/users/${idFor(email)}.json`;
+  export const create = (user: User.Internal.t) : TE.TaskEither<Exception.t, void> => {
+    const id = idFor(user.email);
+    const writer = storageWriter(user);
 
-  export const byEmail = (passthrough: Passthrough) => (email: string) : TE.TaskEither<Exception.t, User.Internal.t> => {
     return pipe(
-        pathFor(email)
-      , passthrough.getObject(Storage.Json)
-      , TE.map(Storage.ToInternal.to)
-    );
-  }
-
-  export const create = (passthrough: Passthrough) => (user: User.Internal.t) : TE.TaskEither<Exception.t, User.Internal.t> => {
-    return pipe(
-        pathFor(user.email)
-      , passthrough.putObject(Storage.Json)(() => Storage.FromInternal.to(user))
-      , TE.map(Storage.ToInternal.to)
-    );
-  }
-
-  export const deleteByEmail = (passthrough: Passthrough) => (email: string) : TE.TaskEither<Exception.t, void> => {
-    return pipe(
-        pathFor(email)
-      , passthrough.deleteObject
+        entry.putObject(id)(writer)
+      , TE.map(() => {})
     );
   }
 }

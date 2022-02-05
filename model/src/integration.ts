@@ -16,43 +16,13 @@ export namespace Internal {
   export const Credentials = PlaidCredentials;
   export type Credentials = iot.TypeOf<typeof Credentials>;
 
-  const t = iot.type({
-      id: iot.string
-    , userId: iot.string
-    , name: iot.string
+  export const t = iot.type({
+      name: iot.string
     , credentials: PlaidCredentials
   });
 
   export type t = iot.TypeOf<typeof t>
   export const Json = new Format.JsonFormatter(t);
-  export const Database = new class implements Format.Formatter<t, any> {
-    TableType = iot.type({
-        id: iot.string
-      , user_id: iot.string
-      , name: iot.string
-      , credentials: PlaidCredentials
-    });    
-
-    public from = (obj: any): E.Either<Exception.t, t> => {
-      return pipe(
-          obj
-        , this.TableType.decode
-        , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, user_id, name, credentials }) => {
-            return { id: id, userId: user_id, name: name, credentials: credentials }
-          })
-      );
-    }
-
-    public to = (obj: t): any => {
-      return {
-          id: obj.id
-        , user_id: obj.userId
-        , name: obj.name
-        , credentials: obj.credentials
-      }
-    }
-  };
 }
 
 export namespace Channel {
