@@ -28,7 +28,6 @@ export namespace UserFrontend {
       , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.map((hashed) => { return { ...user, password: hashed }; })
       , TE.chain(UserEntry.create)
-      , TE.map(() => user)
     );
   };
 

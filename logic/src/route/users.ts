@@ -28,7 +28,7 @@ router
   .post("/", (context) => {
     return pipe(
         Route.parseBody(context)(User.Frontend.Request.Create.Json)
-      , TE.map((createUser) => { return { ...createUser, id: "", role: User.DEFAULT_ROLE }; })
+      , TE.map((createUser) => { return { ...createUser, role: User.DEFAULT_ROLE }; })
       , TE.chain(UserFrontend.create)
       , Route.respondWith(context)(User.Internal.Json)
     );

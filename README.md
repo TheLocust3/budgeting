@@ -23,6 +23,7 @@ cert.key
 
 Environment variables:
 ```
+export META=/Users/jakekinsella/Programming/budget/budgeting/meta
 export PGUSER=jakekinsella
 export PGHOST=localhost
 export PGPASSWORD=
@@ -55,6 +56,9 @@ Run the test suite:
    - Migrate all of engine
    - Rethink scheduler logic
  - graphql API
+   - rewrite logic routes
+   - rewrite logic tests
+   - integration tests
  - some way to manually insert Plaid credentials
  - Better puller
    - Create "summary" transaction of account value on initial pull
@@ -68,15 +72,10 @@ Run the test suite:
  - Optional remainder in SplitByValue
 
 ### future
- - Move everything to S3 and get rid of Postgres
-   - /${user}/accounts.json
-   - /${user}/sources.json
-   - /${user}/transactions/${month}.json
-   - How to synchronize writes so that services don't clobber eachother?
-     - _Eventually_ a Storage Writer service
-     - Push updates to a queue, Storage Writers "own" specific users/types of writes
-     - `accounts` Storage Writer, `sources` Storage writer, then some sort of way to distribute users based on load
-     - For now, direct writes
+ - Storage improvements
+   - Spin off into separate repo
+   - Migrations
+   - Make more generic
  - Engine aggregations
  - Global service configuration
    - various secret keys

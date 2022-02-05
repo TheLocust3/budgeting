@@ -29,13 +29,13 @@ export namespace UserEntry {
     return entry.getObject(objectId);
   }
 
-  export const create = (user: User.Internal.t) : TE.TaskEither<Exception.t, void> => {
+  export const create = (user: User.Internal.t) : TE.TaskEither<Exception.t, User.Internal.t> => {
     const objectId = idFor(user.email);
     const writer = storageWriter(user);
 
     return pipe(
         entry.putObject(objectId)(writer)
-      , TE.map(() => {})
+      , TE.map(() => user)
     );
   }
 }

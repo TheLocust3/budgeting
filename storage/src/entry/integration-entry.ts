@@ -38,7 +38,7 @@ export namespace IntegrationEntry {
 
   export const insert =
     (userEmail: string) =>
-    (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
+    (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Integration.Internal.t> => {
     const objectId = UserEntry.idFor(userEmail);
     const writer = storageWriter((saved: Storage.t) => {
       const integrations = A.filter((savedIntegration: Integration.Internal.t) => {
@@ -51,7 +51,7 @@ export namespace IntegrationEntry {
 
     return pipe(
         entry.putObject(objectId)(writer)
-      , TE.map(() => {})
+      , TE.map(() => integration)
     );
   }
 

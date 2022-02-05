@@ -15,10 +15,7 @@ export namespace IntegrationFrontend {
   };
 
   export const create = (userEmail: string) => (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Integration.Internal.t> => {
-    return pipe(
-        IntegrationEntry.insert(userEmail)(integration)
-      , TE.map(() => integration)
-    );
+    return IntegrationEntry.insert(userEmail)(integration);
   };
 
   export const deleteById = (userEmail: string) => (id: string): TE.TaskEither<Exception.t, void> => {

@@ -22,9 +22,13 @@ export class FilePassthrough implements Passthrough {
         TE.Do
       , TE.bind("handle", () => TE.tryCatch(
             () => fs.open(path, mode)
-          , (error) => {
-              console.log(error) // TODO: JK pull out NotFound
-              return Exception.throwInternalError;
+          , (error: any) => {
+              console.log(error);
+              if (error.code == "ENOENT") {
+                return Exception.throwNotFound;
+              } else {
+                return Exception.throwInternalError;  
+              }
             }
         ))
       , TE.bind("out", ({ handle }) => callback(handle))
@@ -40,8 +44,8 @@ export class FilePassthrough implements Passthrough {
         TE.tryCatch(
             () => handle.readFile({ encoding: "utf8" })
           , (error) => {
-              console.log(error)
-              return Exception.throwInternalError
+              console.log(error);
+              return Exception.throwInternalError;
             }
         )
       , TE.chain((contents) => {
@@ -54,7 +58,7 @@ export class FilePassthrough implements Passthrough {
     );
   }
 
-  parse = (json: TE.TaskEither<Exception.t, O.Option<string>>): TE.TaskEither<Exception.t, O.Option<string>> => {
+  parse = (json: TE.TaskEither<Exception.t, O.Option<string>>): TE.TaskEither<Exception.t, O.Option<any>> => {
     return pipe(
         json
       , TE.chain((json) => {
@@ -72,7 +76,17 @@ export class FilePassthrough implements Passthrough {
     );
   }
 
-  save = (handle: FileHandle) => (obj: TE.TaskEither<Exception.t, any>): TE.TaskEither<Exception.t, any> => {
+  orNotFound = (task: TE.TaskEither<Exception.t, O.Option<any>>): TE.TaskEither<Exception.t, any> => {
+    return pipe(
+        task
+      , TE.chain(O.match(
+            () => TE.throwError(Exception.throwNotFound)
+          , (obj: any) => TE.of(obj)
+        ))
+    );
+  }
+
+  save = (handle: FileHandle) => (obj: TE.TaskEither<Exception.t, any>): TE.TaskEither<Exception.t, void> => {
     return pipe(
         obj
       , TE.map(JSON.stringify)
@@ -80,7 +94,7 @@ export class FilePassthrough implements Passthrough {
           return TE.tryCatch(
               async () => {
                 await handle.writeFile(obj, { encoding: "utf8" })
-                return obj;
+                return;
               }
             , (error) => {
                 console.log(error)
@@ -91,9 +105,26 @@ export class FilePassthrough implements Passthrough {
     );
   }
 
+  mkPath = (path: string): TE.TaskEither<Exception.t, void> => {
+    const directoryPath = A.dropRight(1)(path.split("/")).join("/"); // JK: sort of hacky
+
+    return pipe(
+        TE.tryCatch(
+            () => fs.mkdir(directoryPath, { recursive: true })
+          , (error) => {
+              console.log(error);
+              return Exception.throwInternalError;
+            }
+        )
+      , TE.map(() => {})
+    );
+  }
+
   public putObject =
     (writeFunc: Writer) =>
     (path: string): TE.TaskEither<Exception.t, any> => {
+    console.log(`[FilePassthrough] - putObject "${path}"`);
+
     const callback = (handle: FileHandle) => {
       return pipe(
           this.read(handle)
@@ -103,14 +134,21 @@ export class FilePassthrough implements Passthrough {
       );
     }
 
-    return TE.throwError(Exception.throwNotFound);
+    return pipe(
+        this.mkPath(path)
+      , TE.chain(() => this.transaction(path, "w+", callback))
+    );
   }
 
-  public getObject = (path: string): TE.TaskEither<Exception.t, O.Option<any>> => {
-    return this.transaction(path, "r", (handle) => pipe(this.read(handle), this.parse));
+  public getObject = (path: string): TE.TaskEither<Exception.t, any> => {
+    console.log(`[FilePassthrough] - getObject "${path}"`);
+
+    return this.transaction(path, "r", (handle) => pipe(this.read(handle), this.parse, this.orNotFound));
   }
 
   public listObjects = (path: string): TE.TaskEither<Exception.t, string[]> => {
+    console.log(`[FilePassthrough] - listObjects "${path}"`);
+
     return TE.tryCatch(
         () => fs.readdir(path)
       , (error) => {

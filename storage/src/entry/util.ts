@@ -6,7 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 
 import { Passthrough, FilePassthrough } from "./passthrough";
 
-export const rootPath = `meta`;
+export const rootPath = String(process.env.META);
 export const hash = (value: string) => uuidv5(value, uuidv5.URL);
 export const passthrough: Passthrough = new FilePassthrough();
 
