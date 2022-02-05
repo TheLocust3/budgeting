@@ -7,13 +7,13 @@ import * as iot from "io-ts";
 import * as types from "io-ts-types";
 
 import { Entry } from "./entry";
-import UserEntry from "./user-entry";
+import { UserEntry } from "./user-entry";
 import { rootPath, hash, passthrough, Writers } from "./util";
 
 import { Integration } from "model";
 import { Exception, Format } from "magic";
 
-namespace IntegrationEntry {
+export namespace IntegrationEntry {
   namespace Storage {
     const t = iot.type({
       integrations: iot.array(Integration.Internal.t)
@@ -27,40 +27,38 @@ namespace IntegrationEntry {
 
   const storageWriter = Writers.orDefaultWriter<Storage.t>({ integrations: []});
 
-  export const all = (email: string) : TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
-    const id = UserEntry.idFor(email);
+  export const all = (userEmail: string) : TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
+    const objectId = UserEntry.idFor(userEmail);
 
     return pipe(
-        entry.getObject(id)
+        entry.getObject(objectId)
       , TE.map((stored) => stored.integrations)
     );
   }
 
   export const create =
-    (email: string) =>
+    (userEmail: string) =>
     (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
-    const id = UserEntry.idFor(email);
+    const objectId = UserEntry.idFor(userEmail);
     const writer = storageWriter((saved: Storage.t) => {
       return { integrations: [integration] }; // TODO: JK
     })
 
     return pipe(
-        entry.putObject(id)(writer)
+        entry.putObject(objectId)(writer)
       , TE.map(() => {})
     );
   }
 
-  export const deleteByEmail = (email: string) : TE.TaskEither<Exception.t, void> => {
-    const id = UserEntry.idFor(email);
+  export const deleteById = (userEmail: string) => (id: string) : TE.TaskEither<Exception.t, void> => {
+    const objectId = UserEntry.idFor(userEmail);
     const writer = storageWriter((saved: Storage.t) => {
       return { integrations: [] }; // TODO: JK
     })
 
     return pipe(
-        entry.putObject(id)(writer)
+        entry.putObject(objectId)(writer)
       , TE.map(() => {})
     );
   }
 }
-
-export default IntegrationEntry;

@@ -1,5 +1,4 @@
 import Express from "express";
-import { Pool } from "pg";
 import jwt from "jsonwebtoken";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -16,7 +15,7 @@ export namespace AuthenticationFor {
   export const user = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
     await pipe(
         String(request.header("Authorization"))
-      , JWT.verify(request.app.locals.db)
+      , JWT.verify
       , TE.match(
           Message.respondWithError({ request, response })
         , async (user) => {
@@ -30,7 +29,7 @@ export namespace AuthenticationFor {
   export const admin = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
     await pipe(
         String(request.header("Authorization"))
-      , JWT.verify(request.app.locals.db)
+      , JWT.verify
       , TE.chain((user) => {
           if (user.role === 'superuser') {
             return TE.of(user);
@@ -52,7 +51,7 @@ export namespace AuthenticationFor {
 export namespace JWT {
   namespace Payload {
     export const t = iot.type({
-      userId: iot.string
+      userEmail: iot.string
     });
     export type t = iot.TypeOf<typeof t>
 
@@ -66,18 +65,17 @@ export namespace JWT {
   }
 
   export const sign = (user: User.Internal.t): string => {
-    const payload: Payload.t = { userId: user.id };
+    const payload: Payload.t = { userEmail: user.email };
     return jwt.sign(payload, "secret"); // TODO: JK
   };
 
-  export const verify = (pool: Pool) => (token: string): TE.TaskEither<Exception.t, User.Internal.t> => {
+  export const verify = (token: string): TE.TaskEither<Exception.t, User.Internal.t> => {
     if (token !== undefined && token !== null && token !== "") {
       return pipe(
           jwt.verify(token, "secret") // TODO JK
         , Payload.from
         , TE.fromEither
-        , TE.chain(({ userId }) => UserFrontend.getById(pool)(userId))
-        , TE.mapLeft((_) => Exception.throwUnauthorized)
+        , TE.chain(({ userEmail }) => UserFrontend.getByEmail(userEmail))
       );
     } else {
       return TE.throwError(Exception.throwUnauthorized);

@@ -1,7 +1,6 @@
 import crypto from "crypto";
 import Express from "express";
 import cors from "cors";
-import { Pool } from "pg";
 import jwt from "jsonwebtoken";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
@@ -9,7 +8,6 @@ import { pipe } from "fp-ts/lib/pipeable";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
 import { router as userRouter } from "./route/users";
-import { router as sourceRouter } from "./route/sources";
 import { router as adminRouter } from "./route/admin";
 import { router as plaidRouter } from "./route/plaid";
 
@@ -28,7 +26,6 @@ const plaidConfig = new Configuration({
 const plaidClient = new PlaidApi(plaidConfig);
 
 const app = Express();
-app.locals.db = new Pool();
 app.locals.plaidClient = plaidClient;
 
 app.use(async (request, response, next) => {
@@ -47,7 +44,6 @@ app.use(cors());
 app.use(Express.json());
 
 app.use("/users", userRouter.router);
-app.use("/sources", sourceRouter.router);
 app.use("/admin", adminRouter.router);
 app.use("/plaid", plaidRouter.router);
 

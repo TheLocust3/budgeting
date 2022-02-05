@@ -12,28 +12,26 @@ import { rootPath, hash, passthrough, Writers } from "./util";
 import { User } from "model";
 import { Exception, Format } from "magic";
 
-namespace UserEntry {
+export namespace UserEntry {
   const entry = new Entry(passthrough, { root: rootPath, name: "user", format: User.Internal.Json });
 
   const storageWriter = Writers.overwriteWriter<User.Internal.t>();
 
   export const idFor = (email: string) => hash(email);
 
-  export const getByEmail = (email: string) : TE.TaskEither<Exception.t, User.Internal.t> => {
-    const id = idFor(email);
+  export const byEmail = (email: string) : TE.TaskEither<Exception.t, User.Internal.t> => {
+    const objectId = idFor(email);
 
-    return entry.getObject(id);
+    return entry.getObject(objectId);
   }
 
   export const create = (user: User.Internal.t) : TE.TaskEither<Exception.t, void> => {
-    const id = idFor(user.email);
+    const objectId = idFor(user.email);
     const writer = storageWriter(user);
 
     return pipe(
-        entry.putObject(id)(writer)
+        entry.putObject(objectId)(writer)
       , TE.map(() => {})
     );
   }
 }
-
-export default UserEntry;

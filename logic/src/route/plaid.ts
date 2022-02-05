@@ -7,11 +7,10 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as iot from "io-ts";
 import { ItemPublicTokenExchangeResponse } from "plaid";
 
-import SourceFrontend from "../frontend/source-frontend";
 import IntegrationFrontend from "../frontend/integration-frontend";
 import { AuthenticationFor } from "./util";
 
-import { Source, Integration, Plaid } from "model";
+import { Integration, Plaid } from "model";
 import { Exception, Message, Plaid as PlaidHelper, Route } from "magic";
 
 export const router = new Route.Router();
@@ -47,47 +46,27 @@ const build =
   (publicToken: ItemPublicTokenExchangeResponse): TE.TaskEither<Exception.t, void> => {
   const requestId = context.response.locals.id;
   const user = context.response.locals.user;
-  const pool = context.request.app.locals.db
 
-  console.log(`[${requestId}] - building integration/sources`);
+  console.log(`[${requestId}] - building integration`);
 
-  const buildIntegration = (): TE.TaskEither<Exception.t, Integration.Internal.t> => {
-    console.log(`[${requestId}] - building integration "${request.institutionName}"`);
-    const integration: Integration.Internal.t = {
-        id: ""
-      , userId: user.id
-      , name: request.institutionName
-      , credentials: { _type: "Plaid", itemId: publicToken.item_id, accessToken: publicToken.access_token }
-    };
-
-    return IntegrationFrontend.create(pool)(integration);
-  }
-
-  const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
-    console.log(`[${requestId}] - building sources "${request.accounts}"`);
-    const sources: Source.Internal.t[] = A.map(({ id, name }: Plaid.Frontend.Request.ExchangePublicToken.Account) => {
-      return <Source.Internal.t>{
-          id: ""
-        , userId: user.id
-        , name: name
-        , integrationId: O.some(integration.id)
-        , metadata: O.some({ _type: "Plaid", accountId: id })
-        , createdAt: O.none
+  const sources: Integration.Internal.Plaid.Source[] =
+    A.map(({ id, name }: Plaid.Frontend.Request.ExchangePublicToken.Account) => {
+      return <Integration.Internal.Plaid.Source>{
+          name: name
+        , forAccountId: id
+        , createdAt: new Date()
       };
     })(request.accounts);
 
-    return pipe(
-        sources
-      , A.map(SourceFrontend.create(pool))
-      , A.sequence(TE.ApplicativeSeq)
-      , TE.map(() => {
-          console.log(`[${requestId}] - integration/sources built`);
-        })
-    );
+  const integration: Integration.Internal.Plaid.t = {
+      _type: "Plaid"
+    , name: request.institutionName
+    , credentials: { itemId: publicToken.item_id, accessToken: publicToken.access_token }
+    , sources: sources
   }
 
   return pipe(
-      buildIntegration()
-    , TE.chain(buildSources)
+      IntegrationFrontend.create(user.email)(integration)
+    , TE.map(() => {})
   );
 }

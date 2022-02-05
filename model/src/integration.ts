@@ -7,17 +7,18 @@ import * as types from "io-ts-types";
 import { Exception, Format } from "magic";
 
 export namespace Internal {
-  namespace Plaid {
+  export namespace Plaid {
     const Credentials = iot.type({
         itemId: iot.string
       , accessToken: iot.string
     });
 
-    const Source = iot.type({
+    export const Source = iot.type({
         name: iot.string
       , forAccountId: iot.string
-      , createdAt: types.option(types.DateFromISOString)
+      , createdAt: types.date
     })
+    export type Source = iot.TypeOf<typeof Source>;
 
     export const t = iot.type({
         _type: iot.literal("Plaid")
@@ -25,17 +26,11 @@ export namespace Internal {
       , credentials: Credentials
       , sources: iot.array(Source)
     })
+    export type t = iot.TypeOf<typeof t>;
   }
 
-  namespace None {
-    export const t = iot.type({
-        _type: iot.literal("None")
-      , name: iot.string
-    })
-  }
-
-  export const t = iot.union([Plaid.t, None.t])
-  export type t = iot.TypeOf<typeof t>
+  export const t = Plaid.t;
+  export type t = iot.TypeOf<typeof t>;
 
   export const Json = new Format.JsonFormatter(t);
 }
