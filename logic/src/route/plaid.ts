@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import crypto from "crypto";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -60,6 +60,7 @@ const build =
 
   const integration: Integration.Internal.Plaid.t = {
       _type: "Plaid"
+    , id: crypto.randomUUID()
     , name: request.institutionName
     , credentials: { itemId: publicToken.item_id, accessToken: publicToken.access_token }
     , sources: sources

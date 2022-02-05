@@ -22,6 +22,7 @@ export namespace Internal {
 
     export const t = iot.type({
         _type: iot.literal("Plaid")
+      , id: iot.string
       , name: iot.string
       , credentials: Credentials
       , sources: iot.array(Source)

@@ -51,6 +51,9 @@ Run the test suite:
 ## todo
 
 ### next
+ - Block storage DB
+   - Migrate all of engine
+   - Rethink scheduler logic
  - graphql API
  - some way to manually insert Plaid credentials
  - Better puller

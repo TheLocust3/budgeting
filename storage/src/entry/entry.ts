@@ -50,13 +50,6 @@ export class Entry<T> {
     );
   }
 
-  public deleteObject = (id: string) : TE.TaskEither<Exception.t, void> => {
-    return pipe(
-        this.pathFor(id)
-      , this.passthrough.deleteObject
-    );
-  }
-
   public listObjects = () : TE.TaskEither<Exception.t, string[]> => {
     return pipe(
         this.config.root

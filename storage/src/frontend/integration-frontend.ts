@@ -16,7 +16,7 @@ export namespace IntegrationFrontend {
 
   export const create = (userEmail: string) => (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Integration.Internal.t> => {
     return pipe(
-        IntegrationEntry.create(userEmail)(integration)
+        IntegrationEntry.insert(userEmail)(integration)
       , TE.map(() => integration)
     );
   };

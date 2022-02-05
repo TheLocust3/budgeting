@@ -36,12 +36,17 @@ export namespace IntegrationEntry {
     );
   }
 
-  export const create =
+  export const insert =
     (userEmail: string) =>
     (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
     const objectId = UserEntry.idFor(userEmail);
     const writer = storageWriter((saved: Storage.t) => {
-      return { integrations: [integration] }; // TODO: JK
+      const integrations = A.filter((savedIntegration: Integration.Internal.t) => {
+        return savedIntegration.id !== integration.id;
+      })(saved.integrations)
+      integrations.push(integration);
+
+      return { integrations: integrations };
     })
 
     return pipe(
@@ -53,7 +58,11 @@ export namespace IntegrationEntry {
   export const deleteById = (userEmail: string) => (id: string) : TE.TaskEither<Exception.t, void> => {
     const objectId = UserEntry.idFor(userEmail);
     const writer = storageWriter((saved: Storage.t) => {
-      return { integrations: [] }; // TODO: JK
+      const integrations = A.filter((savedIntegration: Integration.Internal.t) => {
+        return savedIntegration.id !== id;
+      })(saved.integrations)
+
+      return { integrations: integrations };
     })
 
     return pipe(
