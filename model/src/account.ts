@@ -30,6 +30,7 @@ export namespace Channel {
   export namespace Query {
     const t = iot.type({
         userEmail: iot.string
+      , parentId: types.option(iot.string)
     });
 
     export type t = iot.TypeOf<typeof t>

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -16,29 +17,20 @@ router
   .get("/", (context) => {
     return pipe(
         Route.parseQuery(context)(Rule.Channel.Query.Json)
-      , TE.chain(({ accountId }) => RuleFrontend.getByAccountId(context.request.app.locals.db)(accountId))
+      , TE.chain(({ userEmail, accountId }) => RuleFrontend.getByAccountId(userEmail)(accountId))
       , TE.map((rules) => { return { rules: rules }; })
       , Route.respondWith(context)(Rule.Channel.Response.RuleList.Json)
     );
   })
 
 router
-  .get("/:ruleId", (context) => {
-    const ruleId = context.request.params.ruleId;
-
-    return pipe(
-        Route.parseQuery(context)(Rule.Channel.Query.Json)
-      , TE.chain(({ accountId }) => RuleFrontend.getById(context.request.app.locals.db)(accountId)(ruleId))
-      , Route.respondWith(context)(Rule.Internal.Json)
-    );
-  });
-
-router
   .post("/", (context) => {
     return pipe(
-        Route.parseBody(context)(Rule.Channel.Request.Create.Json)
-      , TE.map((createRule) => { return { ...createRule, id: "" } })
-      , TE.chain(RuleFrontend.create(context.request.app.locals.db))
+        TE.Do
+      , TE.bind("query", () => Route.parseQuery(context)(Rule.Channel.Query.Json))
+      , TE.bind("createRule", () => Route.parseBody(context)(Rule.Channel.Request.Create.Json))
+      , TE.bind("rule", ({ createRule }) => { return TE.of({ ...createRule, id: crypto.randomUUID() }); })
+      , TE.chain(({ query, rule }) => RuleFrontend.create(query.userEmail)(query.accountId)(rule))
       , Route.respondWith(context)(Rule.Internal.Json)
     );
   });
@@ -49,7 +41,7 @@ router
 
     return pipe(
         Route.parseQuery(context)(Rule.Channel.Query.Json)
-      , TE.chain(({ accountId }) => RuleFrontend.deleteById(context.request.app.locals.db)(accountId)(ruleId))
+      , TE.chain(({ userEmail, accountId }) => RuleFrontend.deleteById(userEmail)(accountId)(ruleId))
       , Route.respondWithOk(context)
     );
   });

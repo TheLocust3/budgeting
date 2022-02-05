@@ -10,7 +10,7 @@ import { Entry } from "./entry";
 import { UserEntry } from "./user-entry";
 import { rootPath, hash, passthrough, Writers, orNotFound } from "./util";
 
-import { Account } from "model";
+import { Account, Rule } from "model";
 import { Exception, Format, Pipe } from "magic";
 
 export namespace AccountEntry {
@@ -103,6 +103,57 @@ export namespace AccountEntry {
     return pipe(
         entry.putObject(objectId)(writer)
       , TE.map(() => account)
+    );
+  }
+
+  export const insertRule =
+    (userEmail: string) =>
+    (accountId: string) =>
+    (rule: Rule.Internal.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+    const objectId = UserEntry.idFor(userEmail);
+    const writer = storageWriter((saved: Storage.t) => {
+      const accounts = mapAccount((maybeAccount) => {
+        if (maybeAccount.id === accountId) {
+          const rules = A.filter((maybeRule: Rule.Internal.t) => maybeRule.id !== rule.id)(maybeAccount.rules);
+          rules.push(rule);
+
+          return O.some({ ...maybeAccount, rules: rules });
+        } else {
+          return O.some(maybeAccount);
+        }
+      })(saved.accounts);
+
+      return { accounts: accounts };
+    })
+
+    return pipe(
+        entry.putObject(objectId)(writer)
+      , TE.map(() => rule)
+    );
+  }
+
+  export const deleteRuleById =
+    (userEmail: string) =>
+    (accountId: string) =>
+    (ruleId: string): TE.TaskEither<Exception.t, void> => {
+    const objectId = UserEntry.idFor(userEmail);
+    const writer = storageWriter((saved: Storage.t) => {
+      const accounts = mapAccount((maybeAccount) => {
+        if (maybeAccount.id === accountId) {
+          const rules = A.filter((maybeRule: Rule.Internal.t) => maybeRule.id !== ruleId)(maybeAccount.rules);
+
+          return O.some({ ...maybeAccount, rules: rules });
+        } else {
+          return O.some(maybeAccount);
+        }
+      })(saved.accounts);
+
+      return { accounts: accounts };
+    })
+
+    return pipe(
+        entry.putObject(objectId)(writer)
+      , TE.map(() => {})
     );
   }
 

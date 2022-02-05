@@ -222,42 +222,18 @@ export namespace Internal {
 
   export const t = iot.type({
       id: iot.string
-    , accountId: iot.string
     , rule: Rule
   });
 
   export type t = iot.TypeOf<typeof t>
   export const Json = new Format.JsonFormatter(t);
-  export const Database = new class implements Format.Formatter<t, any> {
-    TableType = iot.type({
-        id: iot.string
-      , account_id: iot.string
-      , rule: Internal.Rule
-    });    
-
-    public from = (obj: any): E.Either<Exception.t, t> => {
-      return pipe(
-          obj
-        , this.TableType.decode
-        , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, account_id, rule }) => { return { id: id, accountId: account_id, rule: rule } })
-      );
-    }
-
-    public to = (obj: t): any => {
-      return {
-          id: obj.id
-        , account_id: obj.accountId
-        , rule: obj.rule
-      }
-    }
-  };
 }
 
 export namespace Channel {
   export namespace Query {
     const t = iot.type({
-        accountId: iot.string
+        userEmail: iot.string
+      , accountId: iot.string
     });
 
     export type t = iot.TypeOf<typeof t>
@@ -267,8 +243,7 @@ export namespace Channel {
   export namespace Request {
     export namespace Create {
       const t = iot.type({
-          accountId: iot.string
-        , rule: Internal.Rule
+          rule: Internal.Rule
       });
 
       export type t = iot.TypeOf<typeof t>

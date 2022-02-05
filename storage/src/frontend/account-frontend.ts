@@ -14,7 +14,7 @@ export namespace AccountFrontend {
     return AccountEntry.allByUser(userEmail);
   };
 
-  export const byId = (userEmail: string) => (id: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
+  export const getById = (userEmail: string) => (id: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
     return AccountEntry.byId(userEmail)(id);
   };
 
