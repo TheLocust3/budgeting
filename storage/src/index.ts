@@ -1,2 +1,2 @@
-export { UserEntry } from './user-entry';
-export { IntegrationEntry } from './integration-entry';
+export { UserFrontend } from './frontend/user-frontend';
+export { IntegrationFrontend } from './frontend/integration-frontend';

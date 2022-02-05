@@ -7,19 +7,18 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import SourceFrontend from "../frontend/source-frontend";
-import IntegrationFrontend from "../frontend/integration-frontend";
 import TransactionFrontend from "../frontend/transaction-frontend";
 
 import { Plaid } from "magic";
-import { Source, Integration, Transaction } from "model";
+import { Integration, Transaction } from "model";
 
 // given a source:
 //   1) try to get the "lock" (mark a source as `active` if it's still expired)
 //   2) pull the credentials for the source
 //   3) send all transactions after `source.createdAt` to the rules engine
 
-type Context = {
+// TODO: JK
+/*type Context = {
   source: Source.Internal.t;
   integration: Integration.Internal.t;
 };
@@ -133,4 +132,4 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (source: Source.In
           }
       )
   );
-}
+}*/

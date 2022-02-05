@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "tsc --incremental",
+    "setup": "yarn link magic && yarn link && yarn build",
     "start": "tsc -w"
   },
   "devDependencies": {

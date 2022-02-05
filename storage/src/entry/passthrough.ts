@@ -12,6 +12,7 @@ export type Passthrough = {
   putObject: (writeFunc: Writer) => (path: string) => TE.TaskEither<Exception.t, any>;
   getObject: (path: string) => TE.TaskEither<Exception.t, any>;
   deleteObject: (path: string) => TE.TaskEither<Exception.t, void>;
+  listObjects: (path: string) => TE.TaskEither<Exception.t, string[]>;
 }
 
 export class FilePassthrough implements Passthrough {
@@ -26,6 +27,10 @@ export class FilePassthrough implements Passthrough {
   }
 
   public deleteObject = (path: string): TE.TaskEither<Exception.t, void> => {
+    return TE.throwError(Exception.throwNotFound);
+  }
+
+  public listObjects = (path: string): TE.TaskEither<Exception.t, string[]> => {
     return TE.throwError(Exception.throwNotFound);
   }
 }

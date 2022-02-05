@@ -4,13 +4,14 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
+import { IntegrationEntry } from "../entry/integration-entry";
+
 import { Integration } from "model";
-import { IntegrationEntry } from "storage";
 import { Exception } from "magic";
 
 export namespace IntegrationFrontend {
-  export const all = (userEmail: string): TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
-    return IntegrationEntry.all(userEmail);
+  export const allByUser = (userEmail: string): TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
+    return IntegrationEntry.allByUser(userEmail);
   };
 
   export const create = (userEmail: string) => (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Integration.Internal.t> => {
@@ -24,5 +25,3 @@ export namespace IntegrationFrontend {
     return IntegrationEntry.deleteById(userEmail)(id);
   };
 }
-
-export default IntegrationFrontend;

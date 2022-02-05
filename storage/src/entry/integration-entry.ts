@@ -27,7 +27,7 @@ export namespace IntegrationEntry {
 
   const storageWriter = Writers.orDefaultWriter<Storage.t>({ integrations: []});
 
-  export const all = (userEmail: string) : TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
+  export const allByUser = (userEmail: string) : TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
     const objectId = UserEntry.idFor(userEmail);
 
     return pipe(

@@ -5,14 +5,19 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
+import { UserEntry } from "../entry/user-entry";
+
 import { User } from "model";
-import { UserEntry } from "storage";
 import { Exception } from "magic";
 
 export namespace UserFrontend {
   export const getByEmail = (email: string): TE.TaskEither<Exception.t, User.Internal.t> => {
     return UserEntry.byEmail(email);
   };
+
+  export const list = (): TE.TaskEither<Exception.t, string[]> => {
+    return UserEntry.list();
+  };  
 
   export const create = (user: User.Internal.t): TE.TaskEither<Exception.t, User.Internal.t> => {
     return pipe(
@@ -45,5 +50,3 @@ export namespace UserFrontend {
     );
   };
 }
-
-export default UserFrontend;

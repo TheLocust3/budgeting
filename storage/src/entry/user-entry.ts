@@ -19,6 +19,10 @@ export namespace UserEntry {
 
   export const idFor = (email: string) => hash(email);
 
+  export const list = () : TE.TaskEither<Exception.t, string[]> => {
+    return entry.listObjects();
+  }
+
   export const byEmail = (email: string) : TE.TaskEither<Exception.t, User.Internal.t> => {
     const objectId = idFor(email);
 

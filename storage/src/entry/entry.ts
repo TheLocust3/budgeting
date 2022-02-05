@@ -57,5 +57,12 @@ export class Entry<T> {
     );
   }
 
+  public listObjects = () : TE.TaskEither<Exception.t, string[]> => {
+    return pipe(
+        this.config.root
+      , this.passthrough.listObjects
+    );
+  }
+
   private pathFor = (id: string) => `${this.config.root}/${id}/${this.config.name}.json`;
 }

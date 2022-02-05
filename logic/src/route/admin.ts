@@ -5,10 +5,10 @@ import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import UserFrontend from "../frontend/user-frontend";
 import { AuthenticationFor } from "./util";
 
 import { User } from "model";
+import { UserFrontend } from "storage";
 import { Route } from "magic";
 
 export const router = new Route.Router();

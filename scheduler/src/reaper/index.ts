@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import _ from "lodash";
 import { PlaidApi } from "plaid";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -6,21 +6,22 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import SourceFrontend from "../frontend/source-frontend";
 import * as PullerJob from "./puller-job";
 
 import { Exception, Reaper } from "magic";
-import { Source } from "model";
+import { UserFrontend, IntegrationFrontend } from "storage";
 
 // on tick:
 //   - pull all sources that are "expired"
 //   - start puller job for each one
-export const tick = (pool: Pool) => async (plaidClient: PlaidApi) => {
+export const tick = async (plaidClient: PlaidApi) => {
   console.log("Scheduler.tick - start");
 
-  try {
+  // TODO: Jk
+  /*try {
     await pipe(
-        SourceFrontend.allExpired(pool)()
+        UserFrontend.list()
+      , TE.map(_.shuffle) // shuffle to reduce conflicts between scheduler instances
       , TE.map((expiredSources: Source.Internal.t[]) => {
           console.log(`Scheduler.tick - found ${expiredSources.length} expired sources`);
           return expiredSources;
@@ -31,7 +32,7 @@ export const tick = (pool: Pool) => async (plaidClient: PlaidApi) => {
     )();
   } catch (error) {
     console.log(error);
-  }
+  }*/
 
-  setTimeout(() => tick(pool)(plaidClient), 5000);
+  setTimeout(() => tick(plaidClient), 5000);
 }

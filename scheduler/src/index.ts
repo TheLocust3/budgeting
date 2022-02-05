@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import Express from "express";
-import { Pool } from "pg";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
@@ -21,7 +20,6 @@ const plaidConfig = new Configuration({
 const plaidClient = new PlaidApi(plaidConfig);
 
 const app = Express();
-app.locals.db = new Pool();
 app.locals.plaidClient = plaidClient;
 
 app.use(async (request, response, next) => {
@@ -41,4 +39,4 @@ app.use(Express.json());
 app.listen(3002);
 console.log("Listening at localhost:3002");
 
-Reaper.tick(app.locals.db)(app.locals.plaidClient);
+Reaper.tick(app.locals.plaidClient);
