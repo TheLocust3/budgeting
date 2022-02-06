@@ -23,6 +23,7 @@
     "bcrypt": "^5.0.1",
     "fp-ts": "^2.11.6",
     "fp-ts-contrib": "^0.1.26",
+    "graphql": "^16.3.0",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
     "monocle-ts": "^2.3.12",
