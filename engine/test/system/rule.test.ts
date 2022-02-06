@@ -81,20 +81,6 @@ it("can't add rule with made up field", async () => {
   )();
 });
 
-it("can get rule", async () => {
-  await pipe(
-      system.addRule(accountId, ruleBody)
-    , TE.chain((rule) => system.getRule(rule.id, accountId))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (rule) => {
-            expect(rule).toEqual(expect.objectContaining({ accountId: accountId, rule: ruleBody }));
-            expect(typeof rule.id).toBe("string");
-          }
-      )
-  )();
-});
-
 it("can list rules", async () => {
   await pipe(
       system.addRule(accountId, ruleBody)

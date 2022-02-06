@@ -23,7 +23,6 @@ it("can add transaction", async () => {
         , (transaction: any) => {
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
-              , userId: "user"
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
@@ -47,33 +46,6 @@ it("can add transaction with capturedAt", async () => {
         , (transaction: any) => {
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
-              , userId: "user"
-              , amount: 10
-              , merchantName: merchantName
-              , description: "test description"
-              , authorizedAt: authorizedAt.toJSON()
-              , capturedAt: O.some(capturedAt.toJSON())
-              , metadata: MetadataBuilder.plaid
-            }));
-            expect(typeof transaction.id).toBe("string");
-          }
-      )
-  )();
-});
-
-it("can get transaction", async () => {
-  const merchantName = `test-${uuid()}`;
-  const authorizedAt = new Date();
-  const capturedAt = new Date();
-  await pipe(
-      system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
-    , TE.chain((transaction) => system.getTransaction(transaction.id, transaction.userId))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (transaction) => {
-            expect(transaction).toEqual(expect.objectContaining({
-                sourceId: sourceId
-              , userId: "user"
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
@@ -93,7 +65,7 @@ it("can list transactions", async () => {
   const capturedAt = new Date();
   await pipe(
       system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
-    , TE.chain((transaction) => system.listTransactions(transaction.userId))
+    , TE.chain((transaction) => system.listTransactions("user"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {
@@ -101,7 +73,6 @@ it("can list transactions", async () => {
 
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
-              , userId: "user"
               , amount: 10
               , merchantName: merchantName
               , description: "test description"
@@ -110,25 +81,6 @@ it("can list transactions", async () => {
               , metadata: MetadataBuilder.plaid
             }));
             expect(typeof transaction.id).toBe("string");
-          }
-      )
-  )();
-});
-
-it("can delete transaction", async () => {
-  const merchantName = `test-${uuid()}`;
-  const authorizedAt = new Date();
-  const capturedAt = new Date();
-  await pipe(
-      system.addTransaction(sourceId, "user", 10, merchantName, "test description", authorizedAt, O.some(capturedAt), MetadataBuilder.plaid)
-    , TE.chain((transaction) => system.deleteTransaction(transaction.id, transaction.userId))
-    , TE.chain((_) => system.listTransactions("user"))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (transactions) => {
-            const transaction = transactions.transactions.filter((transaction: any) => transaction.merchantName === merchantName);
-
-            expect(transaction.length).toEqual(0);
           }
       )
   )();

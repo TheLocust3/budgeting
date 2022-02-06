@@ -105,8 +105,29 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): 
 
 const accountChain =
   (accountId: string) =>
-  (accounts: Account.Internal.t[]): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
-  return TE.of([]); // TODO: JK
+  (accounts: Account.Internal.t[]): Account.Internal.t[] => {
+  const chain = (accounts: Account.Internal.t[]) => (path: Account.Internal.t[]): Account.Internal.t[] => {
+    return pipe(
+        accounts
+      , A.findFirst((account: Account.Internal.t) => account.id === accountId)
+      , O.match(
+            () => {
+              return pipe(
+                  accounts
+                , A.map((account: Account.Internal.t) => chain(account.children)(A.append(account)(path)))
+                , A.findFirst((path: Account.Internal.t[]) => path.length > 0)
+                , O.match(
+                      () => []
+                    , (path) => path
+                  )
+              );
+            }
+          , (account) => A.append(account)(accounts)
+        )
+    );
+  }
+
+  return chain(accounts)([]);
 }
 
 export const execute =
@@ -115,17 +136,14 @@ export const execute =
   (accountId: string) =>
   (accounts: Account.Internal.t[]): TE.TaskEither<Exception.t, t> => {
   console.log(`[${id}] materialize - starting for account ${accountId}`);
+
+  const chain = accountChain(accountId)(accounts)
+
+  const plan = Plan.build(chain);
+  console.log(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
   
   return pipe(
-      accountChain(accountId)(accounts)
-    , TE.chain((accounts) => {
-        const plan = Plan.build(accounts);
-        console.log(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
-
-        return pipe(
-            TransactionFrontend.all(userEmail)
-          , TE.map(executePlan(plan))
-        );
-      })
+      TransactionFrontend.all(userEmail)
+    , TE.map(executePlan(plan))
   );
 };

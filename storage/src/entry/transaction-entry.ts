@@ -25,7 +25,7 @@ export namespace TransactionEntry {
 
   const entry = new Entry(passthrough, { root: rootPath, name: "transactions", format: Storage.Json });
 
-  const storageWriter = Writers.orDefaultWriter<Storage.t>({ transactions: []});
+  const storageWriter = Writers.orDefaultWriter<Storage.t>({ transactions: [] });
 
   export const allByUser = (userEmail: string): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     const objectId = UserEntry.idFor(userEmail);
@@ -43,13 +43,13 @@ export namespace TransactionEntry {
 
     const objectId = UserEntry.idFor(userEmail);
     const writer = storageWriter((saved: Storage.t) => {
-      const transactions = A.filter((savedTransaction: Transaction.Internal.t) => {
+      const outTransactions = A.filter((savedTransaction: Transaction.Internal.t) => {
         return !toInsert.has(savedTransaction.id);
       })(saved.transactions)
 
-      A.map((transaction: Transaction.Internal.t) => transactions.push(transaction))(transactions)
+      A.map((transaction: Transaction.Internal.t) => outTransactions.push(transaction))(transactions)
 
-      return { transactions: transactions };
+      return { transactions: outTransactions };
     })
 
     return pipe(

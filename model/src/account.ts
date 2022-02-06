@@ -31,7 +31,7 @@ export namespace Channel {
     export namespace ByParent {
       const t = iot.type({
           userEmail: iot.string
-        , parentId: types.option(iot.string)
+        , parentId: types.optionFromNullable(iot.string)
       });
 
       export type t = iot.TypeOf<typeof t>

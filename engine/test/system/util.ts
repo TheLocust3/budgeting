@@ -115,7 +115,7 @@ export class System {
 
   addTransaction(
       sourceId: string
-    , userId: string
+    , userEmail: string
     , amount: number
     , merchantName: string
     , description: string
@@ -124,9 +124,8 @@ export class System {
     , metadata: any
   ): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask("/transactions/")("POST")(O.some({
+        this.fetchTask(`/transactions?userEmail=${userEmail}`)("POST")(O.some({
             sourceId: sourceId
-          , userId: userId
           , amount: amount
           , merchantName: merchantName
           , description: description
@@ -138,51 +137,35 @@ export class System {
     );
   }
 
-  getTransaction(id: string, userId: string): TE.TaskEither<Error, any> {
+  listTransactions(userEmail: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/transactions/${id}?userId=${userId}`)("GET")()
+        this.fetchTask(`/transactions?userEmail=${userEmail}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  listTransactions(userId: string): TE.TaskEither<Error, any> {
+  addAccount(name: string, parentId: O.Option<string> = O.none, userEmail: string = "test"): TE.TaskEither<Error, any> {
+    const resolvedParentId = O.match(
+        () => ""
+      , (parentId: string) => `&parentId=${parentId}`
+    )(parentId);
+
     return pipe(
-        this.fetchTask(`/transactions?userId=${userId}`)("GET")()
+        this.fetchTask(`/accounts?userEmail=${userEmail}${resolvedParentId}`)("POST")(O.some({ name: name }))
       , TE.chain(this.json)
     );
   }
 
-  deleteTransaction(id: string, userId: string): TE.TaskEither<Error, any> {
+  listAccounts(userEmail: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/transactions/${id}?userId=${userId}`)("DELETE")()
+        this.fetchTask(`/accounts?userEmail=${userEmail}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = "test"): TE.TaskEither<Error, any> {
+  deleteAccount(id: string, userEmail: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask("/accounts/")("POST")(O.some({ name: name, userId: userId, parentId: parentId }))
-      , TE.chain(this.json)
-    );
-  }
-
-  getAccount(id: string, userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/accounts/${id}?userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
-  }
-
-  listAccounts(userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/accounts?userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
-  }
-
-  deleteAccount(id: string, userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/accounts/${id}?userId=${userId}`)("DELETE")()
+        this.fetchTask(`/accounts/${id}?userEmail=${userEmail}`)("DELETE")()
       , TE.chain(this.json)
     );
   }
@@ -190,13 +173,6 @@ export class System {
   addRule(accountId: string, rule: any): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask("/rules/")("POST")(O.some({ accountId: accountId, rule: rule }))
-      , TE.chain(this.json)
-    );
-  }
-
-  getRule(id: string, accountId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/rules/${id}?accountId=${accountId}`)("GET")()
       , TE.chain(this.json)
     );
   }

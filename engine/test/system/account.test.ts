@@ -18,22 +18,7 @@ it("can add account", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account: any) => {
-            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
-            expect(typeof account.id).toBe("string");
-          }
-      )
-  )();
-});
-
-it("can get account", async () => {
-  const name = `test-${uuid()}`;
-  await pipe(
-      system.addAccount(name, O.none, "user")
-    , TE.chain((account) => system.getAccount(account.id, account.userId))
-    , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (account) => {
-            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
+            expect(account).toEqual(expect.objectContaining({ name: name }));
             expect(typeof account.id).toBe("string");
           }
       )
@@ -44,13 +29,13 @@ it("can list accounts", async () => {
   const name = `test-${uuid()}`;
   await pipe(
       system.addAccount(name, O.none, "user")
-    , TE.chain((account) => system.listAccounts(account.userId))
+    , TE.chain((account) => system.listAccounts("user"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
             const account = accounts.accounts.filter((account: any) => account.name === name)[0];
 
-            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
+            expect(account).toEqual(expect.objectContaining({ name: name }));
             expect(typeof account.id).toBe("string");
           }
       )

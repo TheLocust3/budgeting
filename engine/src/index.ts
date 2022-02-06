@@ -18,7 +18,7 @@ app.use((request, response, next) => {
   next();
 
   const took = Date.now() - start;
-  console.log(`[${response.locals.id.id}] took ${took}ms`)
+  console.log(`[${response.locals.id}] took ${took}ms`)
 });
 
 app.use(Express.json());

@@ -53,8 +53,7 @@ Run the test suite:
 
 ### next
  - Block storage DB
-   - Migrate all of engine
-   - transactions + accounts + integrations should be indexed by id
+   - hash user email over the wire
    - Rethink scheduler logic
  - graphql API
    - rewrite logic routes
@@ -74,6 +73,8 @@ Run the test suite:
 
 ### future
  - Storage improvements
+   - lots of it can be made more generic
+   - transactions + accounts + integrations should be indexed by id
    - Migrations
      - split transactions out by month
      - split out rules by account

@@ -78,34 +78,6 @@ export namespace AccountEntry {
     );
   }
 
-  export const insert =
-    (userEmail: string) =>
-    (parentId: O.Option<string>) =>
-    (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
-    const objectId = UserEntry.idFor(userEmail);
-    const writer = storageWriter((saved: Storage.t) => {
-      return O.match(
-          () => { return { accounts: A.append(account)(saved.accounts) }; }
-        , (parentId: string) => {
-            const accounts = mapAccount((maybeParent) => {
-              if (maybeParent.id === parentId) {
-                return O.some({ ...maybeParent, children: A.append(account)(maybeParent.children) });
-              } else {
-                return O.some(maybeParent);
-              }
-            })(saved.accounts);
-
-            return { accounts: accounts };
-          }
-      )(parentId);
-    })
-
-    return pipe(
-        entry.putObject(objectId)(writer)
-      , TE.map(() => account)
-    );
-  }
-
   export const insertRule =
     (userEmail: string) =>
     (accountId: string) =>
@@ -154,6 +126,34 @@ export namespace AccountEntry {
     return pipe(
         entry.putObject(objectId)(writer)
       , TE.map(() => {})
+    );
+  }
+
+  export const insert =
+    (userEmail: string) =>
+    (parentId: O.Option<string>) =>
+    (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
+    const objectId = UserEntry.idFor(userEmail);
+    const writer = storageWriter((saved: Storage.t) => {
+      return O.match(
+          () => { return { accounts: A.append(account)(saved.accounts) }; }
+        , (parentId: string) => {
+            const accounts = mapAccount((maybeParent) => {
+              if (maybeParent.id === parentId) {
+                return O.some({ ...maybeParent, children: A.append(account)(maybeParent.children) });
+              } else {
+                return O.some(maybeParent);
+              }
+            })(saved.accounts);
+
+            return { accounts: accounts };
+          }
+      )(parentId);
+    })
+
+    return pipe(
+        entry.putObject(objectId)(writer)
+      , TE.map(() => account)
     );
   }
 

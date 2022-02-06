@@ -49,6 +49,8 @@ export class FilePassthrough implements Passthrough {
             }
         )
       , TE.chain((contents) => {
+        console.log("TESTESTEST")
+        console.log(contents)
           if (contents === "" || contents === undefined || contents === null) {
             return TE.of(O.none);
           } else {
@@ -91,6 +93,8 @@ export class FilePassthrough implements Passthrough {
         obj
       , TE.map(JSON.stringify)
       , TE.chain((obj) => {
+        console.log("PLSPLSPLS")
+        console.log(obj)
           return TE.tryCatch(
               async () => {
                 await handle.writeFile(obj, { encoding: "utf8" })
