@@ -16,7 +16,7 @@ export const router = new Route.Router();
 router
   .get("/", (context) => {
     return pipe(
-        Route.parseQuery(context)(Account.Channel.Query.Json)
+        Route.parseQuery(context)(Account.Channel.Query.ByEmail.Json)
       , TE.chain(({ userEmail }) => AccountFrontend.allByUser(userEmail))
       , TE.map((accounts) => { return { accounts: accounts }; })
       , Route.respondWith(context)(Account.Channel.Response.AccountList.Json)
@@ -28,7 +28,7 @@ router
     const accountId = context.request.params.accountId;
 
     return pipe(
-        Route.parseQuery(context)(Account.Channel.Query.Json)
+        Route.parseQuery(context)(Account.Channel.Query.ByEmail.Json)
       , TE.chain(({ userEmail }) => AccountFrontend.getById(userEmail)(accountId))
       , Route.respondWith(context)(Account.Internal.Json)
     );
@@ -40,9 +40,9 @@ router
 
     return pipe(
         TE.Do
-      , TE.bind("query", () => Route.parseQuery(context)(Account.Channel.Query.Json))
-      , TE.bind("account", ({ query }) => AccountFrontend.getById(query.userEmail)(accountId))
-      , TE.chain(({ query, account }) => Materialize.execute(context.request.app.locals.id)(query.userEmail)(context.request.app.locals.db)(account))
+      , TE.bind("query", () => Route.parseQuery(context)(Account.Channel.Query.ByEmail.Json))
+      , TE.bind("accounts", ({ query }) => AccountFrontend.allByUser(query.userEmail))
+      , TE.chain(({ query, accounts }) => Materialize.execute(context.request.app.locals.id)(query.userEmail)(accountId)(accounts))
       , Route.respondWith(context)(Materialize.Json)
     );
   });
@@ -51,7 +51,7 @@ router
   .post("/", (context) => {
     return pipe(
         TE.Do
-      , TE.bind("query", () => Route.parseQuery(context)(Account.Channel.Query.Json))
+      , TE.bind("query", () => Route.parseQuery(context)(Account.Channel.Query.ByParent.Json))
       , TE.bind("createAccount", () => Route.parseBody(context)(Account.Channel.Request.Create.Json))
       , TE.bind("account", ({ createAccount }) => { return TE.of({ ...createAccount, id: crypto.randomUUID(), rules: [], children: [] }); })
       , TE.chain(({ query, account}) => AccountFrontend.create(query.userEmail)(query.parentId)(account))
@@ -64,7 +64,7 @@ router
     const accountId = context.request.params.accountId;
 
     return pipe(
-        Route.parseQuery(context)(Account.Channel.Query.Json)
+        Route.parseQuery(context)(Account.Channel.Query.ByEmail.Json)
       , TE.chain(({ userEmail }) => AccountFrontend.deleteById(userEmail)(accountId))
       , Route.respondWithOk(context)
     );

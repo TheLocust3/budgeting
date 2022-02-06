@@ -40,7 +40,7 @@ const buildStage = (account: Account.Internal.t): Stage => {
       , tag: account.id
       , attach: attach
       , include: include
-      , children: account.children
+      , children: A.map((account: Account.Internal.t) => account.id)(account.children)
     };
   } else {
     return {

@@ -1,4 +1,3 @@
-import { Pool } from "pg";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -52,23 +51,6 @@ export const Json = new class implements Format.Formatter<t, any> {
   }
 }
 
-const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
-  return O.match(
-      () => TE.of([])
-    , (parentId: string) => pipe(
-          TE.Do
-        , TE.bind("parent", () => pipe(
-              parentId
-            , AccountFrontend.getById(pool)
-            , TE.chain(AccountFrontend.withRules(pool))
-            , TE.chain(AccountFrontend.withChildren(pool))
-          ))
-        , TE.bind("rest", ({ parent }) => linkedAccounts(pool)(parent))
-        , TE.map(({ parent, rest }) => rest.concat(parent))
-      )
-  )(account.parentId);
-};
-
 const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
   const flow = Materializer.build(stage);
 
@@ -121,15 +103,23 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): 
   }
 };
 
-export const execute = (id: string) => (userEmail: string) => (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
-  // TODO: JK track materialize logs with id
-  console.log(`[${id}] materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
+const accountChain =
+  (accountId: string) =>
+  (accounts: Account.Internal.t[]): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
+  return TE.of([]); // TODO: JK
+}
+
+export const execute =
+  (id: string) =>
+  (userEmail: string) =>
+  (accountId: string) =>
+  (accounts: Account.Internal.t[]): TE.TaskEither<Exception.t, t> => {
+  console.log(`[${id}] materialize - starting for account ${accountId}`);
   
   return pipe(
-      account
-    , linkedAccounts(pool)
+      accountChain(accountId)(accounts)
     , TE.chain((accounts) => {
-        const plan = Plan.build(accounts.concat(account));
+        const plan = Plan.build(accounts);
         console.log(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
 
         return pipe(

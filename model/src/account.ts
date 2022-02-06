@@ -28,20 +28,30 @@ export namespace Internal {
 
 export namespace Channel {
   export namespace Query {
-    const t = iot.type({
-        userEmail: iot.string
-      , parentId: types.option(iot.string)
-    });
+    export namespace ByParent {
+      const t = iot.type({
+          userEmail: iot.string
+        , parentId: types.option(iot.string)
+      });
 
-    export type t = iot.TypeOf<typeof t>
-    export const Json = new Format.JsonFormatter(t);
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new Format.JsonFormatter(t);
+    }
+
+    export namespace ByEmail {
+      const t = iot.type({
+        userEmail: iot.string
+      });
+
+      export type t = iot.TypeOf<typeof t>
+      export const Json = new Format.JsonFormatter(t);
+    }
   }
   
   export namespace Request {
     export namespace Create {
       const t = iot.type({
-          parentId: types.option(iot.string)
-        , name: iot.string
+        name: iot.string
       });
 
       export type t = iot.TypeOf<typeof t>
