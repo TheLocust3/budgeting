@@ -6,8 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as iot from "io-ts";
 
-import AccountFrontend from "../frontend/account-frontend";
-import TransactionFrontend from "../frontend/transaction-frontend";
+import { AccountChannel, TransactionChannel } from "../channel";
 import { AuthenticationFor } from "./util";
 
 import { User } from "model";
@@ -95,17 +94,17 @@ const cleanup = (context: Route.Context): TE.TaskEither<Exception.t, void> => {
 
   const cleanupAccounts = () => {
     return pipe(
-        AccountFrontend.all(userId)
+        AccountChannel.all(userId)
       , TE.map(A.map((source) => source.id))
-      , deleteAll(AccountFrontend.deleteById(userId))
+      , deleteAll(AccountChannel.deleteById(userId))
     );
   }
 
   const cleanupTransactions = () => {
     return pipe(
-        TransactionFrontend.all(userId)
+        TransactionChannel.all(userId)
       , TE.map(A.map((source) => source.id))
-      , deleteAll(TransactionFrontend.deleteById(userId))
+      , deleteAll(TransactionChannel.deleteById(userId))
     );
   }
 

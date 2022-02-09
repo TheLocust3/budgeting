@@ -4,12 +4,12 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import EngineChannel from '../channel/engine-channel';
+import EngineChannel from './engine-channel';
 
 import { Account } from "model";
 import { Channel, Exception } from "magic";
 
-export namespace AccountFrontend {
+export namespace AccountChannel {
   export const all = (userId: string): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
     return pipe(
         EngineChannel.push(`/accounts?userId=${userId}`)('GET')()
@@ -44,4 +44,4 @@ export namespace AccountFrontend {
   };
 }
 
-export default AccountFrontend;
+export default AccountChannel;

@@ -4,13 +4,13 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
-import AccountFrontend from "../../src/frontend/account-frontend";
+import { AccountChannel } from "../../src/channel";
 import { uuid } from "../system/util";
 
 it("can add account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountFrontend.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
@@ -24,8 +24,8 @@ it("can add account", async () => {
 it("can get account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountFrontend.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
-    , TE.chain((account) => AccountFrontend.getById(account.userId)(account.id))
+      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountChannel.getById(account.userId)(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
@@ -39,8 +39,8 @@ it("can get account", async () => {
 it("can't get other user's account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountFrontend.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
-    , TE.chain((account) => AccountFrontend.getById("test2")(account.id))
+      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountChannel.getById("test2")(account.id))
     , TE.match(
           (res) => { expect(res._type).toBe("NotFound"); }
         , (_) => { throw new Error("Got unexpected successful response"); }
@@ -51,8 +51,8 @@ it("can't get other user's account", async () => {
 it("can list account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountFrontend.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
-    , TE.chain((_) => AccountFrontend.all("test"))
+      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((_) => AccountChannel.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
@@ -70,9 +70,9 @@ it("can list account", async () => {
 it("can delete account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountFrontend.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
-    , TE.chain((account) => AccountFrontend.deleteById("test")(account.id))
-    , TE.chain((_) => AccountFrontend.all("test"))
+      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountChannel.deleteById("test")(account.id))
+    , TE.chain((_) => AccountChannel.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
@@ -87,9 +87,9 @@ it("can delete account", async () => {
 it("can't delete other user's account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountFrontend.create({ id: "", parentId: O.none, userId: "test2", name: name, rules: [], children: [] })
-    , TE.chain((account) => AccountFrontend.deleteById("test")(account.id))
-    , TE.chain((_) => AccountFrontend.all("test2"))
+      AccountChannel.create({ id: "", parentId: O.none, userId: "test2", name: name, rules: [], children: [] })
+    , TE.chain((account) => AccountChannel.deleteById("test")(account.id))
+    , TE.chain((_) => AccountChannel.all("test2"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {

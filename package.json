@@ -9,7 +9,7 @@
     "build": "cd magic && yarn build && cd ../model && yarn build && cd ../storage && yarn build && cd ../engine && yarn build && cd ../logic && yarn build && cd ../scheduler && yarn build",
     "clean": "rm -rf magic/dist && rm -rf model/dist && rm -rf storage/dist && rm -rf engine/dist && rm -rf logic/dist && rm -rf scheduler/dist",
     "test": "jest --forceExit --verbose \".*/test/system/.*\"; cd logic && yarn test",
-    "start-backend": "concurrently -k -p \"[{name}]\" -n \"engine,logic,scheduler,magic,model,storage\" -c \"cyan.bold,green.bold,orange.bold,purple.bold,yellow.bold,white.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd scheduler && yarn start\" \"cd magic && yarn start\" \"cd model && yarn start\" \"cd storage && yarn start\"",
+    "start": "concurrently -k -p \"[{name}]\" -n \"engine,logic,scheduler,magic,model,storage\" -c \"cyan.bold,green.bold,orange.bold,purple.bold,yellow.bold,white.bold\" \"cd engine && yarn start\" \"cd logic && yarn start\" \"cd scheduler && yarn start\" \"cd magic && yarn start\" \"cd model && yarn start\" \"cd storage && yarn start\"",
     "migrate": "cd storage && yarn migrate",
     "rollback": "cd storage && yarn rollback"
   },

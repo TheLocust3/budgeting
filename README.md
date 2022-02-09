@@ -36,14 +36,11 @@ Migrate database:
 `yarn migrate`
 
 Start the backends:
-`yarn start-backend`
-
-Start the UI:
-`yarn start-frontend`
+`yarn start`
 
 ## test
 Make sure the server is running (for system tests):
-`yarn start-backend`
+`yarn start`
 
 Run the test suite:
 `yarn test`

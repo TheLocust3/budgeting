@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
-import TransactionFrontend from "../../src/frontend/transaction-frontend";
+import { TransactionChannel } from "../../src/channel";
 import { uuid } from "../system/util";
 
 const testTransaction = {
@@ -24,7 +24,7 @@ const expectTransaction = testTransaction;
 it("can add transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
+      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transaction) => {
@@ -38,8 +38,8 @@ it("can add transaction", async () => {
 it("can get transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.getById(transaction.userId)(transaction.id))
+      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionChannel.getById(transaction.userId)(transaction.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transaction) => {
@@ -53,8 +53,8 @@ it("can get transaction", async () => {
 it("can't get other user's transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.getById("test2")(transaction.id))
+      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionChannel.getById("test2")(transaction.id))
     , TE.match(
           (res) => { expect(res._type).toBe("NotFound"); }
         , (_) => { throw new Error("Got unexpected successful response"); }
@@ -65,8 +65,8 @@ it("can't get other user's transaction", async () => {
 it("can list transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
-    , TE.chain((_) => TransactionFrontend.all("test"))
+      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+    , TE.chain((_) => TransactionChannel.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {
@@ -84,9 +84,9 @@ it("can list transaction", async () => {
 it("can delete transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: "", merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.deleteById("test")(transaction.id))
-    , TE.chain((_) => TransactionFrontend.all("test"))
+      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionChannel.deleteById("test")(transaction.id))
+    , TE.chain((_) => TransactionChannel.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {
@@ -101,9 +101,9 @@ it("can delete transaction", async () => {
 it("can't delete other user's transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionFrontend.create({ ...testTransaction, id: "", userId: "test2", merchantName: merchantName })
-    , TE.chain((transaction) => TransactionFrontend.deleteById("test")(transaction.id))
-    , TE.chain((_) => TransactionFrontend.all("test2"))
+      TransactionChannel.create({ ...testTransaction, id: "", userId: "test2", merchantName: merchantName })
+    , TE.chain((transaction) => TransactionChannel.deleteById("test")(transaction.id))
+    , TE.chain((_) => TransactionChannel.all("test2"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {

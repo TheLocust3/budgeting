@@ -9,7 +9,7 @@ import EngineChannel from '../channel/engine-channel';
 import { Transaction } from "model";
 import { Channel, Exception } from "magic";
 
-export namespace TransactionFrontend {
+export namespace TransactionChannel {
   export const all = (userId: string): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     return pipe(
         EngineChannel.push(`/transactions?userId=${userId}`)('GET')()
@@ -44,4 +44,4 @@ export namespace TransactionFrontend {
   };
 }
 
-export default TransactionFrontend;
+export default TransactionChannel;
