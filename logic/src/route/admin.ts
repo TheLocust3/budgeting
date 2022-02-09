@@ -6,14 +6,12 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as iot from "io-ts";
 
-import UserFrontend from "../frontend/user-frontend";
-import SourceFrontend from "../frontend/source-frontend";
-import IntegrationFrontend from "../frontend/integration-frontend";
 import AccountFrontend from "../frontend/account-frontend";
 import TransactionFrontend from "../frontend/transaction-frontend";
 import { AuthenticationFor } from "./util";
 
 import { User } from "model";
+import { UserFrontend, IntegrationFrontend, SourceFrontend } from "storage";
 import { Exception, Reaper, Message, Pipe, Route } from "magic";
 
 export const router = new Route.Router();

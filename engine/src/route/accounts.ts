@@ -4,12 +4,10 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import AccountFrontend from "../frontend/account-frontend";
-
-import { Account } from "model";
-import { Transaction } from "model";
-import { Rule } from "model";
 import * as Materialize from "../materialize/index";
+
+import { Account, Transaction, Rule } from "model";
+import { AccountFrontend } from "storage";
 import { Message, Route } from "magic";
 
 export const router = new Route.Router();

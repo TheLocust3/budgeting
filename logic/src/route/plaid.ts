@@ -7,11 +7,10 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as iot from "io-ts";
 import { ItemPublicTokenExchangeResponse } from "plaid";
 
-import SourceFrontend from "../frontend/source-frontend";
-import IntegrationFrontend from "../frontend/integration-frontend";
 import { AuthenticationFor } from "./util";
 
 import { Source, Integration, Plaid } from "model";
+import { IntegrationFrontend, SourceFrontend } from "storage";
 import { Exception, Message, Plaid as PlaidHelper, Route } from "magic";
 
 export const router = new Route.Router();

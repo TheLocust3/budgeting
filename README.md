@@ -51,10 +51,16 @@ Run the test suite:
 ## todo
 
 ### next
- - remove react frontend
- - graphql API
+ - How do we deploy and scale this application easily?
+   - Simplify table accesses and models
+     - create functions should take some internal pre-persisted object instead of just null-ing fields
+     - Always pull rules with `accounts` into some "rich" account
+     - fix `linkedAccounts`, try to get rid of `withChildren`
+ - Move business logic API to graphql
+   - what sort of schema should it have?
  - some way to manually insert Plaid credentials
  - Better puller
+   - Think about how this scales, pull off of queue? Don't rely on DB row lock basically
    - Create "summary" transaction of account value on initial pull
    - Retry on failure
 
@@ -66,18 +72,11 @@ Run the test suite:
  - Optional remainder in SplitByValue
 
 ### future
- - Move everything to S3 and get rid of Postgres
-   - /${user}/accounts.json
-   - /${user}/sources.json
-   - /${user}/transactions/${month}.json
-   - How to synchronize writes so that services don't clobber eachother?
-     - _Eventually_ a Storage Writer service
-     - Push updates to a queue, Storage Writers "own" specific users/types of writes
-     - `accounts` Storage Writer, `sources` Storage writer, then some sort of way to distribute users based on load
-     - For now, direct writes
- - Engine aggregations
+ - How to simplify channel communication?
+   - engine/scheduler shoud "export" objects that allow other services to talk to them?
  - Global service configuration
-   - various secret keys
+   - various secret keys + API endpoints
+ - Engine aggregations
  - Deployment
  - Amazon Cognito?
  - Authenticate requests between components

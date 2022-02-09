@@ -3,9 +3,10 @@ import * as A from "fp-ts/Array";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 
+import * as Plan from "./plan";
+
 import { Transaction } from "model";
 import { Rule } from "model";
-import * as Plan from "./plan";
 
 export type Conflict = {
   _type: "Conflict";

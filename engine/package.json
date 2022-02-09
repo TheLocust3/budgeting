@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "tsc --incremental",
+    "setup": "yarn link magic && yarn link model && yarn link storage",
     "start-ts": "tsc -w",
     "start-node": "nodemon dist/index.js",
     "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" \"npm run start-ts\" \"npm run start-node\"",

@@ -1,13 +1,15 @@
 {
-  "name": "model",
+  "name": "storage",
   "version": "1.0.0",
   "main": "dist/index.js",
   "author": "TheLocust3 <jake.kinsella@gmail.com>",
   "license": "UNLICENSED",
   "scripts": {
     "build": "tsc --incremental",
-    "setup": "yarn link magic && yarn link && yarn build",
-    "start": "tsc -w"
+    "setup": "yarn link magic && yarn link model && yarn link && yarn build",
+    "start": "tsc -w",
+    "migrate": "npm run build; node dist/db/migrate.js",
+    "rollback": "npm run build; node dist/db/rollback.js"
   },
   "devDependencies": {
     "@types/jest": "^27.4.0",

@@ -5,18 +5,11 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
-import TransactionFrontend from "../frontend/transaction-frontend";
-import AccountFrontend from "../frontend/account-frontend";
-import RuleFrontend from "../frontend/rule-frontend";
-
-import * as AccountsTable from "../db/accounts";
-import * as TransactionsTable from "../db/transactions";
-import * as RulesTable from "../db/rules";
-import { Transaction } from "model";
-import { Rule } from "model";
-import { Account } from "model";
 import * as Plan from "./plan";
 import * as Materializer from "./materializer";
+
+import { Transaction, Rule, Account } from "model";
+import { AccountFrontend, TransactionFrontend, RuleFrontend } from "storage";
 import { Exception, Format } from "magic";
 
 export type t = {

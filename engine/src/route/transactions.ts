@@ -6,9 +6,8 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import { PathReporter } from "io-ts/PathReporter";
 
-import TransactionFrontend from "../frontend/transaction-frontend";
-
 import { Transaction } from "model";
+import { TransactionFrontend } from "storage";
 import { Message, Route } from "magic";
 
 export const router = new Route.Router();

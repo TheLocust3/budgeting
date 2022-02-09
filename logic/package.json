@@ -6,12 +6,11 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "tsc --incremental",
+    "setup": "yarn link magic && yarn link model && yarn link storage",
     "start-ts": "tsc -w",
     "start-node": "nodemon dist/index.js",
     "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" \"npm run start-ts\" \"npm run start-node\"",
-    "test": "jest --forceExit --verbose",
-    "migrate": "npm run build; node dist/db/migrate.js",
-    "rollback": "npm run build; node dist/db/rollback.js"
+    "test": "jest --forceExit --verbose"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

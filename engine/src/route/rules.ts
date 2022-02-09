@@ -5,9 +5,10 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import { PathReporter } from "io-ts/PathReporter";
 
-import RuleFrontend from "../frontend/rule-frontend";
+import Validate from "../rule/validate";
 
 import { Rule } from "model";
+import { RuleFrontend } from "storage";
 import { Message, Route } from "magic";
 
 export const router = new Route.Router();
@@ -38,6 +39,7 @@ router
     return pipe(
         Route.parseBody(context)(Rule.Channel.Request.Create.Json)
       , TE.map((createRule) => { return { ...createRule, id: "" } })
+      , TE.chain((rule: Rule.Internal.t) => Validate.rule(context.request.app.locals.db)(rule))
       , TE.chain(RuleFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(Rule.Internal.Json)
     );

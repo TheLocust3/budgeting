@@ -8,7 +8,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import RuleFrontend from "./rule-frontend";
 
 import { Account } from "model";
-import * as AccountsTable from "../db/accounts";
+import * as AccountsTable from "../db/accounts-table";
 import { Exception } from "magic";
 
 export namespace AccountFrontend {

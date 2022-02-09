@@ -4,10 +4,10 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import SourceFrontend from "../frontend/source-frontend";
 import { AuthenticationFor } from "./util";
 
 import { Source } from "model";
+import { SourceFrontend } from "storage";
 import { Message, Route } from "magic";
 
 export const router = new Route.Router();

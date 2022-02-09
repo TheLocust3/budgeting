@@ -6,7 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import { Transaction } from "model";
-import * as TransactionsTable from "../db/transactions";
+import * as TransactionsTable from "../db/transactions-table";
 import { Exception } from "magic";
 
 export namespace TransactionFrontend {
