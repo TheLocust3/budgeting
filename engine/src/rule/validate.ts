@@ -11,7 +11,7 @@ import { Exception } from "magic";
 
 namespace Validate {
   type Context = {
-    account: Account.Internal.t;
+    account: Account.Internal.Rich;
   }
 
   const splitByPercent = (context: Context) => (body: Rule.Internal.Split.SplitByPercent): boolean => {

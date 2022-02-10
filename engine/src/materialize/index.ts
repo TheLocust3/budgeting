@@ -51,7 +51,7 @@ export const Json = new class implements Format.Formatter<t> {
   }
 }
 
-const linkedAccounts = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
+const linkedAccounts = (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Account.Internal.Rich[]> => {
   return O.match(
       () => TE.of([])
     , (parentId: string) => pipe(
@@ -120,7 +120,7 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): 
   }
 };
 
-export const execute = (id: string) => (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, t> => {
+export const execute = (id: string) => (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, t> => {
   // TODO: JK track materialize logs with id
   console.log(`[${id}] materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   

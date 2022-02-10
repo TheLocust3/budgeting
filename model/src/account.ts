@@ -14,11 +14,21 @@ export namespace Internal {
     , parentId: types.option(iot.string)
     , userId: iot.string
     , name: iot.string
-    , rules: iot.array(Rule.Internal.t)
-    , children: iot.array(iot.string)
   });
-
   export type t = iot.TypeOf<typeof t>;
+
+  const WithChildren = iot.type({
+    children: iot.array(iot.string)
+  });
+  export type WithChildren = iot.TypeOf<typeof WithChildren>;
+
+  const WithRules = iot.type({
+    rules: iot.array(Rule.Internal.t)
+  });
+  export type WithRules = iot.TypeOf<typeof WithRules>;
+
+  export type Rich = t & WithChildren & WithRules
+
   export const Json = new Format.JsonFormatter(t);
   export const Database = new class implements Format.Formatter<t> {
     TableType = iot.type({
@@ -34,7 +44,7 @@ export namespace Internal {
         , this.TableType.decode
         , E.mapLeft((_) => Exception.throwInternalError)
         , E.map(({ id, parent_id, user_id, name }) => {
-            return { id: id, parentId: parent_id, userId: user_id, name: name, rules: [], children: [] }
+            return { id: id, parentId: parent_id, userId: user_id, name: name }
           })
       );
     }

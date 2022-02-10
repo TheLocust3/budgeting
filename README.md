@@ -51,7 +51,6 @@ Run the test suite:
  - How do we deploy and scale this application easily?
    - Simplify table accesses and models
      - create functions should take some internal pre-persisted object instead of just null-ing fields
-     - Always pull rules with `accounts` into some "rich" account
      - fix `linkedAccounts`, try to get rid of `withChildren`
  - Move business logic API to graphql
    - what sort of schema should it have?

@@ -26,7 +26,7 @@ export type t = {
   stages: Stage[]
 }
 
-const buildStage = (account: Account.Internal.t): Stage => {
+const buildStage = (account: Account.Internal.Rich): Stage => {
   const rules = A.map((rule: Rule.Internal.t) => rule.rule)(account.rules);
 
   const attach = pipe(rules, A.map(Rule.Internal.collectAttach), Pipe.flattenOption);
@@ -51,6 +51,6 @@ const buildStage = (account: Account.Internal.t): Stage => {
   }
 };
 
-export const build = (accounts: Account.Internal.t[]): t => {
+export const build = (accounts: Account.Internal.Rich[]): t => {
   return { stages: A.map(buildStage)(accounts) };
 };
