@@ -6,10 +6,10 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import SourceFrontend from "../frontend/source-frontend";
 import * as PullerJob from "./puller-job";
 
 import { Exception, Reaper } from "magic";
+import { SourceFrontend } from "storage";
 import { Source } from "model";
 
 // on tick:

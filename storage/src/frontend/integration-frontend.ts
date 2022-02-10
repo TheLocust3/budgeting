@@ -17,15 +17,28 @@ export namespace IntegrationFrontend {
     );
   };
 
-  export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Integration.Internal.t> => {
+  export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Integration.Internal.t> => {
     return pipe(
         id
-      , IntegrationTable.byId(pool)(userId)
+      , IntegrationTable.byId(pool)
       , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Integration.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (integration) => TE.of(integration)
         ))
+    );
+  };
+
+  export const getByIdAndUserId = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Integration.Internal.t> => {
+    return pipe(
+        getById(pool)(id)
+      , TE.chain((integration) => {
+          if (integration.userId == userId) {
+            return TE.of(integration);
+          } else {
+            return TE.throwError(Exception.throwNotFound);
+          }
+        })
     );
   };
 

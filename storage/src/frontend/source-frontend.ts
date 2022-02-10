@@ -44,6 +44,21 @@ export namespace SourceFrontend {
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
+
+  export const allExpired = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+    return pipe(
+        SourcesTable.allExpired(pool)()
+      , TE.mapLeft((_) => Exception.throwInternalError)
+    );
+  };
+
+  export const tryLockById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, boolean> => {
+    return pipe(
+        id
+      , SourcesTable.tryLockById(pool)
+      , TE.mapLeft((_) => Exception.throwInternalError)
+    );
+  };
 }
 
 export default SourceFrontend;

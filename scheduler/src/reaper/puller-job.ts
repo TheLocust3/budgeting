@@ -7,11 +7,8 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import SourceFrontend from "../frontend/source-frontend";
-import IntegrationFrontend from "../frontend/integration-frontend";
-import TransactionFrontend from "../frontend/transaction-frontend";
-
 import { Plaid } from "magic";
+import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "storage";
 import { Source, Integration, Transaction } from "model";
 
 // given a source:
