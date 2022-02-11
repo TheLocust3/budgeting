@@ -90,6 +90,25 @@ export namespace Internal {
   }
 }
 
+export namespace Frontend {
+  export namespace Create {
+    const t = iot.type({
+        id: iot.string
+      , sourceId: iot.string
+      , userId: iot.string
+      , amount: iot.number
+      , merchantName: iot.string
+      , description: iot.string
+      , authorizedAt: types.date
+      , capturedAt: types.option(types.date)
+      , metadata: iot.object
+    });
+
+    export type t = iot.TypeOf<typeof t>
+    export const Json = new Format.JsonFormatter(t);
+  }
+}
+
 export namespace Channel {
   export namespace Query {
     const t = iot.type({

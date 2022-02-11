@@ -254,6 +254,18 @@ export namespace Internal {
   };
 }
 
+export namespace Frontend {
+  export namespace Create {
+    const t = iot.type({
+        accountId: iot.string
+      , rule: Internal.Rule
+    });
+
+    export type t = iot.TypeOf<typeof t>;
+    export const Json = new Format.JsonFormatter(t);
+  }
+}
+
 export namespace Channel {
   export namespace Query {
     const t = iot.type({
@@ -262,18 +274,6 @@ export namespace Channel {
 
     export type t = iot.TypeOf<typeof t>
     export const Json = new Format.JsonFormatter(t);
-  }
-
-  export namespace Request {
-    export namespace Create {
-      const t = iot.type({
-          accountId: iot.string
-        , rule: Internal.Rule
-      });
-
-      export type t = iot.TypeOf<typeof t>
-      export const Json = new Format.JsonFormatter(t);
-    }
   }
 
   export namespace Response {

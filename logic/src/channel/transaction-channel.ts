@@ -25,10 +25,9 @@ export namespace TransactionChannel {
     );
   };
 
-  export const create = (transaction: Transaction.Internal.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
-    const { custom: _, ...createTransaction} = transaction // remove `custom`
+  export const create = (transaction: Transaction.Frontend.Create.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
-        { ...createTransaction, authorizedAt: transaction.authorizedAt.getTime(), capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(transaction.capturedAt) }
+        { ...transaction, authorizedAt: transaction.authorizedAt.getTime(), capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(transaction.capturedAt) }
       , Transaction.Channel.Request.Create.Json.to
       , O.some
       , EngineChannel.push(`/transactions/`)('POST')

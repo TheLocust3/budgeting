@@ -56,9 +56,9 @@ const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEith
 
 const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
   console.log(`Scheduler.puller[${id}] - pulling transactions`)
-  // INVARIANT: the accountId + createdAt must exist on `source`
+  // INVARIANT: accountId must exist on `source`
   const accountId = O.match(() => "", (metadata: Source.Internal.PlaidMetadata) => metadata.accountId)(context.source.metadata);
-  const createdAt = O.match(() => new Date(), (createdAt: Date) => createdAt)(context.source.createdAt);
+  const createdAt = context.source.createdAt;
 
   return pipe(
       Plaid.getTransactions(plaidClient)(context.integration.credentials.accessToken, createdAt, new Date())

@@ -152,7 +152,7 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
   );
 };
 
-export const create = (pool: Pool) => (source: Source.Internal.t) : TE.TaskEither<Error, Source.Internal.t> => {
+export const create = (pool: Pool) => (source: Source.Frontend.Create.t) : TE.TaskEither<Error, Source.Internal.t> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(

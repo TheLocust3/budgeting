@@ -150,7 +150,7 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Error, vo
   );
 };
 
-export const create = (pool: Pool) => (user: User.Internal.t) : TE.TaskEither<Error, User.Internal.t> => {
+export const create = (pool: Pool) => (user: User.Frontend.Create.t) : TE.TaskEither<Error, User.Internal.t> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(user.email, user.password, user.role)),

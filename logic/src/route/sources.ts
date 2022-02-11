@@ -22,7 +22,7 @@ router
     return pipe(
         SourceFrontend.all(context.request.app.locals.db)(user.id)
       , TE.map((sources) => { return { sources: sources }; })
-      , Route.respondWith(context)(Source.Frontend.Response.SourceList.Json)
+      , Route.respondWith(context)(Source.External.Response.SourceList.Json)
     );
   });
 
@@ -42,8 +42,8 @@ router
     const user = context.response.locals.user;
 
     return pipe(
-        Route.parseBody(context)(Source.Frontend.Request.Create.Json)
-      , TE.map((createSource) => { return { ...createSource, id: "", userId: user.id, metadata: O.none, createdAt: O.none } })
+        Route.parseBody(context)(Source.External.Request.Create.Json)
+      , TE.map((createSource) => { return { ...createSource, userId: user.id, metadata: O.none } })
       , TE.chain(SourceFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(Source.Internal.Json)
     );

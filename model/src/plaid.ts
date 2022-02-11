@@ -6,7 +6,7 @@ import * as types from "io-ts-types";
 
 import { Exception, Format } from "magic";
 
-export namespace Frontend {
+export namespace External {
   export namespace Request {
     export namespace ExchangePublicToken {
       const Account = iot.type({

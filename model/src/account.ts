@@ -60,27 +60,27 @@ export namespace Internal {
   };
 }
 
+export namespace Frontend {
+  export namespace Create {
+    const t = iot.type({
+        parentId: types.option(iot.string)
+      , userId: iot.string
+      , name: iot.string
+    });
+
+    export type t = iot.TypeOf<typeof t>;
+    export const Json = new Format.JsonFormatter(t);
+  }
+}
+
 export namespace Channel {
   export namespace Query {
     const t = iot.type({
-        userId: iot.string
+      userId: iot.string
     });
 
     export type t = iot.TypeOf<typeof t>
     export const Json = new Format.JsonFormatter(t);
-  }
-  
-  export namespace Request {
-    export namespace Create {
-      const t = iot.type({
-          parentId: types.option(iot.string)
-        , userId: iot.string
-        , name: iot.string
-      });
-
-      export type t = iot.TypeOf<typeof t>
-      export const Json = new Format.JsonFormatter(t);
-    }
   }
 
   export namespace Response {

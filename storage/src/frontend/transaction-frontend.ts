@@ -36,7 +36,7 @@ export namespace TransactionFrontend {
     );
   };
 
-  export const create = (pool: Pool) => (transaction: Transaction.Internal.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+  export const create = (pool: Pool) => (transaction: Transaction.Frontend.Create.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
         transaction
       , TransactionsTable.create(pool)

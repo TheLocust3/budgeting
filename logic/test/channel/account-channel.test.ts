@@ -10,7 +10,7 @@ import { uuid } from "../system/util";
 it("can add account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test", name: name })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
@@ -24,7 +24,7 @@ it("can add account", async () => {
 it("can get account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test", name: name })
     , TE.chain((account) => AccountChannel.getById(account.userId)(account.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -39,7 +39,7 @@ it("can get account", async () => {
 it("can't get other user's account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test", name: name })
     , TE.chain((account) => AccountChannel.getById("test2")(account.id))
     , TE.match(
           (res) => { expect(res._type).toBe("NotFound"); }
@@ -51,7 +51,7 @@ it("can't get other user's account", async () => {
 it("can list account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test", name: name })
     , TE.chain((_) => AccountChannel.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -70,7 +70,7 @@ it("can list account", async () => {
 it("can delete account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: name, rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test", name: name })
     , TE.chain((account) => AccountChannel.deleteById("test")(account.id))
     , TE.chain((_) => AccountChannel.all("test"))
     , TE.match(
@@ -87,7 +87,7 @@ it("can delete account", async () => {
 it("can't delete other user's account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test2", name: name, rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test2", name: name })
     , TE.chain((account) => AccountChannel.deleteById("test")(account.id))
     , TE.chain((_) => AccountChannel.all("test2"))
     , TE.match(

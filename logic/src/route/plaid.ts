@@ -25,7 +25,7 @@ router
     return pipe(
         PlaidHelper.createLinkToken(context.request.app.locals.plaidClient)(user.id)
       , TE.map((token) => { return { token: token }; })
-      , Route.respondWith(context)(Plaid.Frontend.Response.CreateLinkToken.Json)
+      , Route.respondWith(context)(Plaid.External.Response.CreateLinkToken.Json)
     );
   });
 
@@ -33,7 +33,7 @@ router
   .post("/exchange_public_token", (context) => {
     return pipe(
         TE.Do
-      , TE.bind("request", () => Route.parseBody(context)(Plaid.Frontend.Request.ExchangePublicToken.Json))
+      , TE.bind("request", () => Route.parseBody(context)(Plaid.External.Request.ExchangePublicToken.Json))
       , TE.bind("publicToken", ({ request }) => PlaidHelper.exchangePublicToken(context.request.app.locals.plaidClient)(request.publicToken))
       , TE.chain(({ request, publicToken }) => build(context)(request)(publicToken))
       , Route.respondWithOk(context)
@@ -42,7 +42,7 @@ router
 
 const build =
   (context: Route.Context) =>
-  (request: Plaid.Frontend.Request.ExchangePublicToken.t) =>
+  (request: Plaid.External.Request.ExchangePublicToken.t) =>
   (publicToken: ItemPublicTokenExchangeResponse): TE.TaskEither<Exception.t, void> => {
   const requestId = context.response.locals.id;
   const user = context.response.locals.user;
@@ -52,9 +52,8 @@ const build =
 
   const buildIntegration = (): TE.TaskEither<Exception.t, Integration.Internal.t> => {
     console.log(`[${requestId}] - building integration "${request.institutionName}"`);
-    const integration: Integration.Internal.t = {
-        id: ""
-      , userId: user.id
+    const integration: Integration.Frontend.Create.t = {
+        userId: user.id
       , name: request.institutionName
       , credentials: { _type: "Plaid", itemId: publicToken.item_id, accessToken: publicToken.access_token }
     };
@@ -64,14 +63,12 @@ const build =
 
   const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
     console.log(`[${requestId}] - building sources "${request.accounts}"`);
-    const sources: Source.Internal.t[] = A.map(({ id, name }: Plaid.Frontend.Request.ExchangePublicToken.Account) => {
-      return <Source.Internal.t>{
-          id: ""
-        , userId: user.id
+    const sources: Source.Frontend.Create.t[] = A.map(({ id, name }: Plaid.External.Request.ExchangePublicToken.Account) => {
+      return <Source.Frontend.Create.t>{
+          userId: user.id
         , name: name
         , integrationId: O.some(integration.id)
         , metadata: O.some({ _type: "Plaid", accountId: id })
-        , createdAt: O.none
       };
     })(request.accounts);
 

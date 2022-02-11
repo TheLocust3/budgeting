@@ -128,7 +128,7 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
   );
 };
 
-export const create = (pool: Pool) => (integration: Integration.Internal.t) : TE.TaskEither<Error, Integration.Internal.t> => {
+export const create = (pool: Pool) => (integration: Integration.Frontend.Create.t) : TE.TaskEither<Error, Integration.Internal.t> => {
   return pipe(
       TE.tryCatch(
           () => pool.query(Query.create(integration.userId, integration.name, integration.credentials))

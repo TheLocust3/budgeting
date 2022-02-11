@@ -40,7 +40,7 @@ export namespace RuleFrontend {
     );
   };
 
-  export const create = (pool: Pool) => (rule: Rule.Internal.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+  export const create = (pool: Pool) => (rule: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         rule
       , RulesTable.create(pool)

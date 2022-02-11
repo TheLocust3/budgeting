@@ -7,19 +7,20 @@ import * as types from "io-ts-types";
 import { Exception, Format } from "magic";
 
 export namespace Internal {
-  const PlaidMetadata = iot.type({
+  export const PlaidMetadata = iot.type({
       _type: iot.literal("Plaid")
     , accountId: iot.string
   });
   export type PlaidMetadata = iot.TypeOf<typeof PlaidMetadata>
 
+  // TODO: JK enforce integrationId + metadata existance on type level
   export const t = iot.type({
       id: iot.string
     , userId: iot.string
     , name: iot.string
     , integrationId: types.option(iot.string)
     , metadata: types.option(PlaidMetadata)
-    , createdAt: types.option(types.DateFromISOString)
+    , createdAt: types.DateFromISOString
   });
 
   export type t = iot.TypeOf<typeof t>
@@ -40,7 +41,7 @@ export namespace Internal {
         , this.TableType.decode
         , E.mapLeft((_) => Exception.throwInternalError)
         , E.map(({ id, user_id, name, integration_id, created_at, metadata }) => {
-            return { id: id, userId: user_id, name: name, integrationId: integration_id, metadata: metadata, createdAt: O.some(created_at) };
+            return { id: id, userId: user_id, name: name, integrationId: integration_id, metadata: metadata, createdAt: created_at };
           })
       );
     }
@@ -58,6 +59,20 @@ export namespace Internal {
   };
 }
 
+export namespace Frontend {
+  export namespace Create {
+    const t = iot.type({
+        userId: iot.string
+      , name: iot.string
+      , integrationId: types.option(iot.string)
+      , metadata: types.option(Internal.PlaidMetadata)
+    });
+
+    export type t = iot.TypeOf<typeof t>;
+    export const Json = new Format.JsonFormatter(t);
+  }
+}
+
 export namespace Channel {
   export namespace Request {
     export namespace Create {
@@ -73,7 +88,7 @@ export namespace Channel {
   }
 }
 
-export namespace Frontend {
+export namespace External {
   export namespace Request {
     export namespace Create {
       const t = iot.type({

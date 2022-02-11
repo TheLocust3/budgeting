@@ -15,7 +15,7 @@ let accountId: string;
 let accountId2: string;
 beforeAll(async () => {
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: "test", rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test", name: "test" })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
@@ -25,7 +25,7 @@ beforeAll(async () => {
   )();
 
   await pipe(
-      AccountChannel.create({ id: "", parentId: O.none, userId: "test", name: "test", rules: [], children: [] })
+      AccountChannel.create({ parentId: O.none, userId: "test", name: "test" })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
@@ -37,7 +37,7 @@ beforeAll(async () => {
 
 it("can add rule", async () => {
   await pipe(
-      RuleChannel.create({ id: "", accountId: accountId, rule: ruleBody })
+      RuleChannel.create({ accountId: accountId, rule: ruleBody })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rule) => {
@@ -50,7 +50,7 @@ it("can add rule", async () => {
 
 it("can get rule", async () => {
   await pipe(
-      RuleChannel.create({ id: "", accountId: accountId, rule: ruleBody })
+      RuleChannel.create({ accountId: accountId, rule: ruleBody })
     , TE.chain((rule) => RuleChannel.getById(rule.accountId)(rule.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -64,7 +64,7 @@ it("can get rule", async () => {
 
 it("can't get other account's rule", async () => {
   await pipe(
-      RuleChannel.create({ id: "", accountId: accountId2, rule: ruleBody })
+      RuleChannel.create({ accountId: accountId2, rule: ruleBody })
     , TE.chain((rule) => RuleChannel.getById(accountId)(rule.id))
     , TE.match(
           (res) => { expect(res._type).toBe("NotFound"); }
@@ -76,7 +76,7 @@ it("can't get other account's rule", async () => {
 it("can list rules", async () => {
   await pipe(
       TE.Do
-    , TE.bind('createdRule', () => RuleChannel.create({ id: "", accountId: accountId, rule: ruleBody }))
+    , TE.bind('createdRule', () => RuleChannel.create({ accountId: accountId, rule: ruleBody }))
     , TE.bind('rules', () => RuleChannel.all(accountId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -95,7 +95,7 @@ it("can list rules", async () => {
 it("can delete rule", async () => {
   await pipe(
       TE.Do
-    , TE.bind('createdRule', () => RuleChannel.create({ id: "", accountId: accountId, rule: ruleBody }))
+    , TE.bind('createdRule', () => RuleChannel.create({ accountId: accountId, rule: ruleBody }))
     , TE.bind('deleted', ({ createdRule }) => RuleChannel.deleteById(accountId)(createdRule.id))
     , TE.bind('rules', () => RuleChannel.all(accountId))
     , TE.match(
@@ -112,7 +112,7 @@ it("can delete rule", async () => {
 it("can't delete other account's rule", async () => {
     await pipe(
       TE.Do
-    , TE.bind('createdRule', () => RuleChannel.create({ id: "", accountId: accountId2, rule: ruleBody }))
+    , TE.bind('createdRule', () => RuleChannel.create({ accountId: accountId2, rule: ruleBody }))
     , TE.bind('deleted', ({ createdRule }) => RuleChannel.deleteById(accountId)(createdRule.id))
     , TE.bind('rules', () => RuleChannel.all(accountId2))
     , TE.match(

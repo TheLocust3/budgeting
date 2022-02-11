@@ -62,7 +62,7 @@ export namespace AccountFrontend {
     );
   };
 
-  export const create = (pool: Pool) => (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
+  export const create = (pool: Pool) => (account: Account.Frontend.Create.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
     return pipe(
         account
       , AccountsTable.create(pool)

@@ -145,7 +145,7 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
   );
 };
 
-export const create = (pool: Pool) => (transaction: Transaction.Internal.t) : TE.TaskEither<Error, Transaction.Internal.t> => {
+export const create = (pool: Pool) => (transaction: Transaction.Frontend.Create.t) : TE.TaskEither<Error, Transaction.Internal.t> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(

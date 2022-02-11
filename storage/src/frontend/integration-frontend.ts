@@ -42,7 +42,7 @@ export namespace IntegrationFrontend {
     );
   };
 
-  export const create = (pool: Pool) => (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Integration.Internal.t> => {
+  export const create = (pool: Pool) => (integration: Integration.Frontend.Create.t): TE.TaskEither<Exception.t, Integration.Internal.t> => {
     return pipe(
         integration
       , IntegrationTable.create(pool)

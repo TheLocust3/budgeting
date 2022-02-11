@@ -42,7 +42,7 @@ export namespace UserFrontend {
     );
   };
 
-  export const create = (pool: Pool) => (user: User.Internal.t): TE.TaskEither<Exception.t, User.Internal.t> => {
+  export const create = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
     return pipe(
         TE.tryCatch(
             () => bcrypt.hash(user.password, 10)

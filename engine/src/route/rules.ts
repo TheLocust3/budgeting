@@ -37,9 +37,8 @@ router
 router
   .post("/", (context) => {
     return pipe(
-        Route.parseBody(context)(Rule.Channel.Request.Create.Json)
-      , TE.map((createRule) => { return { ...createRule, id: "" } })
-      , TE.chain((rule: Rule.Internal.t) => Validate.rule(context.request.app.locals.db)(rule))
+        Route.parseBody(context)(Rule.Frontend.Create.Json)
+      , TE.chain((rule) => Validate.rule(context.request.app.locals.db)(rule))
       , TE.chain(RuleFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(Rule.Internal.Json)
     );

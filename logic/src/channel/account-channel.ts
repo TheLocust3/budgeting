@@ -26,10 +26,10 @@ export namespace AccountChannel {
   };
 
   // TODO: JK create any given rules
-  export const create = (account: Account.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
+  export const create = (account: Account.Frontend.Create.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
     return pipe(
         { parentId: account.parentId, userId: account.userId, name: account.name }
-      , Account.Channel.Request.Create.Json.to
+      , Account.Frontend.Create.Json.to
       , O.some
       , EngineChannel.push(`/accounts/`)('POST')
       , Channel.to(Account.Internal.Json.from)

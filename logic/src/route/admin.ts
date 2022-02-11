@@ -23,7 +23,7 @@ router
     return pipe(
         UserFrontend.all(context.request.app.locals.db)()
       , TE.map((users) => { return { users: users }; })
-      , Route.respondWith(context)(User.Frontend.Response.UserList.Json)
+      , Route.respondWith(context)(User.External.Response.UserList.Json)
     );
   });
 

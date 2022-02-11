@@ -41,6 +41,19 @@ export namespace Internal {
 }
 
 export namespace Frontend {
+  export namespace Create {
+    const t = iot.type({
+        email: iot.string
+      , password: iot.string
+      , role: iot.string
+    });
+
+    export type t = iot.TypeOf<typeof t>;
+    export const Json = new Format.JsonFormatter(t);
+  }
+}
+
+export namespace External {
   export namespace Request {
     export namespace Credentials {
       const t = iot.type({
@@ -48,7 +61,7 @@ export namespace Frontend {
         , password: iot.string
       });
       
-      export type t = iot.TypeOf<typeof t>
+      export type t = iot.TypeOf<typeof t>;
       export const Json = new Format.JsonFormatter(t);
     }
 

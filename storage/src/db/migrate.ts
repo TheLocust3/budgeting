@@ -11,7 +11,7 @@ import UserFrontend from "../frontend/user-frontend";
 
 const migrate = async (pool: Pool) => {
   await UsersTable.migrate(pool)();
-  await UserFrontend.create(pool)({ id: "", email: "jake.kinsella@gmail.com", password: "foobar", role: "superuser" })();
+  await UserFrontend.create(pool)({ email: "jake.kinsella@gmail.com", password: "foobar", role: "superuser" })();
   await IntegrationsTable.migrate(pool)();
   await SourcesTable.migrate(pool)();
 

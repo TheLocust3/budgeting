@@ -50,8 +50,7 @@ router
 router
   .post("/", (context) => {
     return pipe(
-        Route.parseBody(context)(Account.Channel.Request.Create.Json)
-      , TE.map((createAccount) => { return { ...createAccount, id: "", rules: [], children: [] } })
+        Route.parseBody(context)(Account.Frontend.Create.Json)
       , TE.chain(AccountFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(Account.Internal.Json)
     );

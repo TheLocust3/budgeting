@@ -39,7 +39,7 @@ router
         Route.parseBody(context)(Transaction.Channel.Request.Create.Json)
       , TE.map((createTransaction) => {
           const capturedAt = O.map((capturedAt: number) => new Date(capturedAt))(createTransaction.capturedAt);
-          return { ...createTransaction, id: crypto.randomUUID(), authorizedAt: new Date(createTransaction.authorizedAt), capturedAt: capturedAt, custom: {} };
+          return { ...createTransaction, id: crypto.randomUUID(), authorizedAt: new Date(createTransaction.authorizedAt), capturedAt: capturedAt };
         })
       , TE.chain(TransactionFrontend.create(context.request.app.locals.db))
       , Route.respondWith(context)(Transaction.Internal.Json)

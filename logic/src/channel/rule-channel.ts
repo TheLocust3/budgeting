@@ -25,10 +25,10 @@ export namespace RuleChannel {
     );
   };
 
-  export const create = (rule: Rule.Internal.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+  export const create = (rule: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         rule
-      , Rule.Channel.Request.Create.Json.to
+      , Rule.Frontend.Create.Json.to
       , O.some
       , EngineChannel.push(`/rules/`)('POST')
       , Channel.to(Rule.Internal.Json.from)

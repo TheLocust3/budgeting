@@ -38,10 +38,10 @@ namespace Validate {
   };
 
   const include = (context: Context) => (body: Rule.Internal.Include.t): boolean => {
-    return !A.exists((rule: Rule.Internal.t) => rule.rule._type !== "Attach" && rule.rule._type !== "Include")(context.account.rules); // include cannot be used with splits
+    return !A.exists((rule: Rule.Frontend.Create.t) => rule.rule._type !== "Attach" && rule.rule._type !== "Include")(context.account.rules); // include cannot be used with splits
   };
 
-  const buildContext = (pool: Pool) => (body: Rule.Internal.t): TE.TaskEither<Exception.t, Context> => {
+  const buildContext = (pool: Pool) => (body: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Context> => {
     return pipe(
         body.accountId
       , AccountFrontend.getById(pool)
@@ -51,7 +51,7 @@ namespace Validate {
     );
   };
 
-  export const rule = (pool: Pool) => (body: Rule.Internal.t): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+  export const rule = (pool: Pool) => (body: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Rule.Frontend.Create.t> => {
     const inner = body.rule;
     return pipe(
         body

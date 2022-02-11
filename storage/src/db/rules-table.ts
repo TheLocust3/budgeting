@@ -128,7 +128,7 @@ export const deleteById = (pool: Pool) => (accountId: string) => (id: string) : 
   );
 };
 
-export const create = (pool: Pool) => (rule: Rule.Internal.t) : TE.TaskEither<Error, Rule.Internal.t> => {
+export const create = (pool: Pool) => (rule: Rule.Frontend.Create.t) : TE.TaskEither<Error, Rule.Internal.t> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(rule.accountId, rule.rule)),

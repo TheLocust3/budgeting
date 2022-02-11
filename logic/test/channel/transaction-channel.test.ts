@@ -16,7 +16,6 @@ const testTransaction = {
   , authorizedAt: new Date()
   , capturedAt: O.none
   , metadata: {}
-  , custom: {}
 };
 
 const expectTransaction = testTransaction;
@@ -24,7 +23,7 @@ const expectTransaction = testTransaction;
 it("can add transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+      TransactionChannel.create({ ...testTransaction, id: uuid(), merchantName: merchantName })
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transaction) => {
@@ -38,7 +37,7 @@ it("can add transaction", async () => {
 it("can get transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+      TransactionChannel.create({ ...testTransaction, id: uuid(), merchantName: merchantName })
     , TE.chain((transaction) => TransactionChannel.getById(transaction.userId)(transaction.id))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -53,7 +52,7 @@ it("can get transaction", async () => {
 it("can't get other user's transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+      TransactionChannel.create({ ...testTransaction, id: uuid(), merchantName: merchantName })
     , TE.chain((transaction) => TransactionChannel.getById("test2")(transaction.id))
     , TE.match(
           (res) => { expect(res._type).toBe("NotFound"); }
@@ -65,7 +64,7 @@ it("can't get other user's transaction", async () => {
 it("can list transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+      TransactionChannel.create({ ...testTransaction, id: uuid(), merchantName: merchantName })
     , TE.chain((_) => TransactionChannel.all("test"))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -84,7 +83,7 @@ it("can list transaction", async () => {
 it("can delete transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionChannel.create({ ...testTransaction, id: "", merchantName: merchantName })
+      TransactionChannel.create({ ...testTransaction, id: uuid(), merchantName: merchantName })
     , TE.chain((transaction) => TransactionChannel.deleteById("test")(transaction.id))
     , TE.chain((_) => TransactionChannel.all("test"))
     , TE.match(
@@ -101,7 +100,7 @@ it("can delete transaction", async () => {
 it("can't delete other user's transaction", async () => {
   const merchantName = `test-${uuid()}`;
   await pipe(
-      TransactionChannel.create({ ...testTransaction, id: "", userId: "test2", merchantName: merchantName })
+      TransactionChannel.create({ ...testTransaction, id: uuid(), userId: "test2", merchantName: merchantName })
     , TE.chain((transaction) => TransactionChannel.deleteById("test")(transaction.id))
     , TE.chain((_) => TransactionChannel.all("test2"))
     , TE.match(

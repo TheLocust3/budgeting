@@ -55,17 +55,15 @@ export namespace Internal {
   };
 }
 
-export namespace Channel {
-  export namespace Request {
-    export namespace Create {
-      const t = iot.type({
-          userId: iot.string
-        , name: iot.string
-        , credentials: Internal.Credentials
-      });
+export namespace Frontend {
+  export namespace Create {
+    const t = iot.type({
+        userId: iot.string
+      , name: iot.string
+      , credentials: Internal.Credentials
+    });
 
-      export type t = iot.TypeOf<typeof t>
-      export const Json = new Format.JsonFormatter(t);
-    }
+    export type t = iot.TypeOf<typeof t>;
+    export const Json = new Format.JsonFormatter(t);
   }
 }
