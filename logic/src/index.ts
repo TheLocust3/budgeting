@@ -14,7 +14,8 @@ import { router as userRouter } from "./route/users";
 import { router as sourceRouter } from "./route/sources";
 import { router as adminRouter } from "./route/admin";
 import { router as plaidRouter } from "./route/plaid";
-import * as Schema from './graphql/schema';
+import Schema from './graphql/schema';
+import * as Context from './graphql/context';
 import { AuthenticationFor } from "./route/util";
 
 import { Reaper } from "magic";
@@ -57,11 +58,11 @@ app.use("/admin", adminRouter.router);
 app.use("/plaid", plaidRouter.router);
 
 app.use(AuthenticationFor.user)
-app.use(Schema.middleware)
+app.use(Context.middleware)
 app.use(
   '/graphql',
   graphqlHTTP({
-    schema: Schema.schema,
+    schema: Schema,
     graphiql: true,
   }),
 );

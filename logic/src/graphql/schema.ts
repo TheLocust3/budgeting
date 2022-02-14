@@ -7,61 +7,11 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import { User } from "model";
+import * as UserResolver from './user-resolver';
+import { passthroughResolver } from './util';
+
 import { UserFrontend } from "storage";
 import { Exception } from "magic";
-
-type Context = {
-  user: O.Option<User.Internal.t>;
-}
-
-declare global{
-  namespace Express {
-    interface Request {
-      context: Context;
-      user: User.Internal.t;
-    }
-  }
-}
-
-export const middleware = (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
-  request.user = response.locals.user;
-  request.context = { user: O.none };
-  next();
-}
-
-const passthroughResolver = () => { return {}; }
-
-const toPromise = <T>(task: TE.TaskEither<Exception.t, T>): Promise<T> => {
-  return TE.match(
-      (error: Exception.t) => { throw new Error(error._type) }
-    , (out: T) => out
-  )(task)();
-}
-
-/*const resolveUser = (request: Express.Request) => (id: string): TE.TaskEither<Exception.t, User.Internal.t> => {
-  const context: Context = request.context;
-  const pool: Pool = request.app.locals.db;
-
-  return O.match(
-      () => UserFrontend.getById(pool)(id)
-    , (user: User.Internal.t) => TE.of(user)
-  )(context.user);
-}
-
-const resolveUserField = (field: UserField) => (source: any, args: any, request: Express.Request): Promise<string> => {
-  const user: User.Internal.t = request.user;
-
-  return pipe(
-      resolveUser(request)(user.id)
-    , TE.map((user) => user[field])
-    , toPromise
-  );
-}*/
-
-const resolveUserField = (field: keyof User.Internal.t) => (source: any, args: any, request: Express.Request): string => {
-  return request.user[field];
-}
 
 const accountType = new graphql.GraphQLObjectType({
   name: 'Account',
@@ -71,20 +21,12 @@ const accountType = new graphql.GraphQLObjectType({
   }
 });
 
-const userType = new graphql.GraphQLObjectType({
-  name: 'User',
-  fields: {
-    id: { type: graphql.GraphQLString, resolve: resolveUserField("id") },
-    email: { type: graphql.GraphQLString, resolve: resolveUserField("email") }
-  }
-});
-
 // TODO: integrations/sources
 const queryType = new graphql.GraphQLObjectType({
   name: 'Query',
   fields: {
       user: {
-          type: userType
+          type: UserResolver.t
         , resolve: passthroughResolver
       }
     , physical: {
@@ -98,4 +40,6 @@ const queryType = new graphql.GraphQLObjectType({
   }
 });
 
-export const schema = new graphql.GraphQLSchema({ query: queryType });
+const schema = new graphql.GraphQLSchema({ query: queryType });
+
+export default schema;
