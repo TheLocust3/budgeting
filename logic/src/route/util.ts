@@ -12,10 +12,18 @@ import { UserFrontend } from "storage";
 import { Exception, Message, Route } from "magic";
 
 export namespace AuthenticationFor {
+  const tryHeader = (request: Express.Request): TE.TaskEither<Exception.t, User.Internal.t> => {
+    return JWT.verify(request.app.locals.db)(String(request.header("Authorization")));
+  }
+
+  const tryCookie = (request: Express.Request): TE.TaskEither<Exception.t, User.Internal.t> => {
+    return JWT.verify(request.app.locals.db)(String(request.cookies["auth-token"]));
+  }
+
   export const user = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
     await pipe(
-        String(request.header("Authorization"))
-      , JWT.verify(request.app.locals.db)
+        tryHeader(request)
+      , TE.orElse(() => tryCookie(request))
       , TE.match(
           Message.respondWithError({ request, response })
         , async (user) => {
@@ -28,18 +36,18 @@ export namespace AuthenticationFor {
 
   export const admin = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
     await pipe(
-        String(request.header("Authorization"))
-      , JWT.verify(request.app.locals.db)
-      , TE.chain((user) => {
+        tryHeader(request)
+      , TE.orElse(() => tryCookie(request))
+      , TE.chain((user: User.Internal.t) => {
           if (user.role === 'superuser') {
-            return TE.of(user);
+            return <TE.TaskEither<Exception.t, User.Internal.t>>TE.of(user);
           } else {
-            return TE.throwError(Exception.throwUnauthorized);
+            return <TE.TaskEither<Exception.t, User.Internal.t>>TE.throwError(Exception.throwUnauthorized);
           }
         })
       , TE.match(
           Message.respondWithError({ request, response })
-        , async (user) => {
+        , async (user: User.Internal.t) => {
             response.locals.user = user;
             next();
           }
@@ -72,8 +80,11 @@ export namespace JWT {
   export const verify = (pool: Pool) => (token: string): TE.TaskEither<Exception.t, User.Internal.t> => {
     if (token !== undefined && token !== null && token !== "") {
       return pipe(
-          jwt.verify(token, "secret") // TODO JK
-        , Payload.from
+          E.tryCatch(
+              () => jwt.verify(token, "secret") // TODO JK
+            , () => Exception.throwUnauthorized
+          )
+        , E.chain(Payload.from)
         , TE.fromEither
         , TE.chain(({ userId }) => UserFrontend.getById(pool)(userId))
         , TE.mapLeft((_) => Exception.throwUnauthorized)

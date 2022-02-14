@@ -45,12 +45,16 @@ Make sure the server is running (for system tests):
 Run the test suite:
 `yarn test`
 
+## graphql api
+Login
+`curl -XPOST http://localhost:3001/users/login -H 'Content-Type: application/json' -d '{ "email": "jake.kinsella@gmail.com", "password": "foobar" }'`
+
+Open `localhost:3001/graphql` and store the token as a cookie using the Developer Console:
+`document.cookie="auth-token=${TOKEN}"`
+
 ## todo
 
 ### next
- - How do we deploy and scale this application easily?
-   - Simplify table accesses and models
-     - fix `linkedAccounts`, try to get rid of `withChildren`
  - Move business logic API to graphql
    - what sort of schema should it have?
  - some way to manually insert Plaid credentials
@@ -60,7 +64,6 @@ Run the test suite:
    - Retry on failure
 
 ### miscellaneous
- - Merge common table accessors
  - token timeout on JWT
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
