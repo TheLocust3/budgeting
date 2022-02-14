@@ -30,6 +30,8 @@ export const middleware = (request: Express.Request, response: Express.Response,
   next();
 }
 
+const passthroughResolver = () => { return {}; }
+
 const toPromise = <T>(task: TE.TaskEither<Exception.t, T>): Promise<T> => {
   return TE.match(
       (error: Exception.t) => { throw new Error(error._type) }
@@ -37,7 +39,7 @@ const toPromise = <T>(task: TE.TaskEither<Exception.t, T>): Promise<T> => {
   )(task)();
 }
 
-const resolveUser = (request: Express.Request) => (id: string): TE.TaskEither<Exception.t, User.Internal.t> => {
+/*const resolveUser = (request: Express.Request) => (id: string): TE.TaskEither<Exception.t, User.Internal.t> => {
   const context: Context = request.context;
   const pool: Pool = request.app.locals.db;
 
@@ -47,7 +49,6 @@ const resolveUser = (request: Express.Request) => (id: string): TE.TaskEither<Ex
   )(context.user);
 }
 
-type UserField = "id" | "email";
 const resolveUserField = (field: UserField) => (source: any, args: any, request: Express.Request): Promise<string> => {
   const user: User.Internal.t = request.user;
 
@@ -56,6 +57,10 @@ const resolveUserField = (field: UserField) => (source: any, args: any, request:
     , TE.map((user) => user[field])
     , toPromise
   );
+}*/
+
+const resolveUserField = (field: keyof User.Internal.t) => (source: any, args: any, request: Express.Request): string => {
+  return request.user[field];
 }
 
 const accountType = new graphql.GraphQLObjectType({
@@ -80,16 +85,15 @@ const queryType = new graphql.GraphQLObjectType({
   fields: {
       user: {
           type: userType
-        , resolve: () => {
-            console.log("test")
-            return { pls: "pls"};
-          }
+        , resolve: passthroughResolver
       }
     , physical: {
-        type: accountType
+          type: accountType
+        , resolve: passthroughResolver
       }
     , virtual: {
-        type: accountType
+          type: accountType
+        , resolve: passthroughResolver
       }
   }
 });
