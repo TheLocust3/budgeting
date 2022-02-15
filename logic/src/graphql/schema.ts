@@ -8,18 +8,11 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
 import * as UserResolver from './user-resolver';
+import * as AccountResolver from './account-resolver';
 import { passthroughResolver } from './util';
 
 import { UserFrontend } from "storage";
 import { Exception } from "magic";
-
-const accountType = new graphql.GraphQLObjectType({
-  name: 'Account',
-  fields: {
-    id: { type: graphql.GraphQLString },
-    name: { type: graphql.GraphQLString }
-  }
-});
 
 // TODO: integrations/sources
 const queryType = new graphql.GraphQLObjectType({
@@ -29,12 +22,16 @@ const queryType = new graphql.GraphQLObjectType({
           type: UserResolver.t
         , resolve: passthroughResolver
       }
+    , global: {
+          type: AccountResolver.Global.t
+        , resolve: passthroughResolver
+      }
     , physical: {
-          type: accountType
+          type: AccountResolver.Physical.t
         , resolve: passthroughResolver
       }
     , virtual: {
-          type: accountType
+          type: AccountResolver.Virtual.t
         , resolve: passthroughResolver
       }
   }

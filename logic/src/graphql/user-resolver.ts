@@ -2,8 +2,9 @@ import * as graphql from "graphql";
 
 import { User } from "model";
 
-const resolveUserField = (field: keyof User.Internal.t) => (source: any, args: any, request: Express.Request): string => {
-  return request.user[field];
+type Field = "id" | "email" | "password";
+const resolveUserField = (field: Field) => (source: any, args: any, request: Express.Request): string => {
+  return request.context.user[field];
 }
 
 export const t = new graphql.GraphQLObjectType({

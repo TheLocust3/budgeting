@@ -7,32 +7,38 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { User, Account, Rule } from "model";
 
-type AccountContext = {
-  account: O.Option<Account.Internal.t>;
-  rules: O.Option<Rule.Internal.t[]>;
+export namespace AccountContext {
+  export type t = {
+    account: Account.Internal.t;
+    rules: O.Option<Rule.Internal.t[]>;
+  }
+
+  export type WithChildren = {
+    children: (AccountContext.t & AccountContext.WithChildren)[];
+  }
 }
 
-type Context = {
-  user: O.Option<User.Internal.t>;
-  physical: AccountContext;
-  virtual: AccountContext;
+export type Context = {
+  user: User.Internal.t;
+  global: O.Option<AccountContext.t>;
+  physical: O.Option<AccountContext.t & AccountContext.WithChildren>;
+  virtual: O.Option<AccountContext.t & AccountContext.WithChildren>;
 }
 
 declare global{
   namespace Express {
     interface Request {
       context: Context;
-      user: User.Internal.t;
     }
   }
 }
 
 export const middleware = (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
-  request.user = response.locals.user;
   request.context = {
-      user: O.none
-    , physical: { account: O.none, rules: O.none }
-    , virtual: { account: O.none, rules: O.none }
+      user: response.locals.user
+    , global: O.none
+    , physical: O.none
+    , virtual: O.none
   };
 
   next();

@@ -10,7 +10,8 @@
     "start-ts": "tsc -w",
     "start-node": "nodemon dist/index.js",
     "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" \"npm run start-ts\" \"npm run start-node\"",
-    "test": "jest --forceExit --verbose"
+    "test": "jest --forceExit --verbose",
+    "migrate": "npm run build; node dist/migrate.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
