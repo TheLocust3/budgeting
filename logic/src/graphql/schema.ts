@@ -9,32 +9,22 @@ import * as graphql from "graphql";
 
 import * as UserResolver from './user-resolver';
 import * as AccountResolver from './account-resolver';
-import { passthroughResolver } from './util';
+import { passthroughResolver, listPassthroughResolver } from './util';
 
 import { UserFrontend } from "storage";
 import { Exception } from "magic";
 
 // TODO: integrations/sources
 const queryType = new graphql.GraphQLObjectType({
-  name: 'Query',
-  fields: {
-      user: {
-          type: UserResolver.t
-        , resolve: passthroughResolver
-      }
-    , global: {
-          type: AccountResolver.Global.t
-        , resolve: passthroughResolver
-      }
-    , physical: {
-          type: AccountResolver.Physical.t
-        , resolve: passthroughResolver
-      }
-    , virtual: {
-          type: AccountResolver.Virtual.t
-        , resolve: passthroughResolver
-      }
-  }
+    name: 'Query'
+  , fields: {
+        user: {
+            type: UserResolver.t
+          , resolve: passthroughResolver
+        }
+      , accounts: AccountResolver.Accounts.t
+      , buckets: AccountResolver.Buckets.t
+    }
 });
 
 const schema = new graphql.GraphQLSchema({ query: queryType });

@@ -55,57 +55,59 @@ const resolveAccountContexts = (request: Express.Request): TE.TaskEither<Excepti
   );
 }
 
-const resolveAccount = (request: Express.Request) => (key: "physical" | "virtual" | "global"): TE.TaskEither<Exception.t, Account.Internal.t> => {
+const buildContextFor =
+  (request: Express.Request) =>
+  (key: "physical" | "virtual" | "global"): TE.TaskEither<Exception.t, boolean> => {
+  return O.match(
+      () => pipe(resolveAccountContexts(request), TE.map(() => true))
+    , (_) => { return TE.of(true) }
+  )(request.context[key]);
+}
+
+const resolveContextFor =
+  (request: Express.Request) =>
+  (key: "physical" | "virtual"): TE.TaskEither<Exception.t, AccountContext.t & AccountContext.WithChildren> => {
+  return O.match(
+      () => <TE.TaskEither<Exception.t, AccountContext.t & AccountContext.WithChildren>>TE.throwError(Exception.throwInternalError)
+    , (context: AccountContext.t & AccountContext.WithChildren) => TE.of(context)
+  )(request.context[key]);
+}
+
+const resolveChildrenFor = 
+  (key: "physical" | "virtual") =>
+  (source: any, args: any, request: Express.Request): Promise<Account.Internal.t[]> => {
   return pipe(
-      O.match(
-          () => pipe(resolveAccountContexts(request), TE.map(() => true)) // just need to return _something_
-        , (_) => { return TE.of(true) }
-      )(request.context[key])
-    , TE.chain(() => O.match(
-          () => <TE.TaskEither<Exception.t, Account.Internal.t>>TE.throwError(Exception.throwInternalError)
-        , (context: AccountContext.t) => TE.of(context.account)
-      )(request.context[key]))
+      buildContextFor(request)(key)
+    , TE.chain(() => resolveContextFor(request)(key))
+    , TE.map((context: AccountContext.t & AccountContext.WithChildren) => {
+        return A.map((child: AccountContext.t & AccountContext.WithChildren) => child.account)(context.children)
+      })
+   , toPromise
   );
 }
 
-type Field = "id" | "name";
-const resolveAccountField =
-  (key: "physical" | "virtual" | "global") =>
-  (field: Field) =>
-  (source: any, args: any, request: Express.Request): Promise<string> => {
-  return pipe(
-      resolveAccount(request)(key)
-    , TE.map((account) => account[field])
-    , toPromise
-  );
+export namespace Accounts {
+  export const t = {
+      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
+        name: 'Account',
+        fields: {
+          id: { type: graphql.GraphQLString },
+          name: { type: graphql.GraphQLString }
+        }
+      }))
+    , resolve: resolveChildrenFor("physical")
+  }
 }
 
-export namespace Global {
-  export const t = new graphql.GraphQLObjectType({
-    name: 'GlobalAccount',
-    fields: {
-      id: { type: graphql.GraphQLString, resolve: resolveAccountField("global")("id") },
-      name: { type: graphql.GraphQLString, resolve: resolveAccountField("global")("name") }
-    }
-  });
-}
-
-export namespace Physical {
-  export const t = new graphql.GraphQLObjectType({
-    name: 'PhysicalAccount',
-    fields: {
-      id: { type: graphql.GraphQLString, resolve: resolveAccountField("physical")("id") },
-      name: { type: graphql.GraphQLString, resolve: resolveAccountField("physical")("name") }
-    }
-  });
-}
-
-export namespace Virtual {
-  export const t = new graphql.GraphQLObjectType({
-    name: 'VirtualAccount',
-    fields: {
-      id: { type: graphql.GraphQLString, resolve: resolveAccountField("virtual")("id") },
-      name: { type: graphql.GraphQLString, resolve: resolveAccountField("virtual")("name") }
-    }
-  });
+export namespace Buckets {
+  export const t = {
+      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
+        name: 'Bucket',
+        fields: {
+          id: { type: graphql.GraphQLString },
+          name: { type: graphql.GraphQLString }
+        }
+      }))
+    , resolve: resolveChildrenFor("virtual")
+  }
 }
