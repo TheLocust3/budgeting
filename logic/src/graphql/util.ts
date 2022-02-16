@@ -6,7 +6,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { Exception } from "magic";
 
-export const passthroughResolver = () => { return {}; }
+export const passthroughResolver = (parent: any) => { return parent; }
 
 export const toPromise = <T>(task: TE.TaskEither<Exception.t, T>): Promise<T> => {
   return TE.match(

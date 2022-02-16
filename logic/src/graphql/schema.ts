@@ -9,7 +9,7 @@ import * as graphql from "graphql";
 
 import * as UserResolver from './user-resolver';
 import * as AccountResolver from './account-resolver';
-import { passthroughResolver, listPassthroughResolver } from './util';
+import { passthroughResolver } from './util';
 
 import { UserFrontend } from "storage";
 import { Exception } from "magic";
@@ -18,10 +18,7 @@ import { Exception } from "magic";
 const queryType = new graphql.GraphQLObjectType({
     name: 'Query'
   , fields: {
-        user: {
-            type: UserResolver.t
-          , resolve: passthroughResolver
-        }
+        user: UserResolver.t
       , accounts: AccountResolver.Accounts.t
       , buckets: AccountResolver.Buckets.t
     }

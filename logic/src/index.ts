@@ -58,13 +58,13 @@ app.use("/admin", adminRouter.router);
 app.use("/plaid", plaidRouter.router);
 
 app.use(AuthenticationFor.user)
-app.use(Context.middleware)
 app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema: Schema,
-    graphiql: true,
-  }),
+    '/graphql'
+  , graphqlHTTP((request, response) => ({
+        schema: Schema
+      , graphiql: true
+      , context: Context.empty(response)
+    }))
 );
 
 app.listen(3001);
