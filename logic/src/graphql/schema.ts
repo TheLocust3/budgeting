@@ -9,6 +9,7 @@ import * as graphql from "graphql";
 
 import * as UserResolver from './user-resolver';
 import * as AccountResolver from './account-resolver';
+import * as TransactionResolver from './transaction-resolver';
 import { passthroughResolver } from './util';
 
 import { UserFrontend } from "storage";
@@ -21,6 +22,7 @@ const queryType = new graphql.GraphQLObjectType({
         user: UserResolver.t
       , accounts: AccountResolver.Accounts.t
       , buckets: AccountResolver.Buckets.t
+      , untagged: TransactionResolver.Untagged.t
     }
 });
 

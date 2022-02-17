@@ -10,6 +10,7 @@ import * as graphql from "graphql";
 import { Context } from "./context";
 import { toPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
+import { VIRTUAL_ACCOUNT } from "../constants";
 
 import { Account, Transaction, Materialize } from "model";
 import { Exception } from "magic";
@@ -18,7 +19,7 @@ const materializeFor = (parent: string) => (context: Context): TE.TaskEither<Exc
   return AccountChannel.materialize(context.user.id)(parent);
 }
 
-const resolveFor = (source: Account.Internal.t, args: any, context: Context): Promise<Transaction.Internal.t[]> => {
+const resolveForAccount = (source: Account.Internal.t, args: any, context: Context): Promise<Transaction.Internal.t[]> => {
   const parent = O.match(() => "", (parent: string) => parent)(source.parentId);
 
   return pipe(
@@ -31,6 +32,16 @@ const resolveFor = (source: Account.Internal.t, args: any, context: Context): Pr
           return [];
         }
       })
+    , toPromise
+  );
+}
+
+const resolveForUntagged =
+  (parent: string) =>
+  (source: any, args: any, context: Context): Promise<Transaction.Internal.t[]> => {
+  return pipe(
+      materializeFor(parent)(context)
+    , TE.map((materialize) => materialize.untagged)
     , toPromise
   );
 }
@@ -52,6 +63,17 @@ export namespace Transactions {
           name: 'Transaction'
         , fields: TransactionType
       }))
-    , resolve: resolveFor
+    , resolve: resolveForAccount
+  }
+}
+
+// TODO: need to pull ID off of context
+export namespace Untagged {
+  export const t = {
+      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
+          name: 'UntaggedTransaction'
+        , fields: TransactionType
+      }))
+    , resolve: resolveForUntagged(VIRTUAL_ACCOUNT)
   }
 }

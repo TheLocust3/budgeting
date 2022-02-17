@@ -100,6 +100,7 @@ export namespace Buckets {
         , fields: {
               id: { type: graphql.GraphQLString }
             , name: { type: graphql.GraphQLString }
+            , transactions: Transactions.t
           }
       }))
     , resolve: resolveChildrenFor("virtual")
