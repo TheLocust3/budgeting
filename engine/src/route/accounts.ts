@@ -6,7 +6,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import * as Materialize from "../materialize/index";
 
-import { Account, Transaction, Rule } from "model";
+import { Account, Transaction, Rule, Materialize as MaterializeModel } from "model";
 import { AccountFrontend } from "storage";
 import { Message, Route } from "magic";
 
@@ -43,7 +43,7 @@ router
       , TE.chain(AccountFrontend.withRules(context.request.app.locals.db))
       , TE.chain(AccountFrontend.withChildren(context.request.app.locals.db))
       , TE.chain((account) => Materialize.execute(context.request.app.locals.id)(context.request.app.locals.db)(account))
-      , Route.respondWith(context)(Materialize.Json)
+      , Route.respondWith(context)(MaterializeModel.Internal.Json)
     );
   });
 

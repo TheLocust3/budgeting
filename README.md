@@ -55,8 +55,6 @@ Open `localhost:3001/graphql` and store the token as a cookie using the Develope
 ## todo
 
 ### next
- - gather user accounts into some metadata object
-   - what are accounts called?
  - Move business logic API to graphql
  - some way to manually insert Plaid credentials
  - Better puller

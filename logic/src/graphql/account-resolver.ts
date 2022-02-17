@@ -7,6 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import { Transactions } from "./transaction-resolver";
 import { Context } from "./context";
 import { toPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
@@ -81,11 +82,12 @@ const resolveChildrenFor =
 export namespace Accounts {
   export const t = {
       type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
-        name: 'Account',
-        fields: {
-          id: { type: graphql.GraphQLString },
-          name: { type: graphql.GraphQLString }
-        }
+          name: 'Account'
+        , fields: {
+              id: { type: graphql.GraphQLString }
+            , name: { type: graphql.GraphQLString }
+            , transactions: Transactions.t
+          }
       }))
     , resolve: resolveChildrenFor("physical")
   }
@@ -94,11 +96,11 @@ export namespace Accounts {
 export namespace Buckets {
   export const t = {
       type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
-        name: 'Bucket',
-        fields: {
-          id: { type: graphql.GraphQLString },
-          name: { type: graphql.GraphQLString }
-        }
+          name: 'Bucket'
+        , fields: {
+              id: { type: graphql.GraphQLString }
+            , name: { type: graphql.GraphQLString }
+          }
       }))
     , resolve: resolveChildrenFor("virtual")
   }

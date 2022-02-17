@@ -5,3 +5,4 @@ export * as User from "./user";
 export * as Source from "./source";
 export * as Integration from "./integration";
 export * as Plaid from "./plaid";
+export * as Materialize from "./materialize";

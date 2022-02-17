@@ -6,7 +6,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import EngineChannel from './engine-channel';
 
-import { Account } from "model";
+import { Account, Materialize } from "model";
 import { Channel, Exception } from "magic";
 
 export namespace AccountChannel {
@@ -40,6 +40,13 @@ export namespace AccountChannel {
     return pipe(
         EngineChannel.push(`/accounts/${id}?userId=${userId}`)('DELETE')()
       , Channel.toVoid
+    );
+  };
+
+  export const materialize = (userId: string) => (id: string): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+    return pipe(
+        EngineChannel.push(`/accounts/${id}/materialize?userId=${userId}`)('GET')()
+      , Channel.to(Materialize.Internal.Json.from)
     );
   };
 }

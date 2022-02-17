@@ -8,48 +8,9 @@ import * as TE from "fp-ts/TaskEither";
 import * as Plan from "./plan";
 import * as Materializer from "./materializer";
 
-import { Transaction, Rule, Account } from "model";
+import { Transaction, Rule, Account, Materialize } from "model";
 import { AccountFrontend, TransactionFrontend, RuleFrontend } from "storage";
 import { Exception, Format } from "magic";
-
-export type t = {
-  conflicts: Materializer.Conflict[];
-  tagged: Map<string, Transaction.Internal.t[]>;
-  untagged: Transaction.Internal.t[];
-};
-
-namespace Conflict {
-  export const to = (conflict: Materializer.Conflict): any => {
-    return {
-        element: pipe(conflict.element, Transaction.Internal.Json.to)
-      , rules: conflict.rules
-    };
-  };
-}
-
-namespace Tagged {
-  export const to = (tagged: { [tag: string]: Transaction.Internal.t[] }) => (tag: string): any => {
-    return { [tag]: pipe(tagged[tag], A.map(Transaction.Internal.Json.to)) };
-  };
-}
-
-export const Json = new class implements Format.Formatter<t> {
-  public from = (obj: any): E.Either<Exception.t, t> => {
-    return E.throwError(Exception.throwInternalError) // TODO: JK
-  }
-
-  public to = (materialized: t): any => {
-    const tagged = A.reduce({}, (tagged: object, [tag, transactions]: [string, Transaction.Internal.t[]]) => {
-      return { ...tagged, [tag]: pipe(transactions, A.map(Transaction.Internal.Json.to)) };
-    })(Array.from(materialized.tagged.entries()));
-
-    return {
-        conflicts: A.map(Conflict.to)(materialized.conflicts)
-      , tagged: tagged
-      , untagged: pipe(materialized.untagged, A.map(Transaction.Internal.Json.to))
-    };
-  }
-}
 
 const linkedAccounts = (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Account.Internal.Rich[]> => {
   return O.match(
@@ -68,25 +29,33 @@ const linkedAccounts = (pool: Pool) => (account: Account.Internal.Rich): TE.Task
   )(account.parentId);
 };
 
-const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
+const getSafe = (obj: any) => (key: string): any | undefined => {
+  if (key in obj) {
+    return obj[key];
+  } else {
+    return undefined;
+  }
+}
+
+const executeStage = (stage: Plan.Stage) => (materialized: Materialize.Internal.t): Materialize.Internal.t => {
   const flow = Materializer.build(stage);
 
-  const maybeElements = materialized.tagged.get(stage.tag);
+  const maybeElements = getSafe(materialized.tagged)(stage.tag);
   const elements: Transaction.Internal.t[] = maybeElements ? maybeElements : [];
   return pipe(
       elements
     , A.map(flow)
-    , A.reduce(<t>{ conflicts: [], tagged: new Map(), untagged: [] }, ({ conflicts, tagged, untagged }, element) => {
+    , A.reduce(<Materialize.Internal.t>{ conflicts: [], tagged: {}, untagged: [] }, ({ conflicts, tagged, untagged }, element) => {
         switch (element._type) {
           case "Conflict":
             return { conflicts: conflicts.concat(element), tagged: tagged, untagged: untagged };
           case "TaggedSet":
             A.map((element: Materializer.Tagged) => {
-              const maybeElements = tagged.get(element.tag);
+              const maybeElements = getSafe(tagged)(element.tag);
               if (maybeElements) {
-                tagged.set(element.tag, maybeElements.concat(element.element));
+                tagged[element.tag] = maybeElements.concat(element.element);
               } else {
-                tagged.set(element.tag, [element.element]);
+                tagged[element.tag] = [element.element];
               }
             })(element.elements);
             
@@ -98,29 +67,28 @@ const executeStage = (stage: Plan.Stage) => (materialized: t): t => {
   );
 };
 
-const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): t => {
+const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): Materialize.Internal.t => {
   if (plan.stages.length < 1) {
     return {
         conflicts: []
-      , tagged: new Map()
+      , tagged: {}
       , untagged: transactions
     };
   } else {
     const head = plan.stages[0];
 
-    const tagged = new Map();
-    tagged.set(head.tag, transactions);
+    const tagged = { [head.tag]: transactions };
     return pipe(
         plan.stages
       , A.map(executeStage)
-      , A.reduce(<t>{ conflicts: [], tagged: tagged, untagged: [] }, (materialized, stage) => {
+      , A.reduce(<Materialize.Internal.t>{ conflicts: [], tagged: tagged, untagged: [] }, (materialized, stage) => {
           return stage(materialized);
         })
     );
   }
 };
 
-export const execute = (id: string) => (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, t> => {
+export const execute = (id: string) => (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
   // TODO: JK track materialize logs with id
   console.log(`[${id}] materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   
