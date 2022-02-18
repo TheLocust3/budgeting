@@ -7,6 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import { Rules } from "./rule-resolver";
 import * as Context from "./context";
 import { toPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
@@ -58,22 +59,22 @@ const resolveForConflicts = (source: any, args: any, context: Context.t): Promis
 }
 
 // TODO: JK comments
-const TransactionType = {
-    id: { type: graphql.GraphQLString }
-  , sourceId: { type: graphql.GraphQLString }
-  , amount: { type: graphql.GraphQLFloat }
-  , merchantName: { type: graphql.GraphQLString }
-  , description: { type: graphql.GraphQLString }
-  , authorizedAt: { type: graphql.GraphQLInt }
-  , capturedAt: { type: graphql.GraphQLInt }
-}
+const TransactionType = new graphql.GraphQLObjectType({
+    name: 'Transaction'
+  , fields: {
+        id: { type: graphql.GraphQLString }
+      , sourceId: { type: graphql.GraphQLString }
+      , amount: { type: graphql.GraphQLFloat }
+      , merchantName: { type: graphql.GraphQLString }
+      , description: { type: graphql.GraphQLString }
+      , authorizedAt: { type: graphql.GraphQLInt }
+      , capturedAt: { type: graphql.GraphQLInt }
+    }
+});
+
+const TransactionList = new graphql.GraphQLList(TransactionType);
 
 export namespace Transactions {
-  const TransactionList = new graphql.GraphQLList(new graphql.GraphQLObjectType({
-      name: 'Transaction'
-    , fields: TransactionType
-  }));
-
   export namespace Physical {
     export const t = {
         type: TransactionList
@@ -91,10 +92,20 @@ export namespace Transactions {
 
 export namespace Untagged {
   export const t = {
-      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
-          name: 'UntaggedTransaction'
-        , fields: TransactionType
-      }))
+      type: TransactionList
     , resolve: resolveForUntagged
+  }
+}
+
+export namespace Conflicts {
+  export const t = {
+      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
+          name: "Conflict"
+        , fields: {
+              element: { type: TransactionType }
+            , rules: { type: Rules.t }
+          }
+      }))
+    , resolve: resolveForConflicts
   }
 }

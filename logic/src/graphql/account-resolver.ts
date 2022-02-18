@@ -8,6 +8,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
 import { Transactions } from "./transaction-resolver";
+import { Rules } from "./rule-resolver";
 import * as Context from "./context";
 import { toPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
@@ -58,6 +59,7 @@ export namespace Buckets {
         , fields: {
               id: { type: graphql.GraphQLString }
             , name: { type: graphql.GraphQLString }
+            , rules: Rules.Virtual.t
             , transactions: Transactions.Virtual.t
           }
       }))

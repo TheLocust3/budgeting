@@ -56,6 +56,13 @@ Open `localhost:3001/graphql` and store the token as a cookie using the Develope
 
 ### next
  - Move business logic API to graphql
+   - mutations
+     - add bucket
+     - delete bucket
+     - add rule
+     - delete rule
+     - manually add integration with credentials
+   - Can we do the Plaid stuff through graphql?
  - some way to manually insert Plaid credentials
  - Better puller
    - Think about how this scales, pull off of queue? Don't rely on DB row lock basically

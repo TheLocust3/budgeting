@@ -23,6 +23,7 @@ const queryType = new graphql.GraphQLObjectType({
       , accounts: AccountResolver.Accounts.t
       , buckets: AccountResolver.Buckets.t
       , untagged: TransactionResolver.Untagged.t
+      , conflicts: TransactionResolver.Conflicts.t
     }
 });
 

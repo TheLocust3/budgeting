@@ -7,6 +7,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { toPromise, fromPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
+import RuleChannel from "../channel/rule-channel";
 import { PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../constants";
 
 import { User, Account, Rule, Materialize } from "model";
@@ -17,7 +18,7 @@ type Resolvable<T> = O.Option<Promise<T>>;
 export type t = {
   user: User.Internal.t;
   physical: { account: Resolvable<AccountContext>; transactions: Resolvable<Materialize.Internal.t>; };
-  virtual: { account: Resolvable<AccountContext>; transactions: Resolvable<Materialize.Internal.t>; };
+  virtual: { account: Resolvable<AccountContext>; rules: Resolvable<Rule.Internal.t[]>; transactions: Resolvable<Materialize.Internal.t>; };
 }
 
 type ResolvableField = "physical" | "virtual";
@@ -96,6 +97,14 @@ export namespace TransactionContext {
   }
 }
 
+export namespace RuleContext {
+  export const resolver = 
+    (accountId: string) =>
+    (context: Context): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
+    return RuleChannel.all(accountId);
+  }
+}
+
 export const physical = (context: t): TE.TaskEither<Exception.t, AccountContext> => {
   const get = (context: t) => { return context.physical.account };
   const set = (value: Resolvable<AccountContext>) => (context: t) => { context.physical.account = value };
@@ -118,6 +127,16 @@ export const virtual = (context: t): TE.TaskEither<Exception.t, AccountContext> 
   const set = (value: Resolvable<AccountContext>) => (context: t) => { context.virtual.account = value };
 
   return resolve(context)(get)(set)(AccountContext.resolver(VIRTUAL_ACCOUNT))
+}
+
+export const virtualRules = (context: t): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
+  const get = (context: t) => { return context.virtual.rules };
+  const set = (value: Resolvable<Rule.Internal.t[]>) => (context: t) => { context.virtual.rules = value };
+
+  return pipe(
+      virtual(context)
+    , TE.chain((virtual) => resolve(context)(get)(set)(RuleContext.resolver(virtual.account.id)))
+  );
 }
 
 export const materializeVirtual = (context: t): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
