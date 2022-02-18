@@ -1,4 +1,3 @@
-import Express from "express";
 import { Pool } from "pg";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -10,12 +9,8 @@ import * as graphql from "graphql";
 import * as UserResolver from './user-resolver';
 import * as AccountResolver from './account-resolver';
 import * as TransactionResolver from './transaction-resolver';
-import { passthroughResolver } from './util';
+import MutationType from './mutation/index';
 
-import { UserFrontend } from "storage";
-import { Exception } from "magic";
-
-// TODO: integrations/sources
 const queryType = new graphql.GraphQLObjectType({
     name: 'Query'
   , fields: {
@@ -27,6 +22,6 @@ const queryType = new graphql.GraphQLObjectType({
     }
 });
 
-const schema = new graphql.GraphQLSchema({ query: queryType });
+const schema = new graphql.GraphQLSchema({ query: queryType, mutation: MutationType });
 
 export default schema;

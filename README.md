@@ -58,26 +58,23 @@ Open `localhost:3001/graphql` and store the token as a cookie using the Develope
  - Move business logic API to graphql
    - mutations
      - add bucket
-     - delete bucket
-     - add rule
+     - add split rule
      - delete rule
      - manually add integration with credentials
-   - Can we do the Plaid stuff through graphql?
- - some way to manually insert Plaid credentials
+   - Good brainstorming question for Nick
  - Better puller
    - Think about how this scales, pull off of queue? Don't rely on DB row lock basically
    - Create "summary" transaction of account value on initial pull
    - Retry on failure
 
 ### miscellaneous
+ - Add comment mutation
  - token timeout on JWT
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
  - Optional remainder in SplitByValue
 
 ### future
- - How to simplify channel communication?
-   - engine/scheduler shoud "export" objects that allow other services to talk to them?
  - Global service configuration
    - various secret keys + API endpoints
  - Engine aggregations
