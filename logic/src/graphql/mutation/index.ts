@@ -53,7 +53,8 @@ export const mutationType = new graphql.GraphQLObjectType({
       , createSplitByValue: CreateSplitByValue.t
       , deleteRule: DeleteRule.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t
-      , createPlaidIntegration: PlaidMutation.ExchangePublicToken.t
+      , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
+      , insertPlaidIntegration: PlaidMutation.InsertPlaidIntegration.t
     }
 });
 

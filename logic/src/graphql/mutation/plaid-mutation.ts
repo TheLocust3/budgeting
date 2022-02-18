@@ -13,7 +13,7 @@ export namespace CreateLinkToken {
 }
 
 export namespace ExchangePublicToken {
-  const PlaidAccount = new graphql.GraphQLInputObjectType({
+  export const PlaidAccount = new graphql.GraphQLInputObjectType({
       name: "PlaidAccount"
     , fields: {
           id: { type: graphql.GraphQLString }
@@ -26,6 +26,18 @@ export namespace ExchangePublicToken {
     , args: {
           publicToken: { type: graphql.GraphQLString }
         , accounts: { type: new graphql.GraphQLList(PlaidAccount) }
+        , institutionName: { type: graphql.GraphQLString }
+      }
+  };
+}
+
+export namespace InsertPlaidIntegration {
+  export const t = {
+      type: graphql.GraphQLString
+    , args: {
+          itemId: { type: graphql.GraphQLString }
+        , accessToken: { type: graphql.GraphQLString }
+        , accounts: { type: new graphql.GraphQLList(ExchangePublicToken.PlaidAccount) }
         , institutionName: { type: graphql.GraphQLString }
       }
   };
