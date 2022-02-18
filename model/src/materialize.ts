@@ -14,6 +14,7 @@ export namespace Internal {
       element: Transaction.Internal.t
     , rules: iot.array(Rule.Internal.Rule)
   });
+  export type Conflict = iot.TypeOf<typeof Conflict>;
 
   export const t = iot.type({
       conflicts: iot.array(Conflict)

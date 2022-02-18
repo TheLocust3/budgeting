@@ -15,15 +15,20 @@ import { VIRTUAL_ACCOUNT } from "../constants";
 import { Account, Transaction, Materialize } from "model";
 import { Exception } from "magic";
 
-const materializeFor = (parent: string) => (context: Context.t): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
-  return AccountChannel.materialize(context.user.id)(parent);
+const materializeFor = (key: "physical" | "virtual") => (context: Context.t) => {
+  switch (key) {
+    case "physical":
+      return Context.materializePhysical(context);
+    case "virtual":
+      return Context.materializeVirtual(context);
+  }
 }
 
-const resolveForAccount = (source: Account.Internal.t, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
-  const parent = O.match(() => "", (parent: string) => parent)(source.parentId);
-
+const resolveForAccount =
+  (key: "physical" | "virtual") =>
+  (source: Account.Internal.t, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
   return pipe(
-      materializeFor(parent)(context)
+      materializeFor(key)(context)
     , TE.map((materialize) => {
         const out = materialize.tagged[source.id]
         if (out) {
@@ -36,12 +41,18 @@ const resolveForAccount = (source: Account.Internal.t, args: any, context: Conte
   );
 }
 
-const resolveForUntagged =
-  (parent: string) =>
-  (source: any, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
+const resolveForUntagged = (source: any, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
   return pipe(
-      materializeFor(parent)(context)
+      materializeFor("virtual")(context)
     , TE.map((materialize) => materialize.untagged)
+    , toPromise
+  );
+}
+
+const resolveForConflicts = (source: any, args: any, context: Context.t): Promise<Materialize.Internal.Conflict[]> => {
+  return pipe(
+      materializeFor("virtual")(context)
+    , TE.map((materialize) => materialize.conflicts)
     , toPromise
   );
 }
@@ -58,22 +69,32 @@ const TransactionType = {
 }
 
 export namespace Transactions {
-  export const t = {
-      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
-          name: 'Transaction'
-        , fields: TransactionType
-      }))
-    , resolve: resolveForAccount
+  const TransactionList = new graphql.GraphQLList(new graphql.GraphQLObjectType({
+      name: 'Transaction'
+    , fields: TransactionType
+  }));
+
+  export namespace Physical {
+    export const t = {
+        type: TransactionList
+      , resolve: resolveForAccount("physical")
+    }
+  }
+
+    export namespace Virtual {
+    export const t = {
+        type: TransactionList
+      , resolve: resolveForAccount("virtual")
+    }
   }
 }
 
-// TODO: need to pull ID off of context
 export namespace Untagged {
   export const t = {
       type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
           name: 'UntaggedTransaction'
         , fields: TransactionType
       }))
-    , resolve: resolveForUntagged(VIRTUAL_ACCOUNT)
+    , resolve: resolveForUntagged
   }
 }

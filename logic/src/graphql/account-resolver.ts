@@ -19,9 +19,9 @@ import { Exception } from "magic";
 const resolveFor = (key: "physical" | "virtual") => (context: Context.t) => {
   switch (key) {
     case "physical":
-      return Context.resolvePhysical(context);
+      return Context.physical(context);
     case "virtual":
-      return Context.resolveVirtual(context);
+      return Context.virtual(context);
   }
 }
 
@@ -44,7 +44,7 @@ export namespace Accounts {
         , fields: {
               id: { type: graphql.GraphQLString }
             , name: { type: graphql.GraphQLString }
-            , transactions: Transactions.t
+            , transactions: Transactions.Physical.t
           }
       }))
     , resolve: resolveChildrenFor("physical")
@@ -58,7 +58,7 @@ export namespace Buckets {
         , fields: {
               id: { type: graphql.GraphQLString }
             , name: { type: graphql.GraphQLString }
-            , transactions: Transactions.t
+            , transactions: Transactions.Virtual.t
           }
       }))
     , resolve: resolveChildrenFor("virtual")

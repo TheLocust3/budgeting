@@ -16,8 +16,8 @@ type Resolvable<T> = O.Option<Promise<T>>;
 
 export type t = {
   user: User.Internal.t;
-  physical: Resolvable<AccountContext>;
-  virtual: Resolvable<AccountContext>;
+  physical: { account: Resolvable<AccountContext>; transactions: Resolvable<Materialize.Internal.t>; };
+  virtual: { account: Resolvable<AccountContext>; transactions: Resolvable<Materialize.Internal.t>; };
 }
 
 type ResolvableField = "physical" | "virtual";
@@ -88,24 +88,52 @@ export namespace AccountContext {
   }
 }
 
-export const resolvePhysical = (context: t): TE.TaskEither<Exception.t, AccountContext> => {
-  const get = (context: t) => { return context.physical };
-  const set = (value: Resolvable<AccountContext>) => (context: t) => { context.physical = value };
+export namespace TransactionContext {
+  export const resolver = 
+    (accountId: string) =>
+    (context: Context): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+    return AccountChannel.materialize(context.user.id)(accountId);
+  }
+}
+
+export const physical = (context: t): TE.TaskEither<Exception.t, AccountContext> => {
+  const get = (context: t) => { return context.physical.account };
+  const set = (value: Resolvable<AccountContext>) => (context: t) => { context.physical.account = value };
 
   return resolve(context)(get)(set)(AccountContext.resolver(PHYSICAL_ACCOUNT))
 }
 
-export const resolveVirtual = (context: t): TE.TaskEither<Exception.t, AccountContext> => {
-  const get = (context: t) => { return context.virtual };
-  const set = (value: Resolvable<AccountContext>) => (context: t) => { context.virtual = value };
+export const materializePhysical = (context: t): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+  const get = (context: t) => { return context.physical.transactions };
+  const set = (value: Resolvable<Materialize.Internal.t>) => (context: t) => { context.physical.transactions = value };
+
+  return pipe(
+      physical(context)
+    , TE.chain((physical) => resolve(context)(get)(set)(TransactionContext.resolver(physical.account.id)))
+  );
+}
+
+export const virtual = (context: t): TE.TaskEither<Exception.t, AccountContext> => {
+  const get = (context: t) => { return context.virtual.account };
+  const set = (value: Resolvable<AccountContext>) => (context: t) => { context.virtual.account = value };
 
   return resolve(context)(get)(set)(AccountContext.resolver(VIRTUAL_ACCOUNT))
+}
+
+export const materializeVirtual = (context: t): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+  const get = (context: t) => { return context.virtual.transactions };
+  const set = (value: Resolvable<Materialize.Internal.t>) => (context: t) => { context.virtual.transactions = value };
+
+  return pipe(
+      virtual(context)
+    , TE.chain((virtual) => resolve(context)(get)(set)(TransactionContext.resolver(virtual.account.id)))
+  );
 }
 
 export const empty = (response: any) => {
   return {
       user: response.locals.user
-    , physical: O.none
-    , virtual: O.none
+    , physical: { account: O.none, transactions: O.none }
+    , virtual: { account: O.none, transactions: O.none }
   }
 }
