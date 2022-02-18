@@ -14,3 +14,13 @@ export const toPromise = <T>(task: TE.TaskEither<Exception.t, T>): Promise<T> =>
     , (out: T) => out
   )(task)();
 }
+
+export const fromPromise = <T>(promise: Promise<T>): TE.TaskEither<Exception.t, T> => {
+  return TE.tryCatch(
+      () => promise
+    , (error) => {
+        console.log(error);
+        return Exception.throwInternalError;
+      }
+  );
+}

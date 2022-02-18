@@ -42,7 +42,7 @@ router
       , TE.chain(({ userId }) => AccountFrontend.getByIdAndUserId(context.request.app.locals.db)(userId)(accountId))
       , TE.chain(AccountFrontend.withRules(context.request.app.locals.db))
       , TE.chain(AccountFrontend.withChildren(context.request.app.locals.db))
-      , TE.chain((account) => Materialize.execute(context.request.app.locals.id)(context.request.app.locals.db)(account))
+      , TE.chain((account) => Materialize.execute(context.response.locals.id)(context.request.app.locals.db)(account))
       , Route.respondWith(context)(MaterializeModel.Internal.Json)
     );
   });

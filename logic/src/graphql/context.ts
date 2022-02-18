@@ -5,7 +5,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { toPromise } from "./util";
+import { toPromise, fromPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
 import { PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../constants";
 
@@ -29,9 +29,9 @@ const resolve =
   (resolver: (context: t) => TE.TaskEither<Exception.t, T>): TE.TaskEither<Exception.t, T> => {
   return O.match(
       () => {
-        const out = resolver(context);
-        set(O.some(toPromise(out)))(context);
-        return out;
+        const out = toPromise(resolver(context));
+        set(O.some(out))(context);
+        return fromPromise(out); // a silly jig to make sure this task only evaluates _once_
       }
     , (value: Promise<T>) => TE.tryCatch(() => value, () => Exception.throwInternalError)
   )(get(context))
