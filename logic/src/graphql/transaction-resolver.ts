@@ -7,7 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import { Context } from "./context";
+import * as Context from "./context";
 import { toPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
 import { VIRTUAL_ACCOUNT } from "../constants";
@@ -15,11 +15,11 @@ import { VIRTUAL_ACCOUNT } from "../constants";
 import { Account, Transaction, Materialize } from "model";
 import { Exception } from "magic";
 
-const materializeFor = (parent: string) => (context: Context): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+const materializeFor = (parent: string) => (context: Context.t): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
   return AccountChannel.materialize(context.user.id)(parent);
 }
 
-const resolveForAccount = (source: Account.Internal.t, args: any, context: Context): Promise<Transaction.Internal.t[]> => {
+const resolveForAccount = (source: Account.Internal.t, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
   const parent = O.match(() => "", (parent: string) => parent)(source.parentId);
 
   return pipe(
@@ -38,7 +38,7 @@ const resolveForAccount = (source: Account.Internal.t, args: any, context: Conte
 
 const resolveForUntagged =
   (parent: string) =>
-  (source: any, args: any, context: Context): Promise<Transaction.Internal.t[]> => {
+  (source: any, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
   return pipe(
       materializeFor(parent)(context)
     , TE.map((materialize) => materialize.untagged)

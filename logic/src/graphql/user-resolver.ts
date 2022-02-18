@@ -1,6 +1,6 @@
 import * as graphql from "graphql";
 
-import { Context } from './context';
+import * as Context from './context';
 
 import { User } from "model";
 
@@ -12,5 +12,5 @@ export const t = {
           , email: { type: graphql.GraphQLString }
         }
     })
-  , resolve: (source: any, args: any, context: Context) => context.user
+  , resolve: (source: any, args: any, context: Context.t) => context.user
 }
