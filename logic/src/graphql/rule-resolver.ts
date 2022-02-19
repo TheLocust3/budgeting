@@ -8,6 +8,7 @@ import * as graphql from "graphql";
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import * as Context from "./context";
+import * as Types from "./types";
 import { toPromise } from "./util";
 
 import { Rule } from "model";
@@ -21,18 +22,9 @@ const resolve = (source: any, args: any, context: Context.t): Promise<Rule.Inter
 }
 
 export namespace Rules {
-  export const t = new graphql.GraphQLList(new graphql.GraphQLObjectType({
-      name: 'Rule'
-    , fields: {
-          id: { type: graphql.GraphQLString }
-        , rule: { type: GraphQLJSONObject }
-      }
-  }))
-
-  const Rule = t; // alias
   export namespace Virtual {
     export const t = {
-        type: Rule
+        type: new graphql.GraphQLList(Types.Rule.t)
       , resolve: resolve
     }
   }

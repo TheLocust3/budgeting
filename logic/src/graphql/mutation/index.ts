@@ -6,15 +6,25 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import * as Context from "../context";
+import * as Types from "../types";
 import * as PlaidMutation from "./plaid-mutation";
 
 import { Exception } from "magic";
 
 namespace CreateBucket {
+  const JustBucket = new graphql.GraphQLObjectType({
+      name: 'JustBucket'
+    , fields: {
+          id: { type: graphql.GraphQLString }
+        , name: { type: graphql.GraphQLString }
+      }
+  })
+
   export const t = {
-      type: graphql.GraphQLString
+      type: JustBucket
     , args: {
-        name: { type: graphql.GraphQLString }
+        name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   };
 }
@@ -23,25 +33,25 @@ namespace CreateSplitByValue {
   const Value = new graphql.GraphQLInputObjectType({
       name: "Value"
     , fields: {
-          account: { type: graphql.GraphQLString }
-        , value: { type: graphql.GraphQLFloat }
+          bucket: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , value: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
       }
   });
 
   export const t = {
-      type: graphql.GraphQLString
+      type: Types.Rule.t
     , args: {
           splits: { type: new graphql.GraphQLList(Value) }
-        , remainder: { type: graphql.GraphQLString }
+        , remainder: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   };
 }
 
 namespace DeleteRule {
   export const t = {
-      type: graphql.GraphQLString
+      type: Types.Deleted.t
     , args: {
-        id: { type: graphql.GraphQLString }
+        id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   };
 }

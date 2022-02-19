@@ -7,8 +7,8 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import { Rules } from "./rule-resolver";
 import * as Context from "./context";
+import * as Types from "./types";
 import { toPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
 import { VIRTUAL_ACCOUNT } from "../constants";
@@ -58,33 +58,17 @@ const resolveForConflicts = (source: any, args: any, context: Context.t): Promis
   );
 }
 
-// TODO: JK comments
-const TransactionType = new graphql.GraphQLObjectType({
-    name: 'Transaction'
-  , fields: {
-        id: { type: graphql.GraphQLString }
-      , sourceId: { type: graphql.GraphQLString }
-      , amount: { type: graphql.GraphQLFloat }
-      , merchantName: { type: graphql.GraphQLString }
-      , description: { type: graphql.GraphQLString }
-      , authorizedAt: { type: graphql.GraphQLInt }
-      , capturedAt: { type: graphql.GraphQLInt }
-    }
-});
-
-const TransactionList = new graphql.GraphQLList(TransactionType);
-
 export namespace Transactions {
   export namespace Physical {
     export const t = {
-        type: TransactionList
+        type: new graphql.GraphQLList(Types.Transaction.t)
       , resolve: resolveForAccount("physical")
     }
   }
 
     export namespace Virtual {
     export const t = {
-        type: TransactionList
+        type: new graphql.GraphQLList(Types.Transaction.t)
       , resolve: resolveForAccount("virtual")
     }
   }
@@ -92,7 +76,7 @@ export namespace Transactions {
 
 export namespace Untagged {
   export const t = {
-      type: TransactionList
+      type: new graphql.GraphQLList(Types.Transaction.t)
     , resolve: resolveForUntagged
   }
 }
@@ -102,8 +86,8 @@ export namespace Conflicts {
       type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
           name: "Conflict"
         , fields: {
-              element: { type: TransactionType }
-            , rules: { type: Rules.t }
+              element: { type: new graphql.GraphQLList(Types.Transaction.t) }
+            , rules: { type: new graphql.GraphQLList(Types.Rule.t) }
           }
       }))
     , resolve: resolveForConflicts
