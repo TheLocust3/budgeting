@@ -161,6 +161,6 @@ export const empty = (request: any, response: any) => {
     , plaidClient: request.app.locals.plaidClient
     , user: response.locals.user
     , physical: { account: O.none, transactions: O.none }
-    , virtual: { account: O.none, transactions: O.none }
+    , virtual: { account: O.none, rules: O.none, transactions: O.none }
   }
 }

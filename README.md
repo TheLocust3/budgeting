@@ -52,15 +52,51 @@ Login
 Open `localhost:3001/graphql` and store the token as a cookie using the Developer Console:
 `document.cookie="auth-token=${TOKEN}"`
 
+Sample query:
+```
+{
+  user {
+    id,
+    email
+  },
+  accounts {
+    id,
+    name,
+    transactions {
+      id
+    }
+  },
+  buckets {
+    id,
+    name,
+    rules {
+      id,
+      rule
+    },
+    transactions {
+      id
+    }
+  },
+  untagged {
+    id
+  },
+  conflicts {
+    element {
+      id
+    },
+    rules {
+      id,
+      rule
+    }
+  }
+}
+```
+
 ## todo
 
 ### next
- - Move business logic API to graphql
-   - mutations
-     - add bucket
-     - add split rule
-     - delete rule
-     - manually add integration with credentials
+ - Some better way of returning void in GraphQL
+ - RuleChannel should require UserId matching
  - Manually insert plaid credentials
  - Can we move user add/login to graphql?
  - Better puller
@@ -69,7 +105,6 @@ Open `localhost:3001/graphql` and store the token as a cookie using the Develope
    - Retry on failure
 
 ### miscellaneous
- - RuleChannel should require UserId matching
  - Optional remainder in SplitByValue
  - Add comment mutation
  - token timeout on JWT

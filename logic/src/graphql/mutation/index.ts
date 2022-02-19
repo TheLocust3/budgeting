@@ -70,7 +70,7 @@ namespace CreateSplitByValue {
           , rule: <Rule.Internal.Split.SplitByValue>{
                 _type: "SplitByValue"
               , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
-              , splits: A.map(({ bucket, value }: Value) => ({ account: bucket, value: value }))(splits)
+              , splits: A.map(({ bucket, value }: Value) => ({ _type: "Value", account: bucket, value: value }))(splits)
               , remainder: remainder
             }
         }))
