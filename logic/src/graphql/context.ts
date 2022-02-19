@@ -1,4 +1,6 @@
 import Express from "express";
+import { Pool } from "pg";
+import { PlaidApi } from "plaid";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -16,6 +18,9 @@ import { Exception } from "magic";
 type Resolvable<T> = O.Option<Promise<T>>;
 
 export type t = {
+  id: string;
+  pool: Pool;
+  plaidClient: PlaidApi;
   user: User.Internal.t;
   physical: { account: Resolvable<AccountContext>; transactions: Resolvable<Materialize.Internal.t>; };
   virtual: { account: Resolvable<AccountContext>; rules: Resolvable<Rule.Internal.t[]>; transactions: Resolvable<Materialize.Internal.t>; };
@@ -149,9 +154,12 @@ export const materializeVirtual = (context: t): TE.TaskEither<Exception.t, Mater
   );
 }
 
-export const empty = (response: any) => {
+export const empty = (request: any, response: any) => {
   return {
-      user: response.locals.user
+      id: response.locals.id
+    , pool: request.app.locals.db
+    , plaidClient: request.app.locals.plaidClient
+    , user: response.locals.user
     , physical: { account: O.none, transactions: O.none }
     , virtual: { account: O.none, transactions: O.none }
   }

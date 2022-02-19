@@ -8,8 +8,13 @@ import * as graphql from "graphql";
 
 import * as Context from "../context";
 import * as Types from "../types";
+import { toPromise } from "../util";
 import * as PlaidMutation from "./plaid-mutation";
 
+import AccountChannel from "../../channel/account-channel";
+import RuleChannel from "../../channel/rule-channel";
+
+import { Account, Rule } from "model";
 import { Exception } from "magic";
 
 namespace CreateBucket {
@@ -21,15 +26,27 @@ namespace CreateBucket {
       }
   })
 
+  type Args = { name: string; };
+  const Args = { name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
+
+  const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
+    return pipe(
+        Context.virtual(context)
+      , TE.map((virtual) => ({ userId: context.user.id, parentId: O.some(virtual.account.id), name: name }))
+      , TE.chain(AccountChannel.create)
+      , toPromise
+    );
+  }
+
   export const t = {
       type: JustBucket
-    , args: {
-        name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-      }
+    , args: Args
+    , resolve: resolve
   };
 }
 
 namespace CreateSplitByValue {
+  type Value = { bucket: string, value: number };
   const Value = new graphql.GraphQLInputObjectType({
       name: "Value"
     , fields: {
@@ -38,21 +55,54 @@ namespace CreateSplitByValue {
       }
   });
 
+  type Args = { transactionId: string; splits: Value[]; remainder: string; };
+  const Args = {
+      transactionId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , splits: { type: new graphql.GraphQLList(Value) }
+    , remainder: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+  }
+
+  const resolve = (source: any, { transactionId, splits, remainder }: Args, context: Context.t): Promise<Rule.Internal.t> => {
+    return pipe(
+        Context.virtual(context)
+      , TE.map((virtual) => ({
+            accountId: virtual.account.id
+          , rule: <Rule.Internal.Split.SplitByValue>{
+                _type: "SplitByValue"
+              , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
+              , splits: A.map(({ bucket, value }: Value) => ({ account: bucket, value: value }))(splits)
+              , remainder: remainder
+            }
+        }))
+      , TE.chain(RuleChannel.create)
+      , toPromise
+    );
+  }
+
   export const t = {
       type: Types.Rule.t
-    , args: {
-          splits: { type: new graphql.GraphQLList(Value) }
-        , remainder: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-      }
+    , args: Args
+    , resolve: resolve
   };
 }
 
 namespace DeleteRule {
+  type Args = { id: string; };
+  const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
+
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<{}> => {
+    return pipe(
+        Context.virtual(context)
+      , TE.chain((virtual) => RuleChannel.deleteById(virtual.account.id)(id))
+      , TE.map(() => ({}))
+      , toPromise
+    );
+  }
+
   export const t = {
-      type: Types.Deleted.t
-    , args: {
-        id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-      }
+      type: Types.Void.t
+    , args: Args
+    , resolve: resolve
   };
 }
 
@@ -64,7 +114,6 @@ export const mutationType = new graphql.GraphQLObjectType({
       , deleteRule: DeleteRule.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t
       , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
-      , insertPlaidIntegration: PlaidMutation.InsertPlaidIntegration.t
     }
 });
 

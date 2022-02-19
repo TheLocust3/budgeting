@@ -61,20 +61,26 @@ Open `localhost:3001/graphql` and store the token as a cookie using the Develope
      - add split rule
      - delete rule
      - manually add integration with credentials
-   - Good brainstorming question for Nick
+ - Manually insert plaid credentials
+ - Can we move user add/login to graphql?
  - Better puller
    - Think about how this scales, pull off of queue? Don't rely on DB row lock basically
    - Create "summary" transaction of account value on initial pull
    - Retry on failure
 
 ### miscellaneous
+ - RuleChannel should require UserId matching
+ - Optional remainder in SplitByValue
  - Add comment mutation
  - token timeout on JWT
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
- - Optional remainder in SplitByValue
 
 ### future
+ - GraphQL better type checking
+   - can we globally type check Context?
+   - How about arguments?
+   - Can we generate GraphQL types from fp-ts schemas?
  - Global service configuration
    - various secret keys + API endpoints
  - Engine aggregations

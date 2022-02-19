@@ -36,13 +36,6 @@ export namespace Account {
   });
 }
 
-export namespace Deleted {
-  export const t = new graphql.GraphQLObjectType({
-      name: 'Deleted'
-    , fields: { id: { type: graphql.GraphQLString } }
-  });
-}
-
 export namespace Void {
   export const t = new graphql.GraphQLObjectType({
       name: 'Void'

@@ -63,7 +63,7 @@ app.use(
   , graphqlHTTP((request, response) => ({
         schema: Schema
       , graphiql: true
-      , context: Context.empty(response)
+      , context: Context.empty(request, response)
     }))
 );
 
