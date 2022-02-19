@@ -5,7 +5,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as iot from "io-ts";
 
-import { JWT } from "./util";
+import { JWT } from "../util";
 
 import { User } from "model";
 import { UserFrontend } from "storage";

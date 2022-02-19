@@ -11,12 +11,10 @@ import { pipe } from "fp-ts/lib/pipeable";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
 import { router as userRouter } from "./route/users";
-import { router as sourceRouter } from "./route/sources";
 import { router as adminRouter } from "./route/admin";
-import { router as plaidRouter } from "./route/plaid";
 import Schema from './graphql/schema';
 import * as Context from './graphql/context';
-import { AuthenticationFor } from "./route/util";
+import { AuthenticationFor } from "./util";
 
 import { Reaper } from "magic";
 import { User } from "model";
@@ -53,9 +51,7 @@ app.use(cookieParser());
 app.use(Express.json());
 
 app.use("/users", userRouter.router);
-app.use("/sources", sourceRouter.router);
 app.use("/admin", adminRouter.router);
-app.use("/plaid", plaidRouter.router);
 
 app.use(AuthenticationFor.user)
 app.use(

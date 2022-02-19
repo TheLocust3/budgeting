@@ -34,34 +34,6 @@ export class System {
     );
   }
 
-  addSource(name: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask("/sources/")("POST")(O.some({ name: name, integrationId: O.none, metadata: O.none }))
-      , TE.chain(this.json)
-    );
-  }
-
-  getSource(id: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/sources/${id}`)("GET")()
-      , TE.chain(this.json)
-    );
-  }
-
-  listSources(): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask("/sources")("GET")()
-      , TE.chain(this.json)
-    );
-  }
-
-  deleteSource(id: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/sources/${id}`)("DELETE")()
-      , TE.chain(this.json)
-    );
-  }
-
   addIntegration(name: string, credentials: any): TE.TaskEither<Error, any> {
     return pipe(
         this.fetchTask("/integrations/")("POST")(O.some({ name: name, credentials: credentials }))

@@ -7,7 +7,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as iot from "io-ts";
 
 import { AccountChannel, TransactionChannel } from "../channel";
-import { AuthenticationFor } from "./util";
+import { AuthenticationFor } from "../util";
 
 import { User } from "model";
 import { UserFrontend, IntegrationFrontend, SourceFrontend } from "storage";

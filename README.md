@@ -95,10 +95,11 @@ Sample query:
 ## todo
 
 ### next
+ - Add user add/login to unauthenticated graphql endpoint
+ - Add admin graphql routes
  - Some better way of returning void in GraphQL
  - RuleChannel should require UserId matching
  - Manually insert plaid credentials
- - Can we move user add/login to graphql?
  - Better puller
    - Think about how this scales, pull off of queue? Don't rely on DB row lock basically
    - Create "summary" transaction of account value on initial pull
