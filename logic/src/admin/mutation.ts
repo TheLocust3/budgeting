@@ -1,70 +1,56 @@
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
-import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
-import * as iot from "io-ts";
+import * as graphql from "graphql";
 
+import * as Context from './context';
+import * as Types from "../graphql/types";
+import { toPromise } from "../graphql/util";
 import { AccountChannel, TransactionChannel } from "../channel";
-import { AuthenticationFor } from "../util";
+import { JWT } from "../util";
 
-import { User } from "model";
 import { UserFrontend, IntegrationFrontend, SourceFrontend } from "storage";
-import { Exception, Reaper, Message, Pipe, Route } from "magic";
+import { Exception, Reaper, Pipe } from "magic";
 
-export const router = new Route.Router();
+namespace DeleteUser {
+  type Args = { id: string };
+  const Args = {
+    id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+  };
 
-router
-  .use(AuthenticationFor.admin)
-
-router
-  .get('/', (context) => {
-    return pipe(
-        UserFrontend.all(context.request.app.locals.db)()
-      , TE.map((users) => { return { users: users }; })
-      , Route.respondWith(context)(User.External.Response.UserList.Json)
-    );
-  });
-
-router
-  .get('/:userId', (context) => {
-    const userId = context.request.params.userId
-
-    return pipe(
-        UserFrontend.getById(context.request.app.locals.db)(userId)
-      , Route.respondWith(context)(User.Internal.Json)
-    );
-  });
-
-router
-  .delete('/:userId', async (context) => {
-    // start async job
-    Reaper.enqueue((id) => {
-      console.log(`DeleteUser[${id}] user ${context.response.locals.user.id}`);
+  const resolve = (source: any, { id }: Args, context: Context.t): boolean => {
+    Reaper.enqueue((job) => {
+      console.log(`DeleteUser[${job}] user ${id}`);
 
       return pipe(
-          cleanup(context)
+          cleanup(id)(context)
         , TE.match(
               (error) => {
-                console.log(`DeleteUser[${id}] failed with ${error}`)
+                console.log(`DeleteUser[${job}] failed with ${error}`)
                 return false
               }
             , () => {
-                console.log(`DeleteUser[${id}] complete`)
+                console.log(`DeleteUser[${job}] complete`)
                 return true;
               }
           )
       );
     });
 
-    context.response.json(Message.ok);
-  });
+    return true;
+  }
+
+  export const t = {
+      type: Types.Void.t
+    , args: Args
+    , resolve: resolve
+  };
+}
 
 // TODO: JK really don't want to pull all user's resources into memory
-const cleanup = (context: Route.Context): TE.TaskEither<Exception.t, void> => {
-  const userId = context.request.params.userId
-
+const cleanup = (userId: string) => (context: Context.t): TE.TaskEither<Exception.t, void> => {
   const deleteAll =
     (deleteById: (id: string) => TE.TaskEither<Exception.t, void>) =>
     (ids: TE.TaskEither<Exception.t, string[]>): TE.TaskEither<Exception.t, void> => {
@@ -78,17 +64,17 @@ const cleanup = (context: Route.Context): TE.TaskEither<Exception.t, void> => {
 
   const cleanupSources = () => {
     return pipe(
-        SourceFrontend.all(context.request.app.locals.db)(userId)
+        SourceFrontend.all(context.pool)(userId)
       , TE.map(A.map((source) => source.id))
-      , deleteAll(SourceFrontend.deleteById(context.request.app.locals.db)(userId))
+      , deleteAll(SourceFrontend.deleteById(context.pool)(userId))
     );
   }
 
   const cleanupIntegrations = () => {
     return pipe(
-        IntegrationFrontend.all(context.request.app.locals.db)(userId)
+        IntegrationFrontend.all(context.pool)(userId)
       , TE.map(A.map((source) => source.id))
-      , deleteAll(IntegrationFrontend.deleteById(context.request.app.locals.db)(userId))
+      , deleteAll(IntegrationFrontend.deleteById(context.pool)(userId))
     );
   }
 
@@ -114,7 +100,16 @@ const cleanup = (context: Route.Context): TE.TaskEither<Exception.t, void> => {
     , TE.chain((_) => cleanupAccounts())
     , TE.chain((_) => cleanupAccounts())
     , TE.chain((_) => cleanupTransactions())
-    , TE.chain((_) => UserFrontend.deleteById(context.request.app.locals.db)(userId))
+    , TE.chain((_) => UserFrontend.deleteById(context.pool)(userId))
     , TE.map((_) => {})
   );
 }
+
+const mutation = new graphql.GraphQLObjectType({
+    name: 'Mutation'
+  , fields: {
+      deleteUser: DeleteUser.t
+    }
+});
+
+export default mutation;

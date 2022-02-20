@@ -9,8 +9,6 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/pipeable";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
-import { router as userRouter } from "./route/users";
-import { router as adminRouter } from "./route/admin";
 import GraphqlEndpoint from "./graphql/index";
 import AdminEndpoint from "./admin/index";
 import ExternalEndpoint from "./external/index";
@@ -50,7 +48,6 @@ app.use(cors());
 app.use(cookieParser());
 app.use(Express.json());
 
-app.use("/users", userRouter.router);
 app.use("/external/graphql", ExternalEndpoint);
 
 app.use(AuthenticationFor.user)
@@ -58,7 +55,6 @@ app.use("/graphql", GraphqlEndpoint);
 
 app.use(AuthenticationFor.admin)
 app.use("/admin/graphql", AdminEndpoint);
-app.use("/admin", adminRouter.router);
 
 app.listen(3001);
 console.log("Listening at localhost:3001");

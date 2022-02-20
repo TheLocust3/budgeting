@@ -46,11 +46,23 @@ Run the test suite:
 `yarn test`
 
 ## graphql api
-Login
-`curl -XPOST http://localhost:3001/users/login -H 'Content-Type: application/json' -d '{ "email": "jake.kinsella@gmail.com", "password": "foobar" }'`
+### External API
+Open `localhost:3001/external/graphql`.
 
-Open `localhost:3001/graphql` and store the token as a cookie using the Developer Console:
+Login:
+```
+mutation {
+  login(email: "jake.kinsella@gmail.com", password: "foobar") {
+    token
+  }
+}
+```
+
+Store the token as a cookie using the Developer Console:
 `document.cookie="auth-token=${TOKEN}"`
+
+### Authenticated API
+Open `localhost:3001/graphql`.
 
 Sample query:
 ```
@@ -88,6 +100,19 @@ Sample query:
       id,
       rule
     }
+  }
+}
+```
+
+### Admin API
+Open `localhost:3001/admin/graphql`.
+
+Sample query:
+```
+{
+  users {
+    id,
+    email
   }
 }
 ```

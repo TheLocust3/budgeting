@@ -1,6 +1,16 @@
 import * as graphql from "graphql";
 import { GraphQLJSONObject } from 'graphql-type-json';
 
+export namespace User {
+  export const t = new graphql.GraphQLObjectType({
+      name: 'User'
+    , fields: {
+          id: { type: graphql.GraphQLString }
+        , email: { type: graphql.GraphQLString }
+      }
+  })
+}
+
 export namespace Rule {
   export const t = new graphql.GraphQLObjectType({
       name: 'Rule'
