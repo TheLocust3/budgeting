@@ -97,7 +97,6 @@ Sample query:
 ### next
  - Add user add/login to unauthenticated graphql endpoint
  - Add admin graphql routes
- - Some better way of returning void in GraphQL
  - RuleChannel should require UserId matching
  - Manually insert plaid credentials
  - Better puller

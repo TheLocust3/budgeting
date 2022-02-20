@@ -59,7 +59,7 @@ export namespace ExchangePublicToken {
     return pipe(
         PlaidHelper.exchangePublicToken(context.plaidClient)(publicToken)
       , TE.chain(({ request, publicToken }) => build(context)(request)(publicToken))
-      , TE.map(() => ({}))
+      , TE.map(() => true)
       , toPromise
     );
   }

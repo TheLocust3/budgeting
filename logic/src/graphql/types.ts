@@ -37,8 +37,5 @@ export namespace Account {
 }
 
 export namespace Void {
-  export const t = new graphql.GraphQLObjectType({
-      name: 'Void'
-    , fields: { message: { type: graphql.GraphQLString }}
-  });
+  export const t = graphql.GraphQLBoolean
 }

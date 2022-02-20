@@ -94,7 +94,7 @@ namespace DeleteRule {
     return pipe(
         Context.virtual(context)
       , TE.chain((virtual) => RuleChannel.deleteById(virtual.account.id)(id))
-      , TE.map(() => ({}))
+      , TE.map(() => true)
       , toPromise
     );
   }
