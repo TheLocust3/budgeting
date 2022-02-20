@@ -10,17 +10,17 @@ import { Rule } from "model";
 import { Channel, Exception } from "magic";
 
 export namespace RuleChannel {
-  export const all = (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
+  export const all = (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
     return pipe(
-        EngineChannel.push(`/rules?accountId=${accountId}`)('GET')()
+        EngineChannel.push(`/rules?accountId=${accountId}&userId=${userId}`)('GET')()
       , Channel.to(Rule.Channel.Response.RuleList.Json.from)
       , TE.map(({ rules }) => rules)
     );
   };
 
-  export const getById = (accountId: string) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+  export const getById = (userId: string) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
-        EngineChannel.push(`/rules/${id}?accountId=${accountId}`)('GET')()
+        EngineChannel.push(`/rules/${id}?accountId=${accountId}&userId=${userId}`)('GET')()
       , Channel.to(Rule.Internal.Json.from)
     );
   };
@@ -35,9 +35,9 @@ export namespace RuleChannel {
     );
   };
 
-  export const deleteById = (accountId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (userId: string) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
-        EngineChannel.push(`/rules/${id}?accountId=${accountId}`)('DELETE')()
+        EngineChannel.push(`/rules/${id}?accountId=${accountId}&userId=${userId}`)('DELETE')()
       , Channel.toVoid
     );
   };

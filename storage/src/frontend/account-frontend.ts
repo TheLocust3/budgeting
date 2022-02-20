@@ -47,8 +47,7 @@ export namespace AccountFrontend {
 
   export const withRules = (pool: Pool) => <T>(account: Account.Internal.t & T): TE.TaskEither<Exception.t, Account.Internal.t & T & Account.Internal.WithRules> => {
     return pipe(
-        account.id
-      , RuleFrontend.getByAccountId(pool)
+        RuleFrontend.getByAccountId(pool)(account.userId)(account.id)
       , TE.map((rules) => { return { ...account, rules: rules }; })
     );
   };

@@ -67,6 +67,7 @@ namespace CreateSplitByValue {
         Context.virtual(context)
       , TE.map((virtual) => ({
             accountId: virtual.account.id
+          , userId: context.user.id
           , rule: <Rule.Internal.Split.SplitByValue>{
                 _type: "SplitByValue"
               , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
@@ -93,7 +94,7 @@ namespace DeleteRule {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<{}> => {
     return pipe(
         Context.virtual(context)
-      , TE.chain((virtual) => RuleChannel.deleteById(virtual.account.id)(id))
+      , TE.chain((virtual) => RuleChannel.deleteById(context.user.id)(virtual.account.id)(id))
       , TE.map(() => true)
       , toPromise
     );

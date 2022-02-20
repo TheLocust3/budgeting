@@ -97,7 +97,6 @@ Sample query:
 ### next
  - Add user add/login to unauthenticated graphql endpoint
  - Add admin graphql routes
- - RuleChannel should require UserId matching
  - Manually insert plaid credentials
  - Better puller
    - Think about how this scales, pull off of queue? Don't rely on DB row lock basically

@@ -223,6 +223,7 @@ export namespace Internal {
   export const t = iot.type({
       id: iot.string
     , accountId: iot.string
+    , userId: iot.string
     , rule: Rule
   });
 
@@ -232,6 +233,7 @@ export namespace Internal {
     TableType = iot.type({
         id: iot.string
       , account_id: iot.string
+      , user_id: iot.string
       , rule: Internal.Rule
     });    
 
@@ -240,7 +242,7 @@ export namespace Internal {
           obj
         , this.TableType.decode
         , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, account_id, rule }) => { return { id: id, accountId: account_id, rule: rule } })
+        , E.map(({ id, account_id, user_id, rule }) => { return { id: id, accountId: account_id, userId: user_id, rule: rule } })
       );
     }
 
@@ -248,6 +250,7 @@ export namespace Internal {
       return {
           id: obj.id
         , account_id: obj.accountId
+        , user_id: obj.userId
         , rule: obj.rule
       }
     }
@@ -258,6 +261,7 @@ export namespace Frontend {
   export namespace Create {
     const t = iot.type({
         accountId: iot.string
+      , userId: iot.string
       , rule: Internal.Rule
     });
 
@@ -270,6 +274,7 @@ export namespace Channel {
   export namespace Query {
     const t = iot.type({
         accountId: iot.string
+      , userId: iot.string
     });
 
     export type t = iot.TypeOf<typeof t>

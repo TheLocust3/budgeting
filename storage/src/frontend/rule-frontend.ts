@@ -13,15 +13,14 @@ import * as RulesTable from "../db/rules-table";
 import { Exception } from "magic";
 
 export namespace RuleFrontend {
-  export const getByAccountId = (pool: Pool) => (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
+  export const getByAccountId = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
     return pipe(
-        accountId
-      , RulesTable.byAccountId(pool)
+        RulesTable.byAccountId(pool)(userId)(accountId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
-  export const getById = (pool: Pool) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+  export const getById = (pool: Pool) => (userId: string) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         id
       , RulesTable.byId(pool)
@@ -31,7 +30,7 @@ export namespace RuleFrontend {
           , (rule) => TE.of(rule)
         ))
       , TE.chain((rule) => {
-          if (rule.accountId == accountId) {
+          if (rule.accountId == accountId && rule.userId == userId) {
             return TE.of(rule);
           } else {
             return TE.throwError(Exception.throwNotFound);
@@ -48,10 +47,10 @@ export namespace RuleFrontend {
     );
   };
 
-  export const deleteById = (pool: Pool) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (pool: Pool) => (userId: string) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , RulesTable.deleteById(pool)(accountId)
+      , RulesTable.deleteById(pool)(userId)(accountId)
       , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };

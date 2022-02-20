@@ -17,7 +17,7 @@ router
   .get("/", (context) => {
     return pipe(
         Route.parseQuery(context)(Rule.Channel.Query.Json)
-      , TE.chain(({ accountId }) => RuleFrontend.getByAccountId(context.request.app.locals.db)(accountId))
+      , TE.chain(({ accountId, userId }) => RuleFrontend.getByAccountId(context.request.app.locals.db)(userId)(accountId))
       , TE.map((rules) => { return { rules: rules }; })
       , Route.respondWith(context)(Rule.Channel.Response.RuleList.Json)
     );
@@ -29,7 +29,7 @@ router
 
     return pipe(
         Route.parseQuery(context)(Rule.Channel.Query.Json)
-      , TE.chain(({ accountId }) => RuleFrontend.getById(context.request.app.locals.db)(accountId)(ruleId))
+      , TE.chain(({ accountId, userId }) => RuleFrontend.getById(context.request.app.locals.db)(userId)(accountId)(ruleId))
       , Route.respondWith(context)(Rule.Internal.Json)
     );
   });
@@ -50,7 +50,7 @@ router
 
     return pipe(
         Route.parseQuery(context)(Rule.Channel.Query.Json)
-      , TE.chain(({ accountId }) => RuleFrontend.deleteById(context.request.app.locals.db)(accountId)(ruleId))
+      , TE.chain(({ accountId, userId }) => RuleFrontend.deleteById(context.request.app.locals.db)(userId)(accountId)(ruleId))
       , Route.respondWithOk(context)
     );
   });

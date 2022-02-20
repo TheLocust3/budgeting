@@ -187,30 +187,30 @@ export class System {
     );
   }
 
-  addRule(accountId: string, rule: any): TE.TaskEither<Error, any> {
+  addRule(accountId: string, rule: any, userId: string = "test"): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask("/rules/")("POST")(O.some({ accountId: accountId, rule: rule }))
+        this.fetchTask("/rules/")("POST")(O.some({ accountId: accountId, userId: userId, rule: rule }))
       , TE.chain(this.json)
     );
   }
 
-  getRule(id: string, accountId: string): TE.TaskEither<Error, any> {
+  getRule(id: string, accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/rules/${id}?accountId=${accountId}`)("GET")()
+        this.fetchTask(`/rules/${id}?accountId=${accountId}&userId=${userId}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  listRules(accountId: string): TE.TaskEither<Error, any> {
+  listRules(accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/rules?accountId=${accountId}`)("GET")()
+        this.fetchTask(`/rules?accountId=${accountId}&userId=${userId}`)("GET")()
       , TE.chain(this.json)
     );
   }
 
-  deleteRule(id: string, accountId: string): TE.TaskEither<Error, any> {
+  deleteRule(id: string, accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/rules/${id}?accountId=${accountId}`)("DELETE")()
+        this.fetchTask(`/rules/${id}?accountId=${accountId}&userId=${userId}`)("DELETE")()
       , TE.chain(this.json)
     );
   }

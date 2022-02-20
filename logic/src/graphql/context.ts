@@ -106,7 +106,7 @@ export namespace RuleContext {
   export const resolver = 
     (accountId: string) =>
     (context: Context): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
-    return RuleChannel.all(accountId);
+    return RuleChannel.all(context.user.id)(accountId);
   }
 }
 

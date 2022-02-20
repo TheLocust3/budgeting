@@ -15,6 +15,7 @@ namespace Query {
     CREATE TABLE rules (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       account_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
       rule JSONB NOT NULL,
       FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE
     )
@@ -22,32 +23,32 @@ namespace Query {
 
   export const dropTable = "DROP TABLE rules";
 
-  export const create = (accountId: string, rule: any) => {
+  export const create = (accountId: string, userId: string, rule: any) => {
     return {
       text: `
-        INSERT INTO rules (account_id, rule)
-        VALUES ($1, $2)
+        INSERT INTO rules (account_id, user_id, rule)
+        VALUES ($1, $2, $3)
         RETURNING *
       `,
-      values: [accountId, rule]
+      values: [accountId, userId, rule]
     };
   };
 
-  export const byAccountId = (accountId: string) => {
+  export const byAccountId = (accountId: string, userId: string) => {
     return {
       text: `
-        SELECT id, account_id, rule
+        SELECT id, account_id, user_id, rule
         FROM rules
-        WHERE account_id = $1
+        WHERE account_id = $1 and user_id = $2
       `,
-      values: [accountId]
+      values: [accountId, userId]
     };
   };
 
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, account_id, rule
+        SELECT id, account_id, user_id, rule
         FROM rules
         WHERE id = $1
         LIMIT 1
@@ -56,13 +57,13 @@ namespace Query {
     };
   };
 
-  export const deleteById = (id: string, accountId: string) => {
+  export const deleteById = (id: string, accountId: string, userId: string) => {
     return {
       text: `
         DELETE FROM rules
-        WHERE id = $1 AND account_id = $2
+        WHERE id = $1 AND account_id = $2 AND user_id = $3
       `,
-      values: [id, accountId]
+      values: [id, accountId, userId]
     };
   };
 }
@@ -87,10 +88,10 @@ export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   }
 };
 
-export const byAccountId = (pool: Pool) => (accountId: string) : TE.TaskEither<Error, Rule.Internal.t[]> => {
+export const byAccountId = (pool: Pool) => (userId: string) => (accountId: string) : TE.TaskEither<Error, Rule.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.byAccountId(accountId)),
+        () => pool.query(Query.byAccountId(accountId, userId)),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(
@@ -118,10 +119,10 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
   );
 };
 
-export const deleteById = (pool: Pool) => (accountId: string) => (id: string) : TE.TaskEither<Error, void> => {
+export const deleteById = (pool: Pool) => (userId: string) => (accountId: string) => (id: string) : TE.TaskEither<Error, void> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.deleteById(id, accountId)),
+        () => pool.query(Query.deleteById(id, accountId, userId)),
         E.toError
       )
     , TE.map(x => { return; })
@@ -131,7 +132,7 @@ export const deleteById = (pool: Pool) => (accountId: string) => (id: string) : 
 export const create = (pool: Pool) => (rule: Rule.Frontend.Create.t) : TE.TaskEither<Error, Rule.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(rule.accountId, rule.rule)),
+        () => pool.query(Query.create(rule.accountId, rule.userId, rule.rule)),
         E.toError
       )
     , Db.expectOne
