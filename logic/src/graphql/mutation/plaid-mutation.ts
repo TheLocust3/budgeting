@@ -58,7 +58,31 @@ export namespace ExchangePublicToken {
   const resolve = (source: any, { publicToken, accounts, institutionName }: Args, context: Context.t): Promise<{}> => {
     return pipe(
         PlaidHelper.exchangePublicToken(context.plaidClient)(publicToken)
-      , TE.chain(({ request, publicToken }) => build(context)(request)(publicToken))
+      , TE.chain((publicToken) => build(context)({ institutionName: institutionName, accounts: accounts })(publicToken))
+      , TE.map(() => true)
+      , toPromise
+    );
+  }
+
+  export const t = {
+      type: Types.Void.t
+    , args: Args
+    , resolve: resolve
+  };
+}
+
+export namespace CreatePlaidIntegration {
+  type Args = { itemId: string; accessToken: string; accounts: ExchangePublicToken.PlaidAccount[]; institutionName: string; };
+  const Args = {
+      itemId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , accessToken: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , accounts: { type: new graphql.GraphQLList(ExchangePublicToken.PlaidAccount) }
+    , institutionName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+  };
+
+  const resolve = (source: any, { itemId, accessToken, accounts, institutionName }: Args, context: Context.t): Promise<{}> => {
+    return pipe(
+        build(context)({ institutionName: institutionName, accounts: accounts })({ item_id: itemId, access_token: accessToken })
       , TE.map(() => true)
       , toPromise
     );
@@ -73,8 +97,8 @@ export namespace ExchangePublicToken {
 
 const build =
   (context: Context.t) =>
-  (request: Plaid.External.Request.ExchangePublicToken.t) =>
-  (publicToken: ItemPublicTokenExchangeResponse): TE.TaskEither<Exception.t, void> => {
+  (request: { institutionName: string, accounts: { id: string, name: string }[] }) =>
+  (publicToken: { item_id: string, access_token: string }): TE.TaskEither<Exception.t, void> => {
   const requestId = context.id;
   const user = context.user;
   const pool = context.pool;
