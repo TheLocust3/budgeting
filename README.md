@@ -10,15 +10,6 @@
 `pg_ctl -D data.db start`  
 `createdb budget`  
 
-### generate certs
-`mkdir certs`
-
-Create a self-signed cert, placing the resultant files in the `certs/` directory as:
-```
-cert.crt
-cert.key
-```
-
 ## running
 
 Environment variables:
@@ -120,26 +111,25 @@ Sample query:
 ## todo
 
 ### next
+ - GraphQL cleanup
+   - Use fp-ts schemas to generate graphQL types (args, inputs, outputs)
+   - Push new GraphQL/iot types to model + remove old types there
  - Create "summary" transaction of account value on initial pull
+ - Optional remainder in SplitByValue
+ - Global service configuration
+   - various secret keys + API endpoints
+ - Authenticate requests between logic and engine
 
 ### miscellaneous
- - Optional remainder in SplitByValue
  - Add comment mutation
  - token timeout on JWT
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
 
 ### future
- - GraphQL better type checking
-   - can we globally type check Context?
-   - How about arguments?
-   - Can we generate GraphQL types from fp-ts schemas?
- - Global service configuration
-   - various secret keys + API endpoints
  - Engine aggregations
  - Deployment
  - Amazon Cognito?
- - Authenticate requests between components
  - basic rule pushdowns
    - all include rules are up for grabs
  - a productized path for adding superusers

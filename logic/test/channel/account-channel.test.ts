@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -5,7 +6,8 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
 import { AccountChannel } from "../../src/channel";
-import { uuid } from "../system/util";
+
+const uuid = (): string => crypto.randomUUID();
 
 it("can add account", async () => {
   const name = `test-${uuid()}`;

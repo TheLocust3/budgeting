@@ -12,10 +12,8 @@ import { Exception, Reaper } from "magic";
 import { SourceFrontend } from "storage";
 import { Source } from "model";
 
-// on tick:
-//   - pull all sources that are "expired"
-//   - start puller job for each one
 export const tick = (pool: Pool) => (plaidClient: PlaidApi) => {
   Reaper.enqueue(PullerJob.run(pool)(plaidClient));
-  setTimeout(() => tick(pool)(plaidClient), 500);
+
+  setTimeout(() => tick(pool)(plaidClient), 1000);
 }

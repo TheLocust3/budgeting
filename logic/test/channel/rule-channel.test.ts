@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -5,9 +6,10 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
 import { AccountChannel, RuleChannel } from "../../src/channel";
-import { uuid } from "../system/util";
 
 import { Rule } from "model";
+
+const uuid = (): string => crypto.randomUUID();
 
 const ruleBody: Rule.Internal.Rule = { _type: "Attach", where: { _type: "StringMatch", field: "id", operator: "Eq", value: "nonesense" }, field: "test", value: "hello" };
 
