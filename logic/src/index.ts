@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import Express from "express";
-import { graphqlHTTP } from 'express-graphql';
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Pool } from "pg";
@@ -12,8 +11,9 @@ import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
 import { router as userRouter } from "./route/users";
 import { router as adminRouter } from "./route/admin";
-import Schema from './graphql/schema';
-import * as Context from './graphql/context';
+import GraphqlEndpoint from "./graphql/index";
+import AdminEndpoint from "./admin/index";
+import ExternalEndpoint from "./external/index";
 import { AuthenticationFor } from "./util";
 
 import { Reaper } from "magic";
@@ -51,17 +51,14 @@ app.use(cookieParser());
 app.use(Express.json());
 
 app.use("/users", userRouter.router);
-app.use("/admin", adminRouter.router);
+app.use("/external/graphql", ExternalEndpoint);
 
 app.use(AuthenticationFor.user)
-app.use(
-    '/graphql'
-  , graphqlHTTP((request, response) => ({
-        schema: Schema
-      , graphiql: true
-      , context: Context.empty(request, response)
-    }))
-);
+app.use("/graphql", GraphqlEndpoint);
+
+app.use(AuthenticationFor.admin)
+app.use("/admin/graphql", AdminEndpoint);
+app.use("/admin", adminRouter.router);
 
 app.listen(3001);
 console.log("Listening at localhost:3001");

@@ -34,7 +34,7 @@ export const respondWithError = (context: Route.Context) => (exception: Exceptio
       context.response.status(400).json(error("Malformed Json"));
       return;
     case "NotFound":
-      context.response.status(400).json(error("Not found"));
+      context.response.status(404).json(error("Not found"));
       return;
     case "InternalError":
       context.response.status(500).json(error("Internal error"));
