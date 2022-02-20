@@ -72,23 +72,18 @@ namespace Query {
 
   const isExpired = `last_refreshed < now() - '10 minutes' :: interval AND integration_id IS NOT NULL`
 
-  export const allExpired = `
-    SELECT id, user_id, name, integration_id, metadata, created_at
-    FROM sources
-    WHERE ${isExpired}
+  export const pull = `
+    UPDATE sources
+    SET last_refreshed = now()
+    WHERE id IN (
+      SELECT id
+      FROM sources
+      WHERE ${isExpired}
+      ORDER BY last_refreshed DESC
+      LIMIT 1
+    )
+    RETURNING id, user_id, name, integration_id, metadata, created_at
   `;
-
-  export const tryLockById = (id: string) => {
-    return {
-      text: `
-        UPDATE sources
-        SET last_refreshed = now()
-        WHERE id = $1 AND (${isExpired})
-        RETURNING *
-      `,
-      values: [id]
-    };
-  };
 }
 
 export const migrate = (pool: Pool): T.Task<boolean> => async () => {
@@ -168,10 +163,10 @@ export const create = (pool: Pool) => (source: Source.Frontend.Create.t) : TE.Ta
   );
 };
 
-export const allExpired = (pool: Pool) => () : TE.TaskEither<Error, Source.Internal.t[]> => {
+export const pull = (pool: Pool) => () : TE.TaskEither<Error, O.Option<Source.Internal.t>> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.allExpired),
+        () => pool.query(Query.pull),
         (e) => {
           console.log(e)
           throw e;
@@ -183,15 +178,6 @@ export const allExpired = (pool: Pool) => () : TE.TaskEither<Error, Source.Inter
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
-  );
-};
-
-export const tryLockById = (pool: Pool) => (id: string) : TE.TaskEither<Error, boolean> => {
-  return pipe(
-      TE.tryCatch(
-          () => pool.query(Query.tryLockById(id))
-        , E.toError
-      )
-    , TE.map((res) => res.rows.length === 1) // if we managaed to update a single row, we've acquired the "lock"
+    , TE.map(A.lookup(0))
   );
 };

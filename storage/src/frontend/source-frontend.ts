@@ -45,18 +45,14 @@ export namespace SourceFrontend {
     );
   };
 
-  export const allExpired = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+  export const pull = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
-        SourcesTable.allExpired(pool)()
+        SourcesTable.pull(pool)()
       , TE.mapLeft((_) => Exception.throwInternalError)
-    );
-  };
-
-  export const tryLockById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, boolean> => {
-    return pipe(
-        id
-      , SourcesTable.tryLockById(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
+      , TE.chain(O.fold(
+            (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
+          , (source) => TE.of(source)
+        ))
     );
   };
 }

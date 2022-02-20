@@ -120,12 +120,7 @@ Sample query:
 ## todo
 
 ### next
- - Add user add/login to unauthenticated graphql endpoint
- - Add admin graphql routes
- - Better puller
-   - Think about how this scales, pull off of queue? Don't rely on DB row lock basically
-   - Create "summary" transaction of account value on initial pull
-   - Retry on failure
+ - Create "summary" transaction of account value on initial pull
 
 ### miscellaneous
  - Optional remainder in SplitByValue

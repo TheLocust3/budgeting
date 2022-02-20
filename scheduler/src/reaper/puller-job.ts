@@ -21,27 +21,24 @@ type Context = {
   integration: Integration.Internal.t;
 };
 
-type PullerException = "LockAcquisitionFailed" | "Exception";
+type PullerException = "NoWork" | "Exception";
 
-const tryLock = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<PullerException, Source.Internal.t> => {
+const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => {
   return pipe(
-      source.id
-    , SourceFrontend.tryLockById(pool)
+      SourceFrontend.pull(pool)()
     , TE.mapLeft((error) => {
-        console.log(error);
-        return <PullerException>"Exception";
+        switch (error._type) {
+          case "NotFound":
+            return <PullerException>"NoWork";
+          default:
+            console.log(error);
+            return <PullerException>"Exception"
+        }
       })
-    , TE.chain((hasLock) => {
-      if (hasLock) {
-        return TE.of(source);
-      } else {
-        return TE.throwError(<PullerException>"LockAcquisitionFailed")
-      }
-    })
   );
 }
 
-const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<PullerException, Integration.Internal.t> => {
+const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<PullerException, Context> => {
   // at this point, an integration id must exist
   const integrationId = O.match(() => "", (integrationId: string) => integrationId)(source.integrationId);
   return pipe(
@@ -51,6 +48,7 @@ const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEith
         console.log(error);
         return <PullerException>"Exception";
       })
+    , TE.map((integration) => ({ source: source, integration: integration }))
   );
 }
 
@@ -104,28 +102,28 @@ const pushTransactions = (pool: Pool) => (id: string) => (transactions: Transact
   );
 }
 
-export const run = (pool: Pool) => (plaidClient: PlaidApi) => (source: Source.Internal.t) => (id: string) => {
-  console.log(`Scheduler.puller[${id}] - start for ${source.id}`)
-
+export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Task<boolean> => {
   return pipe(
-      source
-    , tryLock(pool)
+      pull(pool)
     , TE.chain(withIntegration(pool))
-    , TE.map((integration) => { return { source: source, integration: integration }; })
+    , TE.map((context) => {
+        console.log(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
+        return context;
+      })
     , TE.chain(pullTransactions(plaidClient)(id))
     , TE.chain(pushTransactions(pool)(id))
     , TE.match(
           (error) => {
-            console.log(`Scheduler.puller[${id}] - failed for ${source.id} - ${error}`);
             switch (error) {
-              case "LockAcquisitionFailed":
-                return true; // somebody else already updated this source
+              case "NoWork":
+                return true;
               case "Exception":
+                console.log(`Scheduler.puller[${id}] - failed - ${error}`);
                 return true;
             }
           }
         , () => {
-            console.log(`Scheduler.puller[${id}] - completed for ${source.id}`);
+            console.log(`Scheduler.puller[${id}] - completed`);
             return true;
           }
       )

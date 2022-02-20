@@ -38,13 +38,10 @@ const reaper = async () => {
     const id = crypto.randomUUID();
     const { job, retriesRemaining } = element;
 
-    console.log(`Reaper - starting job ${id}`);
     await pipe(
         withTimeout(false, 5000)(job(id))
       , T.map((succeeded) => {
-          if (succeeded) {
-            console.log(`Reaper - job ${id} succeeded`);
-          } else {
+          if (!succeeded) {
             if (retriesRemaining > 0) {
               console.log(`Reaper - job ${id} failed, retrying - ${retriesRemaining}`);
               setTimeout(() => enqueue(job, retriesRemaining - 1), 500);

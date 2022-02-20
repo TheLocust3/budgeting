@@ -15,23 +15,7 @@ import { Source } from "model";
 // on tick:
 //   - pull all sources that are "expired"
 //   - start puller job for each one
-export const tick = (pool: Pool) => async (plaidClient: PlaidApi) => {
-  console.log("Scheduler.tick - start");
-
-  try {
-    await pipe(
-        SourceFrontend.allExpired(pool)()
-      , TE.map((expiredSources: Source.Internal.t[]) => {
-          console.log(`Scheduler.tick - found ${expiredSources.length} expired sources`);
-          return expiredSources;
-        })
-      , TE.map(A.map((expired) => {
-          Reaper.enqueue(PullerJob.run(pool)(plaidClient)(expired));
-        }))
-    )();
-  } catch (error) {
-    console.log(error);
-  }
-
-  setTimeout(() => tick(pool)(plaidClient), 5000);
+export const tick = (pool: Pool) => (plaidClient: PlaidApi) => {
+  Reaper.enqueue(PullerJob.run(pool)(plaidClient));
+  setTimeout(() => tick(pool)(plaidClient), 500);
 }
