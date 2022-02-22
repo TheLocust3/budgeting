@@ -95,6 +95,13 @@ Sample query:
 }
 ```
 
+Manually create Plaid integration:
+```
+mutation {
+  createPlaidIntegraton(itemId: "???", accessToken: "???", institutionName: "Ally Bank", accounts: [{ id: "test", name: "Ally Checking" }])
+}
+```
+
 ### Admin API
 Open `localhost:3001/admin/graphql`.
 
@@ -111,28 +118,38 @@ Sample query:
 ## todo
 
 ### next
- - GraphQL cleanup
-   - Use fp-ts schemas to generate graphQL types (args, inputs, outputs)
-   - Push new GraphQL/iot types to model + remove old types there
+ - Full create user
+   - Create global/physical/virtual + rules
+ - Create accounts + rules when creating integration
  - Create "summary" transaction of account value on initial pull
+   - make `last_refreshed` start as null
+   - if null, pull current account balance and create a dummy transaction
  - Optional remainder in SplitByValue
+   - need way of raising a conflict inside of a single split rule
  - Global service configuration
    - various secret keys + API endpoints
  - Authenticate requests between logic and engine
+   - Add some secret to config. Logic signs requests with it and engine validates
 
 ### miscellaneous
+ - Puller shouldn't overwrite authorized_at when the transaction is no longer pending
+ - Move CreatePlaidIntegration to admin endpoint
+ - Return simplified rules interface
  - Add comment mutation
  - token timeout on JWT
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
+ - a path for adding superusers
 
 ### future
+  - GraphQL
+   - Use fp-ts schemas to generate graphQL types (args, inputs, outputs)
+   - Push new GraphQL/iot types to model + remove old types there
  - Engine aggregations
  - Deployment
  - Amazon Cognito?
  - basic rule pushdowns
    - all include rules are up for grabs
- - a productized path for adding superusers
  - Stateful reaper jobs
     - Make services stateless, can restart jobs on crash
     - How to implicitly divide work between clusters?

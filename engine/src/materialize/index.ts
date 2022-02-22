@@ -82,7 +82,9 @@ const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): 
         plan.stages
       , A.map(executeStage)
       , A.reduce(<Materialize.Internal.t>{ conflicts: [], tagged: tagged, untagged: [] }, (materialized, stage) => {
-          return stage(materialized);
+          const out= stage(materialized);
+          console.log(out)
+          return out
         })
     );
   }

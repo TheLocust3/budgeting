@@ -39,6 +39,10 @@ export const getTransactions =
 
   return pipe(
       pull()
+    , TE.map((response) => {
+        console.log(JSON.stringify(response, null, 2))
+        return response;
+      })
     , TE.map((response) => response.transactions)
   );
 }

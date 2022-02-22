@@ -133,7 +133,10 @@ export const create = (pool: Pool) => (rule: Rule.Frontend.Create.t) : TE.TaskEi
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(rule.accountId, rule.userId, rule.rule)),
-        E.toError
+        (error) => {
+          console.log(error)
+          return E.toError(error);
+        }
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Rule.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))

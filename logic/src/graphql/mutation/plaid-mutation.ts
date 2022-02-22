@@ -9,7 +9,7 @@ import { ItemPublicTokenExchangeResponse } from "plaid";
 
 import * as Context from "../context";
 import * as Types from "../types";
-import { toPromise } from "../util";
+import { toPromise, asList } from "../util";
 
 import { Source, Integration, Plaid } from "model";
 import { IntegrationFrontend, SourceFrontend } from "storage";
@@ -55,10 +55,10 @@ export namespace ExchangePublicToken {
     , institutionName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
   };
 
-  const resolve = (source: any, { publicToken, accounts, institutionName }: Args, context: Context.t): Promise<{}> => {
+  const resolve = (source: any, { publicToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
         PlaidHelper.exchangePublicToken(context.plaidClient)(publicToken)
-      , TE.chain((publicToken) => build(context)({ institutionName: institutionName, accounts: accounts })(publicToken))
+      , TE.chain((publicToken) => build(context)({ institutionName: institutionName, accounts: asList(accounts) })(publicToken))
       , TE.map(() => true)
       , toPromise
     );
@@ -80,9 +80,9 @@ export namespace CreatePlaidIntegration {
     , institutionName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
   };
 
-  const resolve = (source: any, { itemId, accessToken, accounts, institutionName }: Args, context: Context.t): Promise<{}> => {
+  const resolve = (source: any, { itemId, accessToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
-        build(context)({ institutionName: institutionName, accounts: accounts })({ item_id: itemId, access_token: accessToken })
+        build(context)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken })
       , TE.map(() => true)
       , toPromise
     );

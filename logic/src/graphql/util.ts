@@ -24,3 +24,7 @@ export const fromPromise = <T>(promise: Promise<T>): TE.TaskEither<Exception.t, 
       }
   );
 }
+
+// GraphQL inserts a null as the first element of an input.
+// This is a ridiculous conversion.
+export const asList = <T>(list: T[]): T[] => JSON.parse(JSON.stringify(list))

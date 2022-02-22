@@ -159,7 +159,10 @@ export const create = (pool: Pool) => (transaction: Transaction.Frontend.Create.
           , pipe(transaction.capturedAt, O.match(() => null, (date) => date))
           , transaction.metadata
         )),
-        E.toError
+        (e) => {
+          console.log(e)
+          return E.toError(e)
+        }
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Transaction.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
