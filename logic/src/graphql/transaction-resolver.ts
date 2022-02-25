@@ -7,21 +7,20 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import * as UserArena from "../user/arena";
 import * as Context from "./context";
 import * as Types from "./types";
-import { toPromise } from "./util";
 import AccountChannel from "../channel/account-channel";
-import { VIRTUAL_ACCOUNT } from "../constants";
 
 import { Account, Transaction, Materialize } from "model";
-import { Exception } from "magic";
+import { Exception, Pipe } from "magic";
 
 const materializeFor = (key: "physical" | "virtual") => (context: Context.t) => {
   switch (key) {
     case "physical":
-      return Context.materializePhysical(context);
+      return UserArena.materializePhysical(context.arena);
     case "virtual":
-      return Context.materializeVirtual(context);
+      return UserArena.materializeVirtual(context.arena);
   }
 }
 
@@ -38,7 +37,7 @@ const resolveForAccount =
           return [];
         }
       })
-    , toPromise
+    , Pipe.toPromise
   );
 }
 
@@ -46,7 +45,7 @@ const resolveForUntagged = (source: any, args: any, context: Context.t): Promise
   return pipe(
       materializeFor("virtual")(context)
     , TE.map((materialize) => materialize.untagged)
-    , toPromise
+    , Pipe.toPromise
   );
 }
 
@@ -54,7 +53,7 @@ const resolveForConflicts = (source: any, args: any, context: Context.t): Promis
   return pipe(
       materializeFor("virtual")(context)
     , TE.map((materialize) => materialize.conflicts)
-    , toPromise
+    , Pipe.toPromise
   );
 }
 

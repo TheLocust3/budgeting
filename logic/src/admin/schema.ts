@@ -8,9 +8,9 @@ import * as graphql from "graphql";
 import * as Context from './context';
 import Mutation from './mutation';
 import * as Types from "../graphql/types";
-import { toPromise } from "../graphql/util";
 import { JWT } from "../util";
 
+import { Pipe } from "magic";
 import { User } from "model";
 import { UserFrontend } from "storage";
 
@@ -18,7 +18,7 @@ namespace ListUsers {
   const resolve = (source: any, args: any, context: Context.t): Promise<User.Internal.t[]> => {
     return pipe(
         UserFrontend.all(context.pool)()
-      , toPromise
+      , Pipe.toPromise
     );
   }
 
@@ -37,7 +37,7 @@ namespace GetUser {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<User.Internal.t> => {
     return pipe(
         UserFrontend.getById(context.pool)(id)
-      , toPromise
+      , Pipe.toPromise
     );
   }
 

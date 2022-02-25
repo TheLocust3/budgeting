@@ -7,10 +7,10 @@ import * as graphql from "graphql";
 
 import * as Context from './context';
 import * as Types from "../graphql/types";
-import { toPromise } from "../graphql/util";
 import { JWT } from "../util";
 
 import { User } from "model";
+import { Pipe } from "magic";
 import { UserFrontend } from "storage";
 
 namespace Login {
@@ -33,7 +33,7 @@ namespace Login {
         UserFrontend.login(context.pool)(email, password)
       , TE.map((user) => JWT.sign(user))
       , TE.map((token) => ({ token: token }))
-      , toPromise
+      , Pipe.toPromise
     );
   }
 
@@ -54,7 +54,7 @@ namespace CreateUser {
   const resolve = (source: any, { email, password }: Args, context: Context.t): Promise<User.Internal.t> => {
     return pipe(
         UserFrontend.create(context.pool)({ email: email, password: password, role: User.DEFAULT_ROLE })
-      , toPromise
+      , Pipe.toPromise
     );
   }
 

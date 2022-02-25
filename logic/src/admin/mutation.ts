@@ -7,7 +7,6 @@ import * as graphql from "graphql";
 
 import * as Context from './context';
 import * as Types from "../graphql/types";
-import { toPromise } from "../graphql/util";
 import { AccountChannel, TransactionChannel } from "../channel";
 import { JWT } from "../util";
 

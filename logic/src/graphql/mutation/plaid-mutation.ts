@@ -9,11 +9,11 @@ import { ItemPublicTokenExchangeResponse } from "plaid";
 
 import * as Context from "../context";
 import * as Types from "../types";
-import { toPromise, asList } from "../util";
+import { asList } from "../util";
 
 import { Source, Integration, Plaid } from "model";
 import { IntegrationFrontend, SourceFrontend } from "storage";
-import { Exception, Message, Plaid as PlaidHelper, Route } from "magic";
+import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "magic";
 
 export namespace CreateLinkToken {
   type Token = { token: string; };
@@ -26,9 +26,9 @@ export namespace CreateLinkToken {
 
   const resolve = (source: any, args: any, context: Context.t): Promise<Token> => {
     return pipe(
-        PlaidHelper.createLinkToken(context.plaidClient)(context.user.id)
+        PlaidHelper.createLinkToken(context.plaidClient)(context.arena.user.id)
       , TE.map((token) => { return { token: token }; })
-      , toPromise
+      , Pipe.toPromise
     );
   }
 
@@ -60,7 +60,7 @@ export namespace ExchangePublicToken {
         PlaidHelper.exchangePublicToken(context.plaidClient)(publicToken)
       , TE.chain((publicToken) => build(context)({ institutionName: institutionName, accounts: asList(accounts) })(publicToken))
       , TE.map(() => true)
-      , toPromise
+      , Pipe.toPromise
     );
   }
 
@@ -84,7 +84,7 @@ export namespace CreatePlaidIntegration {
     return pipe(
         build(context)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken })
       , TE.map(() => true)
-      , toPromise
+      , Pipe.toPromise
     );
   }
 
@@ -100,7 +100,7 @@ const build =
   (request: { institutionName: string, accounts: { id: string, name: string }[] }) =>
   (publicToken: { item_id: string, access_token: string }): TE.TaskEither<Exception.t, void> => {
   const requestId = context.id;
-  const user = context.user;
+  const user = context.arena.user;
   const pool = context.pool;
 
   console.log(`[${requestId}] - building integration/sources`);

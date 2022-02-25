@@ -118,14 +118,14 @@ Sample query:
 ## todo
 
 ### next
+ - Add create resource helpers
  - Full create user
    - Create global/physical/virtual + rules
  - Create accounts + rules when creating integration
+ - List/remove integrations
  - Create "summary" transaction of account value on initial pull
    - make `last_refreshed` start as null
    - if null, pull current account balance and create a dummy transaction
- - Optional remainder in SplitByValue
-   - need way of raising a conflict inside of a single split rule
  - Global service configuration
    - various secret keys + API endpoints
  - Authenticate requests between logic and engine
@@ -135,6 +135,8 @@ Sample query:
  - Puller shouldn't overwrite authorized_at when the transaction is no longer pending
  - Move CreatePlaidIntegration to admin endpoint
  - Return simplified rules interface
+ - Optional remainder in SplitByValue
+   - need way of raising a conflict inside of a single split rule
  - Add comment mutation
  - token timeout on JWT
  - expect unordered lists in tests

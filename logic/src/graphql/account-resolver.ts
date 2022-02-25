@@ -7,22 +7,21 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import * as UserArena from "../user/arena";
+import * as Context from "./context";
 import { Transactions } from "./transaction-resolver";
 import { Rules } from "./rule-resolver";
-import * as Context from "./context";
-import { toPromise } from "./util";
-import AccountChannel from "../channel/account-channel";
-import { PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../constants";
 
 import { Account } from "model";
+import { Pipe } from "magic";
 import { Exception } from "magic";
 
 const resolveFor = (key: "physical" | "virtual") => (context: Context.t) => {
   switch (key) {
     case "physical":
-      return Context.physical(context);
+      return UserArena.physical(context.arena);
     case "virtual":
-      return Context.virtual(context);
+      return UserArena.virtual(context.arena);
   }
 }
 
@@ -31,10 +30,10 @@ const resolveChildrenFor =
   (source: any, args: any, context: Context.t): Promise<Account.Internal.t[]> => {
   return pipe(
       resolveFor(key)(context)
-    , TE.map((context: Context.AccountContext.t) => {
-        return A.map((child: Context.AccountContext.t) => child.account)(context.children)
+    , TE.map((context: UserArena.Account.t) => {
+        return A.map((child: UserArena.Account.t) => child.account)(context.children)
       })
-   , toPromise
+   , Pipe.toPromise
   );
 }
 

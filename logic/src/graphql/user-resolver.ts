@@ -7,5 +7,5 @@ import { User } from "model";
 
 export const t = {
     type: Types.User.t
-  , resolve: (source: any, args: any, context: Context.t) => context.user
+  , resolve: (source: any, args: any, context: Context.t) => context.arena.user
 }

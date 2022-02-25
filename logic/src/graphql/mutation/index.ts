@@ -6,16 +6,16 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import * as UserArena from "../../user/arena";
 import * as Context from "../context";
 import * as Types from "../types";
-import { toPromise } from "../util";
 import * as PlaidMutation from "./plaid-mutation";
 
 import AccountChannel from "../../channel/account-channel";
 import RuleChannel from "../../channel/rule-channel";
 
 import { Account, Rule } from "model";
-import { Exception } from "magic";
+import { Exception, Pipe } from "magic";
 
 namespace CreateBucket {
   const JustBucket = new graphql.GraphQLObjectType({
@@ -31,10 +31,10 @@ namespace CreateBucket {
 
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
     return pipe(
-        Context.virtual(context)
-      , TE.map((virtual) => ({ userId: context.user.id, parentId: O.some(virtual.account.id), name: name }))
+        UserArena.virtual(context.arena)
+      , TE.map((virtual) => ({ userId: context.arena.user.id, parentId: O.some(virtual.account.id), name: name }))
       , TE.chain(AccountChannel.create)
-      , toPromise
+      , Pipe.toPromise
     );
   }
 
@@ -64,10 +64,10 @@ namespace CreateSplitByValue {
 
   const resolve = (source: any, { transactionId, splits, remainder }: Args, context: Context.t): Promise<Rule.Internal.t> => {
     return pipe(
-        Context.virtual(context)
+        UserArena.virtual(context.arena)
       , TE.map((virtual) => ({
             accountId: virtual.account.id
-          , userId: context.user.id
+          , userId: context.arena.user.id
           , rule: <Rule.Internal.Split.SplitByValue>{
                 _type: "SplitByValue"
               , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
@@ -76,7 +76,7 @@ namespace CreateSplitByValue {
             }
         }))
       , TE.chain(RuleChannel.create)
-      , toPromise
+      , Pipe.toPromise
     );
   }
 
@@ -93,10 +93,10 @@ namespace DeleteRule {
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<{}> => {
     return pipe(
-        Context.virtual(context)
-      , TE.chain((virtual) => RuleChannel.deleteById(context.user.id)(virtual.account.id)(id))
+        UserArena.virtual(context.arena)
+      , TE.chain((virtual) => RuleChannel.deleteById(context.arena.user.id)(virtual.account.id)(id))
       , TE.map(() => true)
-      , toPromise
+      , Pipe.toPromise
     );
   }
 

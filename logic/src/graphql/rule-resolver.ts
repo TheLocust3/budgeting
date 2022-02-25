@@ -7,17 +7,17 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 import { GraphQLJSONObject } from 'graphql-type-json';
 
+import * as UserArena from "../user/arena";
 import * as Context from "./context";
 import * as Types from "./types";
-import { toPromise } from "./util";
 
 import { Rule } from "model";
-import { Exception } from "magic";
+import { Exception, Pipe } from "magic";
 
 const resolve = (source: any, args: any, context: Context.t): Promise<Rule.Internal.t[]> => {
   return pipe(
-      Context.virtualRules(context)
-    , toPromise
+      UserArena.virtualRules(context.arena)
+    , Pipe.toPromise
   );
 }
 
