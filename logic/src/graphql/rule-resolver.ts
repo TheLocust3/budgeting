@@ -7,7 +7,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 import { GraphQLJSONObject } from 'graphql-type-json';
 
-import * as UserArena from "../user/arena";
+import { UserArena } from "../user";
 import * as Context from "./context";
 import * as Types from "./types";
 

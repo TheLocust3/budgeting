@@ -6,7 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import * as UserArena from "../../user/arena";
+import { UserArena, UserResource } from "../../user";
 import * as Context from "../context";
 import * as Types from "../types";
 import * as PlaidMutation from "./plaid-mutation";
@@ -31,9 +31,7 @@ namespace CreateBucket {
 
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
     return pipe(
-        UserArena.virtual(context.arena)
-      , TE.map((virtual) => ({ userId: context.arena.user.id, parentId: O.some(virtual.account.id), name: name }))
-      , TE.chain(AccountChannel.create)
+        UserResource.Bucket.create(context.arena)(name)
       , Pipe.toPromise
     );
   }
@@ -64,18 +62,7 @@ namespace CreateSplitByValue {
 
   const resolve = (source: any, { transactionId, splits, remainder }: Args, context: Context.t): Promise<Rule.Internal.t> => {
     return pipe(
-        UserArena.virtual(context.arena)
-      , TE.map((virtual) => ({
-            accountId: virtual.account.id
-          , userId: context.arena.user.id
-          , rule: <Rule.Internal.Split.SplitByValue>{
-                _type: "SplitByValue"
-              , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
-              , splits: A.map(({ bucket, value }: Value) => ({ _type: "Value", account: bucket, value: value }))(splits)
-              , remainder: remainder
-            }
-        }))
-      , TE.chain(RuleChannel.create)
+        UserResource.Rule.splitTransaction(context.arena)(transactionId, splits, remainder)
       , Pipe.toPromise
     );
   }
@@ -91,10 +78,9 @@ namespace DeleteRule {
   type Args = { id: string; };
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
-  const resolve = (source: any, { id }: Args, context: Context.t): Promise<{}> => {
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
-        UserArena.virtual(context.arena)
-      , TE.chain((virtual) => RuleChannel.deleteById(context.arena.user.id)(virtual.account.id)(id))
+        UserResource.Rule.remove(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );

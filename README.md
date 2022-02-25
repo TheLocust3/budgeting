@@ -118,7 +118,6 @@ Sample query:
 ## todo
 
 ### next
- - Add create resource helpers
  - Full create user
    - Create global/physical/virtual + rules
  - Create accounts + rules when creating integration
@@ -126,14 +125,16 @@ Sample query:
  - Create "summary" transaction of account value on initial pull
    - make `last_refreshed` start as null
    - if null, pull current account balance and create a dummy transaction
+ - Puller shouldn't overwrite authorized_at when the transaction is no longer pending
+ - Move CreatePlaidIntegration to admin endpoint
+
+### next week
  - Global service configuration
    - various secret keys + API endpoints
  - Authenticate requests between logic and engine
    - Add some secret to config. Logic signs requests with it and engine validates
 
 ### miscellaneous
- - Puller shouldn't overwrite authorized_at when the transaction is no longer pending
- - Move CreatePlaidIntegration to admin endpoint
  - Return simplified rules interface
  - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
@@ -144,6 +145,7 @@ Sample query:
  - a path for adding superusers
 
 ### future
+  - *Better logging*
   - GraphQL
    - Use fp-ts schemas to generate graphQL types (args, inputs, outputs)
    - Push new GraphQL/iot types to model + remove old types there

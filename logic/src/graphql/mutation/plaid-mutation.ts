@@ -7,6 +7,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 import { ItemPublicTokenExchangeResponse } from "plaid";
 
+import { UserResource } from "../../user";
 import * as Context from "../context";
 import * as Types from "../types";
 import { asList } from "../util";
@@ -58,7 +59,9 @@ export namespace ExchangePublicToken {
   const resolve = (source: any, { publicToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
         PlaidHelper.exchangePublicToken(context.plaidClient)(publicToken)
-      , TE.chain((publicToken) => build(context)({ institutionName: institutionName, accounts: asList(accounts) })(publicToken))
+      , TE.chain((publicToken) =>
+          UserResource.Integration.create(context.pool)(context.id)(context.arena)({ institutionName: institutionName, accounts: asList(accounts) })(publicToken)
+        )
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -82,7 +85,7 @@ export namespace CreatePlaidIntegration {
 
   const resolve = (source: any, { itemId, accessToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
-        build(context)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken })
+        UserResource.Integration.create(context.pool)(context.id)(context.arena)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken })
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -93,52 +96,4 @@ export namespace CreatePlaidIntegration {
     , args: Args
     , resolve: resolve
   };
-}
-
-const build =
-  (context: Context.t) =>
-  (request: { institutionName: string, accounts: { id: string, name: string }[] }) =>
-  (publicToken: { item_id: string, access_token: string }): TE.TaskEither<Exception.t, void> => {
-  const requestId = context.id;
-  const user = context.arena.user;
-  const pool = context.pool;
-
-  console.log(`[${requestId}] - building integration/sources`);
-
-  const buildIntegration = (): TE.TaskEither<Exception.t, Integration.Internal.t> => {
-    console.log(`[${requestId}] - building integration "${request.institutionName}"`);
-    const integration: Integration.Frontend.Create.t = {
-        userId: user.id
-      , name: request.institutionName
-      , credentials: { _type: "Plaid", itemId: publicToken.item_id, accessToken: publicToken.access_token }
-    };
-
-    return IntegrationFrontend.create(pool)(integration);
-  }
-
-  const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
-    console.log(`[${requestId}] - building sources "${request.accounts}"`);
-    const sources: Source.Frontend.Create.t[] = A.map(({ id, name }: Plaid.External.Request.ExchangePublicToken.Account) => {
-      return <Source.Frontend.Create.t>{
-          userId: user.id
-        , name: name
-        , integrationId: O.some(integration.id)
-        , metadata: O.some({ _type: "Plaid", accountId: id })
-      };
-    })(request.accounts);
-
-    return pipe(
-        sources
-      , A.map(SourceFrontend.create(pool))
-      , A.sequence(TE.ApplicativeSeq)
-      , TE.map(() => {
-          console.log(`[${requestId}] - integration/sources built`);
-        })
-    );
-  }
-
-  return pipe(
-      buildIntegration()
-    , TE.chain(buildSources)
-  );
 }

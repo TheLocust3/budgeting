@@ -4,8 +4,8 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import * as Arena from "./arena";
-import AccountChannel from "../channel/account-channel";
+import * as Arena from "./index";
+import AccountChannel from "../../channel/account-channel";
 
 import { User, Account, Rule, Materialize } from "model";
 import { Exception } from "magic";

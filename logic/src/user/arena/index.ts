@@ -4,7 +4,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "./util";
+import { PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../util";
 import * as AccountArena from "./account-arena";
 import * as RuleArena from "./rule-arena";
 import * as TransactionArena from "./transaction-arena";
