@@ -118,16 +118,19 @@ Sample query:
 ## todo
 
 ### next
- - Create accounts + rules when creating integration
- - List/remove integrations
+ - Move CreatePlaidIntegration to admin endpoint
+ - a path for adding superusers
  - Create "summary" transaction of account value on initial pull
    - make `last_refreshed` start as null
    - if null, pull current account balance and create a dummy transaction
  - Puller shouldn't overwrite authorized_at when the transaction is no longer pending
- - Move CreatePlaidIntegration to admin endpoint
- - a path for adding superusers
+ - List/remove integrations
+   - How can an integration be re-attached?
+   - Some way to relate Plaid's accountId to integration? (sourceId)
+ - Prevent same integration from being added multiple times
+   - Related to above
 
-### next week
+### after next
  - Global service configuration
    - various secret keys + API endpoints
  - Authenticate requests between logic and engine

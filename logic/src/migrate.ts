@@ -31,8 +31,6 @@ const migrate = async (pool: Pool) => {
       })
     , TE.bind("physicalAccount", ({ user, globalAccount }) => AccountFrontend.create(pool)({ parentId: O.some(globalAccount.id), userId: user.id, name: PHYSICAL_ACCOUNT }))
     , TE.bind("virtualAccount", ({ user, globalAccount }) => AccountFrontend.create(pool)({ parentId: O.some(globalAccount.id), userId: user.id, name: VIRTUAL_ACCOUNT }))
-    , TE.bind("allyBank", ({ user, physicalAccount }) => AccountFrontend.create(pool)({ parentId: O.some(physicalAccount.id), userId: user.id, name: "Ally Bank" }))
-    , TE.bind("petalCard", ({ user, physicalAccount }) => AccountFrontend.create(pool)({ parentId: O.some(physicalAccount.id), userId: user.id, name: "Petal Card" }))
     , TE.map(({ user }) => {
         console.log(`User created ${user.email}`)
       })

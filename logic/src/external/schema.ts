@@ -54,7 +54,7 @@ namespace CreateUser {
 
   const resolve = (source: any, { email, password }: Args, context: Context.t): Promise<User.Internal.t> => {
     return pipe(
-      UserResource.create(context.pool)({ email: email, password: password, role: User.DEFAULT_ROLE })
+        UserResource.create(context.pool)({ email: email, password: password, role: User.DEFAULT_ROLE })
       , Pipe.toPromise
     );
   }

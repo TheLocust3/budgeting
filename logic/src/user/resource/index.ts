@@ -32,6 +32,27 @@ export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.Tas
   );
 }
 
+const createAccount = (arena: UserArena.t) => (source: Source.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
+  const createSingleAccount = (): TE.TaskEither<Exception.t, Account.Internal.t> => {
+    return pipe(
+        UserArena.physical(arena)
+      , TE.map((physical) => ({ userId: arena.user.id, parentId: O.some(physical.account.id), name: source.name }))
+      , TE.chain(AccountChannel.create)
+    );
+  }
+
+  return pipe(
+      TE.Do
+    , TE.bind("account", () => createSingleAccount())
+    , TE.bind("rule", ({ account }) => createRule(arena)("physical")(<Rule.Internal.Rule>{
+          _type: "SplitByPercent"
+        , where: { _type: "StringMatch", field: "sourceId", operator: "Eq", value: source.id }
+        , splits: [{ _type: "Percent", account: account.id, percent: 1 }]
+      }))
+    , TE.map(({ account }) => account)
+  );
+}
+
 export const createBucket = (arena: UserArena.t) => (name: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
   return pipe(
       UserArena.virtual(arena)
@@ -40,24 +61,45 @@ export const createBucket = (arena: UserArena.t) => (name: string): TE.TaskEithe
   );
 }
 
+type UserAccount = "physical" | "virtual";
+const resolveUserAccount = (arena: UserArena.t) => (key: UserAccount): TE.TaskEither<Exception.t, UserArena.Account.t> => {
+  switch (key) {
+    case "physical":
+      return UserArena.physical(arena);
+    case "virtual":
+      return UserArena.virtual(arena);
+  }
+}
+
+const createRule =
+  (arena: UserArena.t) =>
+  (key: UserAccount) =>
+  (rule: Rule.Internal.Rule): TE.TaskEither<Exception.t, Rule.Internal.t> => {
+  return pipe(
+      resolveUserAccount(arena)(key)
+    , TE.chain((account) => {
+        return RuleChannel.create({
+            accountId: account.account.id
+          , userId: arena.user.id
+          , rule: rule
+        })
+      })
+  );
+}
+
 export const splitTransaction =
   (arena: UserArena.t) =>
   (transactionId: string, splits: { bucket: string, value: number}[], remainder: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
   return pipe(
       UserArena.virtual(arena)
-    , TE.map((virtual) => ({
-          accountId: virtual.account.id
-        , userId: arena.user.id
-        , rule: <Rule.Internal.Split.SplitByValue>{
-              _type: "SplitByValue"
-            , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
-            , splits: A.map(({ bucket, value }: { bucket: string, value: number}) =>
-                ({ _type: "Value", account: bucket, value: value })
-              )(splits)
-            , remainder: remainder
-          }
+    , TE.chain((virtual) => createRule(arena)("virtual")(<Rule.Internal.Split.SplitByValue>{
+          _type: "SplitByValue"
+        , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
+        , splits: A.map(({ bucket, value }: { bucket: string, value: number}) =>
+            ({ _type: "Value", account: bucket, value: value })
+          )(splits)
+        , remainder: remainder
       }))
-    , TE.chain(RuleChannel.create)
   );
 }
 
@@ -90,7 +132,7 @@ export const createIntegration =
     return IntegrationFrontend.create(pool)(integration);
   }
 
-  const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, void> => {
+  const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
     console.log(`[${requestId}] - building sources "${request.accounts}"`);
     const sources: Source.Frontend.Create.t[] = A.map(({ id, name }: Plaid.External.Request.ExchangePublicToken.Account) => {
       return <Source.Frontend.Create.t>{
@@ -105,14 +147,23 @@ export const createIntegration =
         sources
       , A.map(SourceFrontend.create(pool))
       , A.sequence(TE.ApplicativeSeq)
-      , TE.map(() => {
-          console.log(`[${requestId}] - integration/sources built`);
-        })
+    );
+  }
+
+  const buildAccounts = (sources: Source.Internal.t[]): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
+    return pipe(
+        sources
+      , A.map(createAccount(arena))
+      , A.sequence(TE.ApplicativeSeq)
     );
   }
 
   return pipe(
       buildIntegration()
     , TE.chain(buildSources)
-  );
+    , TE.chain(buildAccounts)
+    , TE.map(() => {
+        console.log(`[${requestId}] - integration/sources built`);
+      })
+);
 }
