@@ -5,6 +5,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import { UserResource } from "../user";
 import * as Context from './context';
 import * as Types from "../graphql/types";
 import { JWT } from "../util";
@@ -53,7 +54,7 @@ namespace CreateUser {
 
   const resolve = (source: any, { email, password }: Args, context: Context.t): Promise<User.Internal.t> => {
     return pipe(
-        UserFrontend.create(context.pool)({ email: email, password: password, role: User.DEFAULT_ROLE })
+      UserResource.create(context.pool)({ email: email, password: password, role: User.DEFAULT_ROLE })
       , Pipe.toPromise
     );
   }

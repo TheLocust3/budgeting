@@ -5,13 +5,32 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
+import { GLOBAL_ACCOUNT, PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../util";
 import { UserArena } from "../index";
 import AccountChannel from "../../channel/account-channel";
 import RuleChannel from "../../channel/rule-channel";
 
-import { Account, Rule, Source, Integration, Plaid } from "model";
-import { IntegrationFrontend, SourceFrontend } from "storage";
+import { User, Account, Rule, Source, Integration, Plaid } from "model";
+import { IntegrationFrontend, SourceFrontend, UserFrontend } from "storage";
 import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "magic";
+
+export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
+  return pipe(
+      TE.Do
+    , TE.bind("user", () => UserFrontend.create(pool)(user))
+    , TE.bind("globalAccount", ({ user }) => AccountChannel.create({ parentId: O.none, userId: user.id, name: GLOBAL_ACCOUNT }))
+    , TE.bind("globalRule", ({ user, globalAccount }) => {
+        return RuleChannel.create({
+            accountId: globalAccount.id
+          , userId: user.id
+          , rule: <Rule.Internal.Rule>{ _type: "Include", where: { _type: "StringMatch", field: "userId", operator: "Eq", value: user.id } }
+        });
+      })
+    , TE.bind("physicalAccount", ({ user, globalAccount }) => AccountChannel.create({ parentId: O.some(globalAccount.id), userId: user.id, name: PHYSICAL_ACCOUNT }))
+    , TE.bind("virtualAccount", ({ user, globalAccount }) => AccountChannel.create({ parentId: O.some(globalAccount.id), userId: user.id, name: VIRTUAL_ACCOUNT }))
+    , TE.map(({ user }) => user)
+  );
+}
 
 export const createBucket = (arena: UserArena.t) => (name: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
   return pipe(

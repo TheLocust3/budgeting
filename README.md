@@ -118,8 +118,6 @@ Sample query:
 ## todo
 
 ### next
- - Full create user
-   - Create global/physical/virtual + rules
  - Create accounts + rules when creating integration
  - List/remove integrations
  - Create "summary" transaction of account value on initial pull
@@ -127,6 +125,7 @@ Sample query:
    - if null, pull current account balance and create a dummy transaction
  - Puller shouldn't overwrite authorized_at when the transaction is no longer pending
  - Move CreatePlaidIntegration to admin endpoint
+ - a path for adding superusers
 
 ### next week
  - Global service configuration
@@ -142,7 +141,6 @@ Sample query:
  - token timeout on JWT
  - expect unordered lists in tests
  - Don't build plan/stages for every transaction
- - a path for adding superusers
 
 ### future
   - *Better logging*
