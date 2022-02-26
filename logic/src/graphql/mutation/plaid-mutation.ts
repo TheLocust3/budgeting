@@ -40,19 +40,10 @@ export namespace CreateLinkToken {
 }
 
 export namespace ExchangePublicToken {
-  export type PlaidAccount = { id: string; name: string; };
-  export const PlaidAccount = new graphql.GraphQLInputObjectType({
-      name: "PlaidAccount"
-    , fields: {
-          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-        , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-      }
-  });
-
-  type Args = { publicToken: string; accounts: PlaidAccount[]; institutionName: string; };
+  type Args = { publicToken: string; accounts: Types.PlaidAccount.t[]; institutionName: string; };
   const Args = {
       publicToken: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , accounts: { type: new graphql.GraphQLList(PlaidAccount) }
+    , accounts: { type: new graphql.GraphQLList(Types.PlaidAccount.t) }
     , institutionName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
   };
 
@@ -62,30 +53,6 @@ export namespace ExchangePublicToken {
       , TE.chain((publicToken) =>
           UserResource.Integration.create(context.pool)(context.id)(context.arena)({ institutionName: institutionName, accounts: asList(accounts) })(publicToken)
         )
-      , TE.map(() => true)
-      , Pipe.toPromise
-    );
-  }
-
-  export const t = {
-      type: Types.Void.t
-    , args: Args
-    , resolve: resolve
-  };
-}
-
-export namespace CreatePlaidIntegration {
-  type Args = { itemId: string; accessToken: string; accounts: ExchangePublicToken.PlaidAccount[]; institutionName: string; };
-  const Args = {
-      itemId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , accessToken: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , accounts: { type: new graphql.GraphQLList(ExchangePublicToken.PlaidAccount) }
-    , institutionName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-  };
-
-  const resolve = (source: any, { itemId, accessToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
-    return pipe(
-        UserResource.Integration.create(context.pool)(context.id)(context.arena)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken })
       , TE.map(() => true)
       , Pipe.toPromise
     );

@@ -101,7 +101,6 @@ export const mutationType = new graphql.GraphQLObjectType({
       , deleteRule: DeleteRule.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t
       , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
-      , createPlaidIntegraton: PlaidMutation.CreatePlaidIntegration.t
     }
 });
 

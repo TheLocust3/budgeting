@@ -95,13 +95,6 @@ Sample query:
 }
 ```
 
-Manually create Plaid integration:
-```
-mutation {
-  createPlaidIntegraton(itemId: "???", accessToken: "???", institutionName: "Ally Bank", accounts: [{ id: "test", name: "Ally Checking" }])
-}
-```
-
 ### Admin API
 Open `localhost:3001/admin/graphql`.
 
@@ -115,10 +108,16 @@ Sample query:
 }
 ```
 
+Manually create Plaid integration for user:
+```
+mutation {
+  createPlaidIntegraton(userId: "???", itemId: "???", accessToken: "???", institutionName: "Ally Bank", accounts: [{ id: "test", name: "Ally Checking" }])
+}
+```
+
 ## todo
 
 ### next
- - Move CreatePlaidIntegration to admin endpoint
  - Create "summary" transaction of account value on initial pull
    - make `last_refreshed` start as null
    - if null, pull current account balance and create a dummy transaction

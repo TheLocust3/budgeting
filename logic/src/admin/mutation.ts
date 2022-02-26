@@ -5,8 +5,10 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
+import { UserArena, UserResource } from "../user";
 import * as Context from './context';
 import * as Types from "../graphql/types";
+import { asList } from "../graphql/util";
 import { AccountChannel, TransactionChannel } from "../channel";
 import { JWT } from "../util";
 
@@ -29,6 +31,34 @@ namespace MakeSuperuser {
 
   export const t = {
       type: Types.User.t
+    , args: Args
+    , resolve: resolve
+  };
+}
+
+export namespace CreatePlaidIntegration {
+  type Args = { userId: string, itemId: string; accessToken: string; accounts: Types.PlaidAccount.t[]; institutionName: string; };
+  const Args = {
+      userId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , itemId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , accessToken: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , accounts: { type: new graphql.GraphQLList(Types.PlaidAccount.t) }
+    , institutionName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+  };
+
+  const resolve = (source: any, { userId, itemId, accessToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
+    return pipe(
+        UserArena.fromId(context.pool)(userId)
+      , TE.chain((arena) => {
+          return UserResource.Integration.create(context.pool)(context.id)(arena)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken });
+        })
+      , TE.map(() => true)
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: Types.Void.t
     , args: Args
     , resolve: resolve
   };
@@ -128,8 +158,9 @@ const cleanup = (userId: string) => (context: Context.t): TE.TaskEither<Exceptio
 const mutation = new graphql.GraphQLObjectType({
     name: 'Mutation'
   , fields: {
-      deleteUser: DeleteUser.t,
-      makeSuperuser: MakeSuperuser.t
+        deleteUser: DeleteUser.t
+      , makeSuperuser: MakeSuperuser.t
+      , createPlaidIntegraton: CreatePlaidIntegration.t
     }
 });
 

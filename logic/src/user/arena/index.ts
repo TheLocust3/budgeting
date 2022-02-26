@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -10,6 +11,7 @@ import * as RuleArena from "./rule-arena";
 import * as TransactionArena from "./transaction-arena";
 
 import { User } from "model";
+import { UserFrontend } from "storage";
 import { Exception, Pipe } from "magic";
 
 type Resolvable<T> = O.Option<Promise<T>>;
@@ -27,10 +29,6 @@ export type t = {
   physical: Layer.t;
   virtual: Layer.t;
 }
-
-export * as Account from "./account-arena";
-export * as Rule from "./rule-arena";
-export * as Transaction from "./transaction-arena";
 
 const resolve =
   (arena: t) =>
@@ -91,7 +89,6 @@ export const materializeVirtual = (arena: t): TE.TaskEither<Exception.t, Transac
   );
 }
 
-
 export const empty = (user: User.Internal.t): t => {
   return {
       user: user
@@ -99,3 +96,14 @@ export const empty = (user: User.Internal.t): t => {
     , virtual: { account: O.none, rules: O.none, transactions: O.none }
   }
 }
+
+export const fromId = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, t> => {
+  return pipe(
+      UserFrontend.getById(pool)(userId)
+    , TE.map(empty)
+  );
+}
+
+export * as Account from "./account-arena";
+export * as Rule from "./rule-arena";
+export * as Transaction from "./transaction-arena";

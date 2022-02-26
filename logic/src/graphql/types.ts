@@ -49,3 +49,14 @@ export namespace Account {
 export namespace Void {
   export const t = graphql.GraphQLBoolean
 }
+
+export namespace PlaidAccount {
+  export type t = { id: string; name: string; };
+  export const t = new graphql.GraphQLInputObjectType({
+      name: "PlaidAccount"
+    , fields: {
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+      }
+  });
+}
