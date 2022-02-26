@@ -71,6 +71,18 @@ namespace Query {
       values: [id]
     };
   };
+
+  export const setRole = (id: string, role: string) => {
+    return {
+      text: `
+        UPDATE users
+        SET role = $2
+        WHERE id = $1
+        RETURNING id, email, password, role
+      `,
+      values: [id, role]
+    };
+  };
 }
 
 export const migrate = (pool: Pool): T.Task<boolean> => async () => {
@@ -154,6 +166,17 @@ export const create = (pool: Pool) => (user: User.Frontend.Create.t) : TE.TaskEi
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(user.email, user.password, user.role)),
+        E.toError
+      )
+    , Db.expectOne
+    , TE.chain(res => pipe(res.rows[0], User.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
+  );
+};
+
+export const setRole = (pool: Pool) => (role: string) => (id: string) : TE.TaskEither<Error, User.Internal.t> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.setRole(id, role)),
         E.toError
       )
     , Db.expectOne

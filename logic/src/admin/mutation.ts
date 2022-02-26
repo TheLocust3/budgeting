@@ -10,8 +10,29 @@ import * as Types from "../graphql/types";
 import { AccountChannel, TransactionChannel } from "../channel";
 import { JWT } from "../util";
 
+import { User } from "model";
 import { UserFrontend, IntegrationFrontend, SourceFrontend } from "storage";
 import { Exception, Reaper, Pipe } from "magic";
+
+namespace MakeSuperuser {
+  type Args = { id: string };
+  const Args = {
+    id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+  };
+
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<User.Internal.t> => {
+    return pipe(
+        UserFrontend.setRole(context.pool)(User.SUPERUSER_ROLE)(id)
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: Types.User.t
+    , args: Args
+    , resolve: resolve
+  };
+}
 
 namespace DeleteUser {
   type Args = { id: string };
@@ -107,7 +128,8 @@ const cleanup = (userId: string) => (context: Context.t): TE.TaskEither<Exceptio
 const mutation = new graphql.GraphQLObjectType({
     name: 'Mutation'
   , fields: {
-      deleteUser: DeleteUser.t
+      deleteUser: DeleteUser.t,
+      makeSuperuser: MakeSuperuser.t
     }
 });
 

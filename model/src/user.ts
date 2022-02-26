@@ -7,6 +7,7 @@ import * as types from "io-ts-types";
 import { Exception, Format } from "magic";
 
 export const DEFAULT_ROLE = "user";
+export const SUPERUSER_ROLE = "superuser";
 
 export namespace Internal {
   export const t = iot.type({

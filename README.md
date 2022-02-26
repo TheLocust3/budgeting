@@ -119,7 +119,6 @@ Sample query:
 
 ### next
  - Move CreatePlaidIntegration to admin endpoint
- - a path for adding superusers
  - Create "summary" transaction of account value on initial pull
    - make `last_refreshed` start as null
    - if null, pull current account balance and create a dummy transaction

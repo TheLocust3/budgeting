@@ -79,6 +79,13 @@ export namespace UserFrontend {
         })
     );
   };
+
+  export const setRole = (pool: Pool) => (role: string) => (id: string): TE.TaskEither<Exception.t, User.Internal.t> => {
+    return pipe(
+        UsersTable.setRole(pool)(role)(id)
+      , TE.mapLeft((_) => Exception.throwInternalError)
+    );
+  };
 }
 
 export default UserFrontend;
