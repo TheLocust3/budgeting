@@ -1,5 +1,6 @@
+import crypto from "crypto";
 import { Pool } from "pg";
-import { PlaidApi, TransactionsGetResponse } from "plaid";
+import { PlaidApi, TransactionsGetResponse, AccountBase } from "plaid";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -9,18 +10,13 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { Context, PullerException, withIntegration, pushTransactions } from "./util";
 
-import { Plaid, Pipe } from "magic";
+import { Exception, Plaid, Pipe } from "magic";
 import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "storage";
 import { Source, Integration, Transaction } from "model";
 
-// given a source:
-//   1) pull + "lock" a source
-//   2) pull the credentials for the source
-//   3) send all transactions after `source.createdAt` to the rules engine
-
 const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => {
   return pipe(
-      SourceFrontend.pull(pool)()
+      SourceFrontend.pullForRollup(pool)()
     , TE.mapLeft((error) => {
         switch (error._type) {
           case "NotFound":
@@ -33,39 +29,40 @@ const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => 
   );
 }
 
-const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
-  console.log(`Scheduler.puller[${id}] - pulling transactions`)
+const rollup = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
+  console.log(`Scheduler.rollup[${id}] - pulling account balances`);
   // INVARIANT: accountId must exist on `source`
   const accountId = O.match(() => "", (metadata: Source.Internal.PlaidMetadata) => metadata.accountId)(context.source.metadata);
   const createdAt = context.source.createdAt;
 
   return pipe(
-      Plaid.getTransactions(plaidClient)(context.integration.credentials.accessToken, createdAt, new Date())
+      Plaid.getAccounts(plaidClient)(context.integration.credentials.accessToken, createdAt, new Date())
     , TE.mapLeft((error) => {
         console.log(error);
         return <PullerException>"Exception";
       })
-    , TE.map(A.filter((transaction) => transaction.account_id === accountId))
-    , TE.map(A.map((transaction) => {
-        const authorizedAt = pipe(
-            O.fromNullable(transaction.authorized_datetime)
-          , Pipe.orElse(() => O.fromNullable(transaction.datetime))
-          , O.fold(() => new Date(), (date) => new Date(date))
-        )
-        const capturedAt = O.fromNullable(transaction.datetime)
-
-        return <Transaction.Internal.t>{
-            id: transaction.transaction_id
+    , TE.map(A.filter((account: AccountBase) => account.account_id === accountId))
+    , TE.chain((accounts) => {
+        if (accounts.length !== 1) {
+          console.log(`Scheduler.rollup[${id}] - wrong number of matching accounts ${accounts}`);
+          return TE.throwError<PullerException, AccountBase>(<PullerException>"Exception");
+        } else {
+          return TE.of<PullerException, AccountBase>(accounts[0]);
+        }
+      })
+    , TE.map((account) => {
+        return <Transaction.Internal.t[]>[{
+            id: crypto.randomUUID()
           , sourceId: context.source.id
           , userId: context.source.userId
-          , amount: transaction.amount
-          , merchantName: String(transaction.merchant_name)
-          , description: String(transaction.name)
-          , authorizedAt: authorizedAt
-          , capturedAt: capturedAt
+          , amount: account.balances.current
+          , merchantName: ""
+          , description: "Starting balance"
+          , authorizedAt: context.source.createdAt
+          , capturedAt: O.some(context.source.createdAt)
           , metadata: {}
-        };
-      }))
+        }];
+      })
   );
 }
 
@@ -74,10 +71,10 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Ta
       pull(pool)
     , TE.chain(withIntegration(pool))
     , TE.map((context) => {
-        console.log(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
+        console.log(`Scheduler.rollup[${id}] - pulling for ${context.source.id}`)
         return context;
       })
-    , TE.chain(pullTransactions(plaidClient)(id))
+    , TE.chain(rollup(plaidClient)(id))
     , TE.chain(pushTransactions(pool)(id))
     , TE.match(
           (error) => {
@@ -85,12 +82,12 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Ta
               case "NoWork":
                 return true;
               case "Exception":
-                console.log(`Scheduler.puller[${id}] - failed - ${error}`);
+                console.log(`Scheduler.rollup[${id}] - failed - ${error}`);
                 return true;
             }
           }
         , () => {
-            console.log(`Scheduler.puller[${id}] - completed`);
+            console.log(`Scheduler.rollup[${id}] - completed`);
             return true;
           }
       )

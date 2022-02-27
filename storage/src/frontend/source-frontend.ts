@@ -55,6 +55,17 @@ export namespace SourceFrontend {
         ))
     );
   };
+
+  export const pullForRollup = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t> => {
+    return pipe(
+        SourcesTable.pullForRollup(pool)()
+      , TE.mapLeft((_) => Exception.throwInternalError)
+      , TE.chain(O.fold(
+            (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
+          , (source) => TE.of(source)
+        ))
+    );
+  };
 }
 
 export default SourceFrontend;

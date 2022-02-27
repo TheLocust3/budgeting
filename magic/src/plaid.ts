@@ -2,6 +2,7 @@ import {
     PlaidApi
   , TransactionsGetResponse
   , Transaction as PlaidTransaction
+  , AccountBase
   , CountryCode
   , LinkTokenCreateRequest
   , LinkTokenCreateResponse
@@ -18,32 +19,38 @@ import moment from "moment";
 
 import { Exception } from "./index";
 
+const pull =
+  (plaidClient: PlaidApi) =>
+  (accessToken: string, startDate: Date, endDate: Date): TE.TaskEither<Error, TransactionsGetResponse> => {
+  return TE.tryCatch(
+      async () => {
+        const response = await plaidClient.transactionsGet({
+            access_token: accessToken
+          , start_date: moment(startDate).format("YYYY-MM-DD")
+          , end_date: moment(endDate).format("YYYY-MM-DD")
+        });
+
+        return response.data;
+      }
+    , E.toError
+  );
+}
+
 export const getTransactions =
   (plaidClient: PlaidApi) =>
   (accessToken: string, startDate: Date, endDate: Date): TE.TaskEither<Error, PlaidTransaction[]> => {
-
-  const pull = (): TE.TaskEither<Error, TransactionsGetResponse> => {
-    return TE.tryCatch(
-        async () => {
-          const response = await plaidClient.transactionsGet({
-              access_token: accessToken
-            , start_date: moment(startDate).format("YYYY-MM-DD")
-            , end_date: moment(endDate).format("YYYY-MM-DD")
-          });
-
-          return response.data;
-        }
-      , E.toError
-    );
-  }
-
   return pipe(
-      pull()
-    , TE.map((response) => {
-        console.log(JSON.stringify(response, null, 2))
-        return response;
-      })
+      pull(plaidClient)(accessToken, startDate, endDate)
     , TE.map((response) => response.transactions)
+  );
+}
+
+export const getAccounts =
+  (plaidClient: PlaidApi) =>
+  (accessToken: string, startDate: Date, endDate: Date): TE.TaskEither<Error, AccountBase[]> => {
+  return pipe(
+      pull(plaidClient)(accessToken, startDate, endDate)
+    , TE.map((response) => response.accounts)
   );
 }
 

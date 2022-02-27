@@ -19,7 +19,7 @@ namespace Query {
       integration_id TEXT,
       metadata JSONB,
       created_at TIMESTAMP NOT NULL DEFAULT now(),
-      last_refreshed TIMESTAMP NOT NULL DEFAULT to_timestamp(0),
+      last_refreshed TIMESTAMP,
       FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE
     )
   `;
@@ -70,7 +70,20 @@ namespace Query {
     };
   };
 
-  const isExpired = `last_refreshed < now() - '10 minutes' :: interval AND integration_id IS NOT NULL`
+  export const pullForRollup = `
+    UPDATE sources
+    SET last_refreshed = to_timestamp(0)
+    WHERE id IN (
+      SELECT id
+      FROM sources
+      WHERE last_refreshed IS NULL
+      ORDER BY created_at DESC
+      LIMIT 1
+    )
+    RETURNING id, user_id, name, integration_id, metadata, created_at
+  `;
+
+  const isExpired = `last_refreshed IS NOT NULL AND last_refreshed < now() - '10 minutes' :: interval AND integration_id IS NOT NULL`
 
   export const pull = `
     UPDATE sources
@@ -167,6 +180,25 @@ export const pull = (pool: Pool) => () : TE.TaskEither<Error, O.Option<Source.In
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.pull),
+        (e) => {
+          console.log(e)
+          throw e;
+        }
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Source.Internal.Database.from)
+        , A.map(E.mapLeft(E.toError))
+        , A.sequence(E.Applicative)
+      )))
+    , TE.map(A.lookup(0))
+  );
+};
+
+export const pullForRollup = (pool: Pool) => () : TE.TaskEither<Error, O.Option<Source.Internal.t>> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.pullForRollup),
         (e) => {
           console.log(e)
           throw e;
