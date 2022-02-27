@@ -43,7 +43,7 @@ namespace Query {
         INSERT INTO transactions (id, source_id, user_id, amount, merchant_name, description, authorized_at, captured_at, metadata)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ON CONFLICT (id)
-        DO UPDATE SET amount=excluded.amount, merchant_name=excluded.merchant_name, description=excluded.description, authorized_at=excluded.authorized_at, captured_at=excluded.captured_at, metadata=excluded.metadata
+        DO UPDATE SET amount=excluded.amount, merchant_name=excluded.merchant_name, description=excluded.description, captured_at=excluded.captured_at, metadata=excluded.metadata
         RETURNING *
       `,
       values: [id, sourceId, userId, amount, merchantName, description, authorizedAt, capturedAt, metadata]

@@ -118,7 +118,6 @@ mutation {
 ## todo
 
 ### next
- - Puller shouldn't overwrite authorized_at when the transaction is no longer pending
  - List/remove integrations
    - How can an integration be re-attached?
    - Some way to relate Plaid's accountId to integration? (sourceId)
