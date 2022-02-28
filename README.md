@@ -123,6 +123,7 @@ mutation {
    - Some way to relate Plaid's accountId to integration? (sourceId)
  - Prevent same integration from being added multiple times
    - Related to above
+ - Investigate Kubernetes/Docker/deployment generally
 
 ### after next
  - Global service configuration
@@ -140,6 +141,9 @@ mutation {
  - Don't build plan/stages for every transaction
 
 ### future
+  - Puller improvements
+    - Handle Plaid pageination
+    - Don't re-pull everything
   - *Better logging*
   - GraphQL
    - Use fp-ts schemas to generate graphQL types (args, inputs, outputs)

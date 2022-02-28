@@ -58,7 +58,7 @@ const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Co
             id: transaction.transaction_id
           , sourceId: context.source.id
           , userId: context.source.userId
-          , amount: transaction.amount
+          , amount: -1 * transaction.amount
           , merchantName: String(transaction.merchant_name)
           , description: String(transaction.name)
           , authorizedAt: authorizedAt
