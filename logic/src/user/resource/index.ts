@@ -111,6 +111,13 @@ export const removeRule = (arena: UserArena.t) => (ruleId: string): TE.TaskEithe
   );
 }
 
+export const removeIntegration = (pool: Pool) => (arena: UserArena.t) => (integrationId: string): TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      IntegrationFrontend.deleteById(pool)(arena.user.id)(integrationId)
+    , TE.map(() => {})
+  );
+}
+
 export const createIntegration =
   (pool: Pool) =>
   (requestId: string) =>

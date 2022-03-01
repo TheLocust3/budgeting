@@ -118,9 +118,6 @@ mutation {
 ## todo
 
 ### next
- - List/remove integrations
-   - How can an integration be re-attached?
-   - Some way to relate Plaid's accountId to integration? (sourceId)
  - Prevent same integration from being added multiple times
    - Related to above
  - Investigate Kubernetes/Docker/deployment generally

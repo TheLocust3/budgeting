@@ -16,5 +16,6 @@ export namespace UserResource {
 
   export namespace Integration {
     export const create = Resource.createIntegration;
+    export const remove = Resource.removeIntegration;
   }
 }
