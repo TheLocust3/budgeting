@@ -9,6 +9,7 @@ import { PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../util";
 import * as AccountArena from "./account-arena";
 import * as RuleArena from "./rule-arena";
 import * as TransactionArena from "./transaction-arena";
+import * as IntegrationArena from "./integration-arena";
 
 import { User } from "model";
 import { UserFrontend } from "storage";
@@ -28,6 +29,7 @@ export type t = {
   user: User.Internal.t;
   physical: Layer.t;
   virtual: Layer.t;
+  integrations: Resolvable<IntegrationArena.t>;
 }
 
 const resolve =
@@ -89,11 +91,19 @@ export const materializeVirtual = (arena: t): TE.TaskEither<Exception.t, Transac
   );
 }
 
+export const integrations = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, IntegrationArena.t> => {
+  const get = (arena: t) => { return arena.integrations };
+  const set = (value: Resolvable<IntegrationArena.t>) => (arena: t) => { arena.integrations = value };
+
+  return resolve(arena)(get)(set)(IntegrationArena.resolve(pool))
+}
+
 export const empty = (user: User.Internal.t): t => {
   return {
       user: user
     , physical: { account: O.none, rules: O.none, transactions: O.none }
     , virtual: { account: O.none, rules: O.none, transactions: O.none }
+    , integrations: O.none
   }
 }
 
@@ -107,3 +117,4 @@ export const fromId = (pool: Pool) => (userId: string): TE.TaskEither<Exception.
 export * as Account from "./account-arena";
 export * as Rule from "./rule-arena";
 export * as Transaction from "./transaction-arena";
+export * as Integrations from "./integration-arena";

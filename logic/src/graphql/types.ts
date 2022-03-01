@@ -11,6 +11,31 @@ export namespace User {
   })
 }
 
+export namespace Integration {
+  export type t = {
+    id: string;
+    name: string;
+    sources: { id: string; name: string }[];
+  }
+
+  const Source = new graphql.GraphQLObjectType({
+      name: 'Source'
+    , fields: {
+          id: { type: graphql.GraphQLString }
+        , name: { type: graphql.GraphQLString }
+      }
+  })
+
+  export const t = new graphql.GraphQLObjectType({
+      name: 'Integration'
+    , fields: {
+          id: { type: graphql.GraphQLString }
+        , name: { type: graphql.GraphQLString }
+        , sources: { type: new graphql.GraphQLList(Source) }
+      }
+  })
+}
+
 export namespace Rule {
   export const t = new graphql.GraphQLObjectType({
       name: 'Rule'

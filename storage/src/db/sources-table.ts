@@ -60,6 +60,17 @@ namespace Query {
     };
   };
 
+  export const byIntegrationId = (userId: string, integrationId: string) => {
+    return {
+      text: `
+        SELECT id, user_id, name, integration_id, metadata, created_at
+        FROM sources
+        WHERE user_id = $1 AND integration_id = $2
+      `,
+      values: [userId, integrationId]
+    };
+  };
+
   export const deleteById = (userId: string, id: string) => {
     return {
       text: `
@@ -147,6 +158,21 @@ export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEi
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
+  );
+};
+
+export const byIntegrationId = (pool: Pool) => (userId: string) => (integrationId: string) : TE.TaskEither<Error, Source.Internal.t[]> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.byIntegrationId(userId, integrationId)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Source.Internal.Database.from)
+        , A.map(E.mapLeft(E.toError))
+        , A.sequence(E.Applicative)
+      )))
   );
 };
 
