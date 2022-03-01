@@ -15,32 +15,33 @@ namespace Query {
     CREATE TABLE sources (
       id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id TEXT NOT NULL,
+      tag TEXT NOT NULL,
       name TEXT NOT NULL,
       integration_id TEXT,
-      metadata JSONB,
       created_at TIMESTAMP NOT NULL DEFAULT now(),
       last_refreshed TIMESTAMP,
-      FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE
+      FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE,
+      CONSTRAINT uq UNIQUE(user_id, tag)
     )
   `;
 
   export const dropTable = "DROP TABLE sources";
 
-  export const create = (userId: string, name: string, integrationId: string | null, metadata: object | null) => {
+  export const create = (userId: string, name: string, integrationId: string | null, tag: string) => {
     return {
       text: `
-        INSERT INTO sources (user_id, name, integration_id, metadata)
+        INSERT INTO sources (user_id, name, integration_id, tag)
         VALUES ($1, $2, $3, $4)
         RETURNING *
       `,
-      values: [userId, name, integrationId, metadata]
+      values: [userId, name, integrationId, tag]
     };
   };
 
   export const all = (userId: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id, metadata, created_at
+        SELECT id, user_id, name, integration_id, tag, created_at
         FROM sources
         WHERE user_id = $1
       `,
@@ -51,7 +52,7 @@ namespace Query {
   export const byId = (userId: string, id: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id, metadata, created_at
+        SELECT id, user_id, name, integration_id, tag, created_at
         FROM sources
         WHERE user_id = $1 AND id = $2
         LIMIT 1
@@ -63,7 +64,7 @@ namespace Query {
   export const byIntegrationId = (userId: string, integrationId: string) => {
     return {
       text: `
-        SELECT id, user_id, name, integration_id, metadata, created_at
+        SELECT id, user_id, name, integration_id, tag, created_at
         FROM sources
         WHERE user_id = $1 AND integration_id = $2
       `,
@@ -91,7 +92,7 @@ namespace Query {
       ORDER BY created_at DESC
       LIMIT 1
     )
-    RETURNING id, user_id, name, integration_id, metadata, created_at
+    RETURNING id, user_id, name, integration_id, tag, created_at
   `;
 
   const isExpired = `last_refreshed IS NOT NULL AND last_refreshed < now() - '10 minutes' :: interval AND integration_id IS NOT NULL`
@@ -106,7 +107,7 @@ namespace Query {
       ORDER BY last_refreshed DESC
       LIMIT 1
     )
-    RETURNING id, user_id, name, integration_id, metadata, created_at
+    RETURNING id, user_id, name, integration_id, tag, created_at
   `;
 }
 
@@ -193,7 +194,7 @@ export const create = (pool: Pool) => (source: Source.Frontend.Create.t) : TE.Ta
             source.userId
           , source.name
           , O.match(() => null, (id: string) => id)(source.integrationId)
-          , O.match(() => null, (metadata: object) => metadata)(source.metadata)
+          , source.tag
         )),
         E.toError
       )

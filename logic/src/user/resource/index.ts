@@ -146,7 +146,7 @@ export const createIntegration =
           userId: user.id
         , name: name
         , integrationId: O.some(integration.id)
-        , metadata: O.some({ _type: "Plaid", accountId: id })
+        , tag: id
       };
     })(request.accounts);
 

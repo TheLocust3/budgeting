@@ -31,8 +31,7 @@ const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => 
 
 const rollup = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
   console.log(`Scheduler.rollup[${id}] - pulling account balances`);
-  // INVARIANT: accountId must exist on `source`
-  const accountId = O.match(() => "", (metadata: Source.Internal.PlaidMetadata) => metadata.accountId)(context.source.metadata);
+  const accountId = context.source.tag;
   const createdAt = context.source.createdAt;
 
   return pipe(

@@ -7,19 +7,12 @@ import * as types from "io-ts-types";
 import { Exception, Format } from "magic";
 
 export namespace Internal {
-  export const PlaidMetadata = iot.type({
-      _type: iot.literal("Plaid")
-    , accountId: iot.string
-  });
-  export type PlaidMetadata = iot.TypeOf<typeof PlaidMetadata>
-
-  // TODO: JK enforce integrationId + metadata existance on type level
   export const t = iot.type({
       id: iot.string
     , userId: iot.string
     , name: iot.string
     , integrationId: types.option(iot.string)
-    , metadata: types.option(PlaidMetadata)
+    , tag: iot.string
     , createdAt: types.DateFromISOString
   });
 
@@ -31,7 +24,7 @@ export namespace Internal {
       , user_id: iot.string
       , name: iot.string
       , integration_id: types.optionFromNullable(iot.string)
-      , metadata: types.optionFromNullable(PlaidMetadata)
+      , tag: iot.string
       , created_at: types.date
     });    
 
@@ -40,8 +33,8 @@ export namespace Internal {
           obj
         , this.TableType.decode
         , E.mapLeft((_) => Exception.throwInternalError)
-        , E.map(({ id, user_id, name, integration_id, created_at, metadata }) => {
-            return { id: id, userId: user_id, name: name, integrationId: integration_id, metadata: metadata, createdAt: created_at };
+        , E.map(({ id, user_id, name, integration_id, created_at, tag }) => {
+            return { id: id, userId: user_id, name: name, integrationId: integration_id, tag: tag, createdAt: created_at };
           })
       );
     }
@@ -52,7 +45,7 @@ export namespace Internal {
         , user_id: obj.userId
         , name: obj.name
         , integration_id: obj.integrationId
-        , metadata: obj.metadata
+        , tag: obj.tag
         , created_at: obj.createdAt
       }
     }
@@ -65,7 +58,7 @@ export namespace Frontend {
         userId: iot.string
       , name: iot.string
       , integrationId: types.option(iot.string)
-      , metadata: types.option(Internal.PlaidMetadata)
+      , tag: iot.string
     });
 
     export type t = iot.TypeOf<typeof t>;

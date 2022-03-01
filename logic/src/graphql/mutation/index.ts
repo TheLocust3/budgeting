@@ -119,6 +119,7 @@ export const mutationType = new graphql.GraphQLObjectType({
         createBucket: CreateBucket.t
       , createSplitByValue: CreateSplitByValue.t
       , deleteRule: DeleteRule.t
+      , deleteIntegration: DeleteIntegration.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t
       , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
     }

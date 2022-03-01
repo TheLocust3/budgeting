@@ -62,6 +62,14 @@ Sample query:
     id,
     email
   },
+  integrations {
+    id,
+    name,
+    sources {
+      id,
+      name
+    }
+  }
   accounts {
     id,
     name,
@@ -118,13 +126,11 @@ mutation {
 ## todo
 
 ### next
- - Prevent same integration from being added multiple times
-   - Related to above
- - Investigate Kubernetes/Docker/deployment generally
-
-### after next
+ - Investigate Kubernetes/Docker/deployment
  - Global service configuration
    - various secret keys + API endpoints
+
+### after next
  - Authenticate requests between logic and engine
    - Add some secret to config. Logic signs requests with it and engine validates
 
