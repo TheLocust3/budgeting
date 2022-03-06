@@ -123,9 +123,16 @@ mutation {
 }
 ```
 
+## deploy
+
+`./docker/build.sh`
+`minikube start`
+
 ## todo
 
 ### next
+ - Revamp Docker
+   - https://github.com/justDare/TypeScript-Node-Docker
  - Kubernetes
    - Add secrets to config
    - No need to authenticate requests between services, engine/scheduler are cluster-private

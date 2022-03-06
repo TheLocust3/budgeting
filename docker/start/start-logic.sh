@@ -1,3 +1,3 @@
 #! /bin/bash
 
-docker run -u node -p 3001:8080 -d common:latest node /usr/src/app/logic/dist/index.js
+docker run -p 8080:3001 -d common:latest node /usr/src/app/logic/dist/index.js

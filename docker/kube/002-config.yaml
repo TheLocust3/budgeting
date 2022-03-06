@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  PGDATABASE: budget
+  PGHOST: localhost
+  PGPORT: 5432
+  PGUSER: jakekinsella
+  PGPASSWORD: foobar
+  PLAID_CLIENT_ID: 
+  PLAID_SECRET: 
