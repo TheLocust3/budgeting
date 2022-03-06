@@ -27,5 +27,6 @@ app.use("/channel/transactions", transactionsRouter.router);
 app.use("/channel/accounts", accountsRouter.router);
 app.use("/channel/rules", rulesRouter.router);
 
-app.listen(3000);
-console.log("Listening at localhost:3000");
+const port = process.env.PORT ? process.env.PORT : 8080
+app.listen(port);
+console.log(`Listening at localhost:${port}`);

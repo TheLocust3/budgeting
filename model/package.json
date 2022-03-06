@@ -5,8 +5,8 @@
   "author": "TheLocust3 <jake.kinsella@gmail.com>",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "tsc --incremental",
-    "setup": "yarn link magic && yarn link && yarn build",
+    "build": "npx tsc --incremental",
+    "setup": "yarn install && yarn link magic && yarn link && yarn build",
     "start": "tsc -w"
   },
   "devDependencies": {

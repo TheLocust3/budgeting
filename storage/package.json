@@ -5,13 +5,14 @@
   "author": "TheLocust3 <jake.kinsella@gmail.com>",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "tsc --incremental",
-    "setup": "yarn link magic && yarn link model && yarn link && yarn build",
+    "build": "npx tsc --incremental",
+    "setup": "yarn install && yarn link magic && yarn link model && yarn link && yarn build",
     "start": "tsc -w",
     "migrate": "npm run build; node dist/db/migrate.js",
     "rollback": "npm run build; node dist/db/rollback.js"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.8",
     "@types/node-fetch": "^2.5.12",
@@ -20,6 +21,7 @@
     "ts-jest": "^27.1.2"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "fp-ts": "^2.11.6",
     "fp-ts-contrib": "^0.1.26",
     "io-ts": "^2.2.16",

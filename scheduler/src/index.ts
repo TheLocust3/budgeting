@@ -38,7 +38,8 @@ app.use(async (request, response, next) => {
 
 app.use(Express.json());
 
-app.listen(3002);
-console.log("Listening at localhost:3002");
+const port = process.env.PORT ? process.env.PORT : 8080
+app.listen(port);
+console.log(`Listening at localhost:${port}`);
 
 Reaper.tick(app.locals.db)(app.locals.plaidClient);

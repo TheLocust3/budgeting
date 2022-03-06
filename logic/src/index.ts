@@ -56,5 +56,6 @@ app.use("/graphql", GraphqlEndpoint);
 app.use(AuthenticationFor.admin)
 app.use("/admin/graphql", AdminEndpoint);
 
-app.listen(3001);
-console.log("Listening at localhost:3001");
+const port = process.env.PORT ? process.env.PORT : 8080
+app.listen(port);
+console.log(`Listening at localhost:${port}`);

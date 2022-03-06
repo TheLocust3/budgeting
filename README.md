@@ -126,13 +126,13 @@ mutation {
 ## todo
 
 ### next
- - Investigate Kubernetes/Docker/deployment
- - Global service configuration
-   - various secret keys + API endpoints
+ - Kubernetes
+   - Add secrets to config
+   - No need to authenticate requests between services, engine/scheduler are cluster-private
 
 ### after next
- - Authenticate requests between logic and engine
-   - Add some secret to config. Logic signs requests with it and engine validates
+ - Better logging
+ - Cloud deployment
 
 ### miscellaneous
  - Return simplified rules interface
@@ -147,16 +147,10 @@ mutation {
   - Puller improvements
     - Handle Plaid pageination
     - Don't re-pull everything
-  - *Better logging*
   - GraphQL
    - Use fp-ts schemas to generate graphQL types (args, inputs, outputs)
    - Push new GraphQL/iot types to model + remove old types there
  - Engine aggregations
- - Deployment
  - Amazon Cognito?
  - basic rule pushdowns
    - all include rules are up for grabs
- - Stateful reaper jobs
-    - Make services stateless, can restart jobs on crash
-    - How to implicitly divide work between clusters?
-       - "reaper microservice"? Isolates recovery to single service
