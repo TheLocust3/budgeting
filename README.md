@@ -131,8 +131,10 @@ mutation {
 ## todo
 
 ### next
- - Revamp Docker
-   - https://github.com/justDare/TypeScript-Node-Docker
+ - Pull schema file for Nick
+ - Get initial docker setup working
+   - Scheme to migrate database
+   - Document prod build usage + development usage
  - Kubernetes
    - Add secrets to config
    - No need to authenticate requests between services, engine/scheduler are cluster-private

@@ -45,3 +45,5 @@ yarn.lock
 certs/
 
 ignore/
+
+secrets.env
