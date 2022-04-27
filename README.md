@@ -1,6 +1,12 @@
 # budgeting
 
-## setup
+## docker setup
+`./docker/scripts/build.sh`
+`./docker/scripts/start_full.sh`
+
+At this point, the containers should be running and serving GraphQL endpoints accessible at `http://localhost:3001/`.  
+
+## development setup
 `yarn install`  
 `yarn setup`  
 `yarn build`  
@@ -132,9 +138,7 @@ mutation {
 
 ### next
  - Pull schema file for Nick
- - Get initial docker setup working
-   - Scheme to migrate database
-   - Document prod build usage + development usage
+ - Get cross container networking working in docker
  - Kubernetes
    - Add secrets to config
    - No need to authenticate requests between services, engine/scheduler are cluster-private

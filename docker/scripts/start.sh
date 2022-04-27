@@ -1,24 +1,17 @@
 #! /bin/bash
 
-docker network create budgeting
+./docker/scripts/stop.sh 2> /dev/null
 
-docker run \
-  -p 5432:5432 \
-  --name postgres \
-  --network budgeting \
-  --env POSTGRES_DB=budget \
-  --env POSTGRES_USER=jakekinsella \
-  --env POSTGRES_PASSWORD=foobar \
-  --env PGDATA=data.db \
-  -d postgres:13.4 \
-  postgres
+./docker/scripts/setup_network.sh
 
-echo "Waiting for postgres to start..."
-sleep 30
+./docker/scripts/start_db.sh
+
+postfix=$(openssl rand -hex 4)
 
 docker run \
   -p 3000:8080 \
-  --name engine \
+  --name "engine-$postfix" \
+  --hostname engine \
   --network budgeting \
   --env PGDATABASE=budget \
   --env PGHOST=postgres \
@@ -26,11 +19,13 @@ docker run \
   --env PGUSER=jakekinsella \
   --env PGPASSWORD=foobar \
   --env-file secrets.env \
-  -d engine:latest
+  -d common:latest \
+  node /home/node/app/engine/dist/index.js
 
 docker run \
   -p 3001:8080 \
-  --name logic \
+  --name "logic-$postfix" \
+  --hostname logic \
   --network budgeting \
   --env PGDATABASE=budget \
   --env PGHOST=postgres \
@@ -38,11 +33,13 @@ docker run \
   --env PGUSER=jakekinsella \
   --env PGPASSWORD=foobar \
   --env-file secrets.env \
-  -d logic:latest
+  -d common:latest \
+  node /home/node/app/logic/dist/index.js
 
 docker run \
   -p 3002:8080 \
-  --name scheduler \
+  --name "scheduler-$postfix" \
+  --hostname scheduler \
   --network budgeting \
   --env PGDATABASE=budget \
   --env PGHOST=postgres \
@@ -50,4 +47,5 @@ docker run \
   --env PGUSER=jakekinsella \
   --env PGPASSWORD=foobar \
   --env-file secrets.env \
-  -d scheduler:latest
+  -d common:latest \
+  node /home/node/app/scheduler/dist/index.js
