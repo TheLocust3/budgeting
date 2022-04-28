@@ -7,6 +7,8 @@ if [[ $state == "\"running\"" ]]; then
   exit 0
 fi
 
+docker rm postgres
+
 docker run \
   -p 5432:5432 \
   --name postgres \

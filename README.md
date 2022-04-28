@@ -138,7 +138,6 @@ mutation {
 
 ### next
  - Pull schema file for Nick
- - Get cross container networking working in docker
  - Kubernetes
    - Add secrets to config
    - No need to authenticate requests between services, engine/scheduler are cluster-private

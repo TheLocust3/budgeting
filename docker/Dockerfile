@@ -6,4 +6,5 @@ WORKDIR /home/node/app
 COPY --chown=node:node . .
 RUN yarn setup
 
+ENV PRODUCTION=1
 EXPOSE 8080
