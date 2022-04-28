@@ -34,4 +34,4 @@ spec:
               name: config
           imagePullPolicy: Always
           command: ["node"]
-          args: ["/usr/src/app/engine/dist/index.js"]
+          args: ["/home/node/app/engine/dist/index.js"]
