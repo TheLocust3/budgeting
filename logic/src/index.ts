@@ -13,6 +13,7 @@ import GraphqlEndpoint from "./graphql/index";
 import AdminEndpoint from "./admin/index";
 import ExternalEndpoint from "./external/index";
 import { AuthenticationFor } from "./util";
+import { router as rootRouter } from "./route/root";
 
 import { Reaper } from "magic";
 import { User } from "model";
@@ -47,6 +48,8 @@ app.use(async (request, response, next) => {
 app.use(cors());
 app.use(cookieParser());
 app.use(Express.json());
+
+app.use("/", rootRouter.router);
 
 app.use("/external/graphql", ExternalEndpoint);
 
