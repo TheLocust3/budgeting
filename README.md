@@ -142,6 +142,8 @@ mutation {
 
 ### next
  - Pull schema file for Nick
+ - Perform final logic migration via kubernetes
+   - need status endpoints
  - Kubernetes
    - Add secrets to config
    - No need to authenticate requests between services, engine/scheduler are cluster-private
