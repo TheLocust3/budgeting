@@ -1,3 +1,3 @@
 #! /bin/bash
 
-docker build . -f docker/Dockerfile -t common:latest
+docker image build . -f docker/Dockerfile -t common:latest

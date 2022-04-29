@@ -133,14 +133,15 @@ mutation {
 
 `./docker/build.sh`
 `minikube start`
+`eval $(minikube docker-env)`
 `kubectl create secret generic secrets --from-env-file secrets.env`
 `kubectl apply -f docker/kube/`
+`minikube tunnel`
 
 ## todo
 
 ### next
  - Pull schema file for Nick
- - Get backend running in Kubernetes
  - Kubernetes
    - Add secrets to config
    - No need to authenticate requests between services, engine/scheduler are cluster-private

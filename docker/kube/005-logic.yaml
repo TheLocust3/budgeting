@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: scheduler
+  name: logic
 spec:
   selector:
-    app: scheduler
+    app: logic
   ports:
     - port: 3001
       targetPort: 8080
@@ -13,25 +13,25 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: scheduler
+  name: logic
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: scheduler
+      app: logic
   template:
     metadata:
       labels:
-        app: scheduler
+        app: logic
     spec:
       containers:
-        - name: scheduler
+        - name: logic
           image: common:latest
           ports:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-              name: config
-          imagePullPolicy: Always
+                name: config
+          imagePullPolicy: IfNotPresent
           command: ["node"]
-          args: ["/usr/src/app/logic/dist/index.js"]
+          args: ["/home/node/app/logic/dist/index.js"]

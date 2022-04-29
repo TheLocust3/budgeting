@@ -31,7 +31,7 @@ spec:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-              name: config
-          imagePullPolicy: Always
+                name: config
+          imagePullPolicy: IfNotPresent
           command: ["node"]
-          args: ["/usr/src/app/scheduler/dist/index.js"]
+          args: ["/home/node/app/scheduler/dist/index.js"]
