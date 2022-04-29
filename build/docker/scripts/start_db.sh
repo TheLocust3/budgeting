@@ -1,6 +1,6 @@
 #! /bin/bash
 
-./docker/scripts/setup_network.sh
+./build/docker/scripts/setup_network.sh
 
 state=$(docker inspect postgres | jq '.[] | .State | .Status')
 if [[ $state == "\"running\"" ]]; then

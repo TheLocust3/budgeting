@@ -36,7 +36,15 @@ spec:
           command: ["node"]
           args: ["/home/node/app/logic/dist/index.js"]
       initContainers:
-        - name: postgres
+        - name: wait-for-postgres
           image: postgres:13.4
           imagePullPolicy: "IfNotPresent"
           command: ["/bin/sh", "-c", "pg_isready -h postgres -p 5432 && echo $?"]
+        - name: wait-for-engine
+          image: common:latest
+          imagePullPolicy: "IfNotPresent"
+          command: ["/bin/sh", "-c", "curl -XGET http://engine:3000/status && echo $?"]
+        - name: wait-for-scheduler
+          image: common:latest
+          imagePullPolicy: "IfNotPresent"
+          command: ["/bin/sh", "-c", "curl -XGET http://scheduler:3002/status && echo $?"]

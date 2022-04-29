@@ -1,15 +1,15 @@
 #! /bin/bash
 
-./docker/scripts/stop.sh 2> /dev/null
+./build/docker/scripts/stop.sh 2> /dev/null
 
-./docker/scripts/setup_network.sh
+./build/docker/scripts/setup_network.sh
 
-./docker/scripts/start_db.sh
+./build/docker/scripts/start_db.sh
 
 postfix=$(openssl rand -hex 4)
 
 docker run \
-  -p 3000:8080 \
+  -p 3000:3000 \
   --name "engine-$postfix" \
   --hostname engine \
   --network budgeting \
@@ -23,7 +23,7 @@ docker run \
   node /home/node/app/engine/dist/index.js
 
 docker run \
-  -p 3001:8080 \
+  -p 3001:3001 \
   --name "logic-$postfix" \
   --hostname logic \
   --network budgeting \
@@ -37,7 +37,7 @@ docker run \
   node /home/node/app/logic/dist/index.js
 
 docker run \
-  -p 3002:8080 \
+  -p 3002:3002 \
   --name "scheduler-$postfix" \
   --hostname scheduler \
   --network budgeting \

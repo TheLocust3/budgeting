@@ -6,7 +6,7 @@ spec:
   selector:
     app: engine
   ports:
-    - port: 3000
+    - port: 3001
       targetPort: 8080
   type: LoadBalancer
 ---
@@ -36,7 +36,7 @@ spec:
           command: ["node"]
           args: ["/home/node/app/engine/dist/index.js"]
       initContainers:
-        - name: postgres
+        - name: wait-for-postgres
           image: postgres:13.4
           imagePullPolicy: "IfNotPresent"
           command: ["/bin/sh", "-c", "pg_isready -h postgres -p 5432 && echo $?"]

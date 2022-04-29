@@ -1,10 +1,30 @@
 # budgeting
 
-## docker setup
-`./docker/scripts/build.sh`
-`./docker/scripts/start_full.sh`
+## local deploy
 
-At this point, the containers should be running and serving GraphQL endpoints accessible at `http://localhost:3001/`.  
+### dependecies
+ - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+ - [minikube](https://minikube.sigs.k8s.io/docs/)
+
+### initial setup
+
+`minikube start`
+`eval $(minikube docker-env)`
+
+### build+deploy
+`./build/setup.sh`
+`./build/deploy.sh`
+
+... some amount of waiting ...
+`kubectl get pods` should show the containers starting up
+
+### local port forwarding
+`minikube tunnel`
+
+Navigate to `http://localhost:3001/external/graphql`
+
+## cloud deploy
+TODO
 
 ## development setup
 `yarn install`  
@@ -129,28 +149,14 @@ mutation {
 }
 ```
 
-## deploy
-
-`./docker/build.sh`
-`minikube start`
-`eval $(minikube docker-env)`
-`kubectl create secret generic secrets --from-env-file secrets.env`
-`kubectl apply -f docker/kube/`
-`minikube tunnel`
-
 ## todo
 
 ### next
  - Pull schema file for Nick
- - Perform final logic migration via kubernetes
-   - need status endpoints
- - Kubernetes
-   - Add secrets to config
-   - No need to authenticate requests between services, engine/scheduler are cluster-private
+ - Cloud deployment
 
 ### after next
  - Better logging
- - Cloud deployment
 
 ### miscellaneous
  - Return simplified rules interface

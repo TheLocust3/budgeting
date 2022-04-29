@@ -6,6 +6,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
 import * as Reaper from "./reaper/index";
+import { router as rootRouter } from "./route/root";
 
 import { User } from "model";
 
@@ -37,6 +38,8 @@ app.use(async (request, response, next) => {
 });
 
 app.use(Express.json());
+
+app.use("/", rootRouter.router);
 
 const port = process.env.PORT ? process.env.PORT : 8080
 app.listen(port);
