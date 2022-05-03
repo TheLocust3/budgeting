@@ -8,13 +8,13 @@
 
 ### initial setup
 
-`minikube start --mount-string="$(PWD):/local" --mount`  
+`minikube start`  
 `eval $(minikube docker-env)`  
+`minikube mount $(PWD)/dist:/dist &`
 
-### compile code
-`yarn install`  
+### compile code  
 `yarn setup`  
-`yarn start-ts`  
+`yarn build -w`  
 
 ### build+deploy
 `./build/setup.sh`  
@@ -161,8 +161,6 @@ mutation {
  - Cloud deployment
 
 ### after next
- - hot reload kubernetes cluster
-   - compile locally and cluster should pick up changes
  - convert scheduler into repeating kubernetes jobs
  - Better logging
 

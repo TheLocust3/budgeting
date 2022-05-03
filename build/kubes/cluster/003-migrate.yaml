@@ -12,7 +12,7 @@ spec:
             - configMapRef:
                 name: config
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c", "node /home/node/app/storage/dist/db/migrate.js && node /home/node/app/logic/dist/migrate.js"]
+          command: ["/bin/sh", "-c", "node /home/node/app/dist/storage/db/migrate.js && node /home/node/app/dist/logic/migrate.js"]
           volumeMounts: $LOCAL_MOUNT
       volumes: $LOCAL_VOLUME
       initContainers:

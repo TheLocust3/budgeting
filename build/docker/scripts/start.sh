@@ -20,7 +20,7 @@ docker run \
   --env PGPASSWORD=foobar \
   --env-file secrets.env \
   -d common:latest \
-  node /home/node/app/engine/dist/index.js
+  node /home/node/app/dist/engine/index.js
 
 docker run \
   -p 3001:3001 \
@@ -34,7 +34,7 @@ docker run \
   --env PGPASSWORD=foobar \
   --env-file secrets.env \
   -d common:latest \
-  node /home/node/app/logic/dist/index.js
+  node /home/node/app/dist/logic/index.js
 
 docker run \
   -p 3002:3002 \
@@ -48,4 +48,4 @@ docker run \
   --env PGPASSWORD=foobar \
   --env-file secrets.env \
   -d common:latest \
-  node /home/node/app/scheduler/dist/index.js
+  node /home/node/app/dist/scheduler/index.js

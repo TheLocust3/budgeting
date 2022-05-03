@@ -1,0 +1,11 @@
+import { Pool } from "pg";
+import * as O from "fp-ts/Option";
+import * as T from "fp-ts/lib/Task";
+import * as TE from "fp-ts/lib/TaskEither";
+import { Transaction } from "../../model";
+export declare const migrate: (pool: Pool) => T.Task<boolean>;
+export declare const rollback: (pool: Pool) => T.Task<boolean>;
+export declare const all: (pool: Pool) => (userId: string) => TE.TaskEither<Error, Transaction.Internal.t[]>;
+export declare const byId: (pool: Pool) => (id: string) => TE.TaskEither<Error, O.Option<Transaction.Internal.t>>;
+export declare const deleteById: (pool: Pool) => (userId: string) => (id: string) => TE.TaskEither<Error, void>;
+export declare const create: (pool: Pool) => (transaction: Transaction.Frontend.Create.t) => TE.TaskEither<Error, Transaction.Internal.t>;

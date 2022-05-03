@@ -16,7 +16,7 @@ docker run \
   --env PGPASSWORD=foobar \
   --env-file secrets.env \
   -d common:latest \
-  node /home/node/app/logic/dist/migrate.js
+  node /home/node/app/dist/logic/migrate.js
 
 echo "Waiting for migration to complete..."
 sleep 5
