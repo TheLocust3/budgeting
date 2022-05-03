@@ -33,8 +33,9 @@ spec:
             - configMapRef:
                 name: config
           imagePullPolicy: IfNotPresent
-          command: ["node"]
-          args: ["/home/node/app/scheduler/dist/index.js"]
+          command: ["/bin/sh", "-c", "${SCHEDULER_COMMAND}"]
+          volumeMounts: $LOCAL_MOUNT
+      volumes: $LOCAL_VOLUME
       initContainers:
         - name: postgres
           image: postgres:13.4

@@ -6,13 +6,15 @@ spec:
   template:
     spec:
       containers:
-      - name: migrate
-        image: common:latest
-        envFrom:
-          - configMapRef:
-              name: config
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/sh", "-c", "node /home/node/app/storage/dist/db/migrate.js && node /home/node/app/logic/dist/migrate.js"]
+        - name: migrate
+          image: common:latest
+          envFrom:
+            - configMapRef:
+                name: config
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "node /home/node/app/storage/dist/db/migrate.js && node /home/node/app/logic/dist/migrate.js"]
+          volumeMounts: $LOCAL_MOUNT
+      volumes: $LOCAL_VOLUME
       initContainers:
         - name: wait-for-postgres
           image: postgres:13.4

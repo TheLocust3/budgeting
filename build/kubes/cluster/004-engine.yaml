@@ -33,8 +33,9 @@ spec:
             - configMapRef:
                 name: config
           imagePullPolicy: IfNotPresent
-          command: ["node"]
-          args: ["/home/node/app/engine/dist/index.js"]
+          command: ["/bin/sh", "-c", "${ENGINE_COMMAND}"]
+          volumeMounts: $LOCAL_MOUNT
+      volumes: $LOCAL_VOLUME
       initContainers:
         - name: wait-for-postgres
           image: postgres:13.4

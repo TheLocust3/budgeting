@@ -1,6 +1,6 @@
 # budgeting
 
-## local deploy
+## local deploy (with hot-reload)
 
 ### dependecies
  - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
@@ -8,20 +8,25 @@
 
 ### initial setup
 
-`minikube start`
-`eval $(minikube docker-env)`
+`minikube start --mount-string="$(PWD):/local" --mount`  
+`eval $(minikube docker-env)`  
+
+### compile code
+`yarn install`  
+`yarn setup`  
+`yarn start-ts`  
 
 ### build+deploy
-`./build/setup.sh`
-`./build/deploy.sh`
-
-... some amount of waiting ...
-`kubectl get pods` should show the containers starting up
+`./build/setup.sh`  
+`./build/deploy.sh local`  
+  
+... some amount of waiting ...  
+`kubectl get pods` should show the containers starting up  
 
 ### local port forwarding
-`minikube tunnel`
-
-Navigate to `http://localhost:3001/external/graphql`
+`minikube tunnel`  
+  
+Navigate to `http://localhost:3001/external/graphql`  
 
 ## cloud deploy
 TODO
@@ -156,6 +161,9 @@ mutation {
  - Cloud deployment
 
 ### after next
+ - hot reload kubernetes cluster
+   - compile locally and cluster should pick up changes
+ - convert scheduler into repeating kubernetes jobs
  - Better logging
 
 ### miscellaneous

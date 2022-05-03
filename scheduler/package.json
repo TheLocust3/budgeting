@@ -5,11 +5,8 @@
   "author": "TheLocust3 <jake.kinsella@gmail.com>",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx tsc --incremental",
-    "setup": "yarn install && yarn link magic && yarn link model && yarn link storage && yarn build",
-    "start-ts": "tsc -w",
-    "start-node": "PORT=3002 nodemon dist/index.js",
-    "start": "concurrently -k -p \"[{name}]\" -n \"tsc,node\" \"npm run start-ts\" \"npm run start-node\"",
+    "build": "yarn add file:./../magic/ && yarn add file:./../model/ && yarn add file:./../storage/ && npx tsc --incremental",
+    "setup": "yarn install && yarn build",
     "test": "jest --forceExit --verbose"
   },
   "devDependencies": {
@@ -30,11 +27,14 @@
     "fp-ts": "^2.11.6",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
+    "magic": "file:./../magic/",
+    "model": "file:./../model/",
     "monocle-ts": "^2.3.12",
     "newtype-ts": "^0.3.5",
     "nodemon": "^2.0.15",
     "pg": "^8.7.1",
     "plaid": "^9.10.0",
+    "storage": "file:./../storage/",
     "typescript": "^4.5.4"
   }
 }

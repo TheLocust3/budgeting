@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "npx tsc --incremental",
-    "setup": "yarn install && yarn link && yarn build",
+    "setup": "yarn install && yarn build",
     "start": "tsc -w"
   },
   "devDependencies": {
