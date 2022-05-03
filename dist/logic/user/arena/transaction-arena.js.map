@@ -1,1 +1,0 @@
-{"version":3,"file":"transaction-arena.js","sourceRoot":"","sources":["../../../../src/logic/user/arena/transaction-arena.ts"],"names":[],"mappings":";;;;;;AAOA,oFAA2D;AAOpD,MAAM,OAAO,GAClB,CAAC,SAAiB,EAAE,EAAE,CACtB,CAAC,KAAc,EAAsD,EAAE;IACvE,OAAO,yBAAc,CAAC,WAAW,CAAC,KAAK,CAAC,IAAI,CAAC,EAAE,CAAC,CAAC,SAAS,CAAC,CAAC;AAC9D,CAAC,CAAA;AAJY,QAAA,OAAO,WAInB"}
