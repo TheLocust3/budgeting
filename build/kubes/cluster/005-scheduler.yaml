@@ -33,7 +33,7 @@ spec:
             - configMapRef:
                 name: config
           imagePullPolicy: IfNotPresent
-          command: ["/bin/sh", "-c", "${SCHEDULER_COMMAND}"]
+          command: ["/bin/sh", "-c", "node /home/node/app/dist/scheduler/index.js"]
           volumeMounts: $LOCAL_MOUNT
       volumes: $LOCAL_VOLUME
       initContainers:

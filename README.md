@@ -10,11 +10,9 @@
 
 `minikube start`  
 `eval $(minikube docker-env)`  
-`minikube mount $(PWD)/dist:/dist &`
 
 ### compile code  
 `yarn setup`  
-`yarn build -w`  
 
 ### build+deploy
 `./build/setup.sh`  
@@ -22,6 +20,9 @@
   
 ... some amount of waiting ...  
 `kubectl get pods` should show the containers starting up  
+
+### start hot-reload
+`yarn deploy`
 
 ### local port forwarding
 `minikube tunnel`  

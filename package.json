@@ -7,6 +7,7 @@
     "lint": "eslint \"**/*.{js,ts}\" --quiet",
     "build": "npx tsc --incremental",
     "setup": "yarn install && yarn build",
+    "deploy": "nodemon -e ts --exec \"yarn build && kubectl rollout restart deployment engine && kubectl rollout restart deployment scheduler && kubectl rollout restart deployment logic\"",
     "clean": "rm -rf dist",
     "test": "jest --forceExit --verbose \"test/system/.*\""
   },
