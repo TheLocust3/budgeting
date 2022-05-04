@@ -20,14 +20,15 @@
   
 ... some amount of waiting ...  
 `kubectl get pods` should show the containers starting up  
+  
+
+### start tunnel
+`minikube tunnel &`
+  
+Navigate to `http://localhost:3001/external/graphql`  
 
 ### start hot-reload
 `yarn deploy`
-
-### local port forwarding
-`minikube tunnel`  
-  
-Navigate to `http://localhost:3001/external/graphql`  
 
 ## cloud deploy
 TODO
@@ -160,9 +161,6 @@ mutation {
 ### next
  - Pull schema file for Nick
  - Cloud deployment
-
-### after next
- - convert scheduler into repeating kubernetes jobs
  - Better logging
 
 ### miscellaneous

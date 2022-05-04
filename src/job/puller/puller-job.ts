@@ -7,7 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { Context, PullerException, withIntegration, pushTransactions } from "./util";
+import { Context, PullerException, withIntegration, pushTransactions } from "../util";
 
 import { Plaid, Pipe } from "../../magic";
 import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../../storage";

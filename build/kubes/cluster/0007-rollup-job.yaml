@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: rollup-job
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: rollup-job
+              image: common:latest
+              envFrom:
+                - configMapRef:
+                    name: config
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/sh", "-c", "node /home/node/app/dist/job/rollup/index.js"]
+              volumeMounts: $LOCAL_MOUNT2
+          volumes: $LOCAL_VOLUME2
+          initContainers:
+            - name: wait-for-postgres
+              image: postgres:13.4
+              imagePullPolicy: "IfNotPresent"
+              command: ["/bin/sh", "-c", "pg_isready -h postgres -p 5432 && echo $?"]
+          restartPolicy: OnFailure

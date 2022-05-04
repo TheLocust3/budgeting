@@ -6,9 +6,9 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { Plaid, Pipe } from "../../magic";
-import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../../storage";
-import { Source, Integration, Transaction } from "../../model";
+import { Plaid, Pipe } from "../magic";
+import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../storage";
+import { Source, Integration, Transaction } from "../model";
 
 export type Context = {
   source: Source.Internal.t;

@@ -17,7 +17,7 @@ const createUser = (pool: Pool) => (email: string, password: string, role: strin
   );
 }
 
-const migrate = async (pool: Pool) => {
+export const migrate = async (pool: Pool) => {
   await pipe(
       TE.Do
     , TE.bind("user", () => createUser(pool)("jake.kinsella@gmail.com", "foobar", "superuser"))
@@ -39,13 +39,5 @@ const migrate = async (pool: Pool) => {
         console.log(error)
       })
   )();
-
-  console.log("Migrate complete");
-  process.exit(0);
 };
-
-console.log("Migrate start");
-
-export const pool = new Pool();
-migrate(pool);
 

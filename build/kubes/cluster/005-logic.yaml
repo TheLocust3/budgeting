@@ -45,7 +45,3 @@ spec:
           image: common:latest
           imagePullPolicy: "IfNotPresent"
           command: ["/bin/sh", "-c", "curl -XGET http://engine:3000/status && echo $?"]
-        - name: wait-for-scheduler
-          image: common:latest
-          imagePullPolicy: "IfNotPresent"
-          command: ["/bin/sh", "-c", "curl -XGET http://scheduler:3002/status && echo $?"]
