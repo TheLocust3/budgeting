@@ -10,6 +10,7 @@
 
 `minikube start`  
 `eval $(minikube docker-env)`  
+`minikube tunnel &`
 
 ### compile code  
 `yarn setup`  
@@ -20,10 +21,6 @@
   
 ... some amount of waiting ...  
 `kubectl get pods` should show the containers starting up  
-  
-
-### start tunnel
-`minikube tunnel &`
   
 Navigate to `http://localhost:3001/external/graphql`  
 
@@ -164,6 +161,9 @@ mutation {
  - Better logging
 
 ### miscellaneous
+ - priority rollup on account creation
+   - rollup-job needs to be trigger basically immediately
+ - if rollup job fails, it will never retry
  - Return simplified rules interface
  - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
