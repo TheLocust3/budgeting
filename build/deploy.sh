@@ -24,4 +24,4 @@ fi
 
 kubectl create secret generic secrets --from-env-file secrets.env
 
-for f in build/kubes/cluster/*.yaml; do envsubst < $f | kubectl apply -f -; done
+for f in build/cluster/*.yaml; do envsubst < $f | kubectl apply -f -; done
