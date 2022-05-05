@@ -28,7 +28,23 @@ Navigate to `http://localhost:3001/external/graphql`
 `yarn deploy`
 
 ## cloud deploy
-TODO
+
+### depedencies
+ - [Packer](http://packer.io)
+
+Environment variables:
+```
+export AWS_ACCESS_KEY_ID=???
+export AWS_SECRET_ACCESS_KEY=???
+```
+
+Set up packer:
+`packer init build/aws/`
+
+### ami build
+Build the image:
+`packer build`
+
 
 ## development setup
 `yarn install`  
