@@ -48,3 +48,5 @@ certs/
 ignore/
 
 secrets.env
+
+.terraform*

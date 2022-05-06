@@ -27,60 +27,43 @@ Navigate to `http://localhost:3001/external/graphql`
 ### start hot-reload
 `yarn deploy`
 
+
 ## cloud deploy
 
 ### depedencies
  - [Packer](http://packer.io)
-
+ - [Terraform](https://www.terraform.io)
+  
 Environment variables:
 ```
 export AWS_ACCESS_KEY_ID=???
 export AWS_SECRET_ACCESS_KEY=???
+export AWS_DEFAULT_REGION=us-east-1
 ```
+  
+The following commands must be executed from `build/aws`
+`cd build/aws/`
 
 Set up packer:
-`packer init build/aws/`
+`packer init .`
+
+Set up terraform:
+`terraform init`
 
 ### ami build
 Build the image:
 `packer build`
 
+### aws build
+Create+install an EC2 Key Pair in the AWS Console called "budgeting".  
 
-## development setup
-`yarn install`  
-`yarn setup`  
-`yarn build`  
+Build the resources:
+`terraform apply`
+  
+Note the value of `control_plane_ip`.
 
-### initialize the database
-`initdb data.db`  
-`pg_ctl -D data.db start`  
-`createdb budget`  
-
-## running
-
-Environment variables:
-```
-export PGUSER=jakekinsella
-export PGHOST=localhost
-export PGPASSWORD=
-export PGDATABASE=budget
-export PGPORT=5432
-export PLAID_CLIENT_ID=???
-export PLAID_SECRET=???
-```
-
-Migrate database:
-`yarn migrate`
-
-Start the backends:
-`yarn start`
-
-## test
-Make sure the server is running (for system tests):
-`yarn start`
-
-Run the test suite:
-`yarn test`
+### cluster deploy
+TODO
 
 ## graphql api
 ### External API
