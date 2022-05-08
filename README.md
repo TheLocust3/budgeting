@@ -12,12 +12,18 @@
 `eval $(minikube docker-env)`  
 `minikube tunnel &`
 
+Create `secrets.env` in the root of the repo:
+```
+PLAID_CLIENT_ID=???
+PLAID_SECRET=???
+```
+
 ### compile code  
 `yarn setup`  
 
 ### build+deploy
 `./build/setup.sh`  
-`./build/deploy.sh local`  
+`./build/deploy_local.sh`  
   
 ... some amount of waiting ...  
 `kubectl get pods` should show the containers starting up  
@@ -61,9 +67,21 @@ Build the resources:
 `terraform apply`
   
 Note the value of `control_plane_ip`.
+  
+... wait _awhile_ ...  
 
 ### cluster deploy
-TODO
+Create `secrets.env` in the root of the repo:
+```
+PLAID_CLIENT_ID=???
+PLAID_SECRET=???
+```
+
+Export the Control Plane IP:
+`export CONTROL_PLANE_IP=???`
+
+Deploy the cluster:
+`./build/deploy.sh`
 
 ## graphql api
 ### External API
@@ -155,8 +173,8 @@ mutation {
 ## todo
 
 ### next
- - Pull schema file for Nick
- - Cloud deployment
+ - Figure out why cluster keeps crashing on AWS
+ - Upload image to ECR
  - Better logging
 
 ### miscellaneous

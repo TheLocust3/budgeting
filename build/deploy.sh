@@ -1,27 +1,15 @@
 #! /bin/bash
 
-TYPE="${1:-prod}" # prod/local
-if [ "$TYPE" = "local" ]; then
-  echo "Deploying locally with hot-reload"
-  export LOCAL_MOUNT="
-            - name: dist
-              mountPath: /home/node/app/dist"
-  # this is a wildly bad solution
-  export LOCAL_MOUNT2="
-                - name: dist
-                  mountPath: /home/node/app/dist"
-  export LOCAL_VOLUME="
-        - name: dist
-          hostPath:
-            path: /dist"
-  export LOCAL_VOLUME2="
-            - name: dist
-              hostPath:
-                path: /dist"
+echo "Deploying to ${CONTROL_PLANE_IP}"
 
-  minikube mount $(PWD)/dist:/dist &
-fi
+rm -rf tmp/
+mkdir -p tmp/build/cluster/
 
-kubectl create secret generic secrets --from-env-file secrets.env
+for f in build/cluster/*.yaml; do envsubst < $f > tmp/$f; done
 
-for f in build/cluster/*.yaml; do envsubst < $f | kubectl apply -f -; done
+ssh ubuntu@"${CONTROL_PLANE_IP}" "mkdir ~/cluster/"
+scp -r secrets.env ubuntu@"${CONTROL_PLANE_IP}":~/secrets.env
+scp -r tmp/build/cluster/* ubuntu@"${CONTROL_PLANE_IP}":~/cluster/
+
+ssh ubuntu@"${CONTROL_PLANE_IP}" "KUBECONFIG=/home/ubuntu/.kube/config kubectl create secret generic secrets --from-env-file secrets.env"
+ssh ubuntu@"${CONTROL_PLANE_IP}" "KUBECONFIG=/home/ubuntu/.kube/config kubectl apply -f ~/cluster/"

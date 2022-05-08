@@ -1,4 +1,5 @@
 #! /bin/bash
 
-kubectl delete secret secrets
-kubectl delete -f build/cluster/
+echo "Tearing down ${CONTROL_PLANE_IP}"
+
+ssh ubuntu@"${CONTROL_PLANE_IP}" "KUBECONFIG=/home/ubuntu/.kube/config kubectl teardown -f ~/cluster/"
