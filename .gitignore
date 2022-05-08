@@ -50,3 +50,4 @@ ignore/
 secrets.env
 
 .terraform*
+*.tfstate

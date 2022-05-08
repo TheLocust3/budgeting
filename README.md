@@ -52,7 +52,7 @@ Set up terraform:
 
 ### ami build
 Build the image:
-`packer build`
+`packer build image.pkr.hcl`
 
 ### aws build
 Create+install an EC2 Key Pair in the AWS Console called "budgeting".  
