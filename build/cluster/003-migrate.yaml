@@ -7,6 +7,7 @@ spec:
     spec:
       containers:
         - name: migrate
+          image: $IMAGE
           image: common:latest
           envFrom:
             - configMapRef:

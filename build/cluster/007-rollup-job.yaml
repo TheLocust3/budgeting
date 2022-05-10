@@ -10,7 +10,7 @@ spec:
         spec:
           containers:
             - name: rollup-job
-              image: common:latest
+              image: $IMAGE
               envFrom:
                 - configMapRef:
                     name: config

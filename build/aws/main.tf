@@ -28,6 +28,39 @@ data "aws_key_pair" "budgeting" {
   key_name = "budgeting"
 }
 
+data "aws_iam_policy" "ecr_access" {
+  name = "AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_role" "node" {
+  name               = "budgeting_node"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "ecr_access" {
+  name       = "ecr_access"
+  roles      = [aws_iam_role.node.name]
+  policy_arn = data.aws_iam_policy.ecr_access.arn
+}
+
+
+resource "aws_iam_instance_profile" "node" {
+  name = "budgeting_node"
+  role = aws_iam_role.node.name
+}
+
 resource "aws_security_group" "control_plane" {
   name = "control_plane"
 
@@ -41,6 +74,13 @@ resource "aws_security_group" "control_plane" {
   ingress {
     from_port        = 22
     to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port        = 6443
+    to_port          = 6443
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
   }
@@ -60,20 +100,11 @@ resource "aws_instance" "control_plane" {
   instance_type               = "t4g.small"
   key_name                    = data.aws_key_pair.budgeting.key_name
   security_groups             = ["${aws_security_group.control_plane.name}"]
+  iam_instance_profile        = aws_iam_instance_profile.node.name
   user_data                   = <<-EOL
   #!/bin/bash
 
-  kubeadm init --pod-network-cidr=192.168.0.0/16
-  mkdir -p /home/ubuntu/.kube
-  sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
-  sudo chown ubuntu /home/ubuntu/.kube/config
-
-  export KUBECONFIG=/home/ubuntu/.kube/config
-
-  sleep 60
-
-  kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-  kubectl taint nodes --all node-role.kubernetes.io/control-plane- node-role.kubernetes.io/master-
+  cat install.sh | sh -
 
   echo "Control Plane setup complete"
   EOL

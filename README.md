@@ -22,8 +22,8 @@ PLAID_SECRET=???
 `yarn setup`  
 
 ### build+deploy
-`./build/setup.sh`  
-`./build/deploy_local.sh`  
+`./build/local/publish.sh`  
+`./build/local/deploy.sh`  
   
 ... some amount of waiting ...  
 `kubectl get pods` should show the containers starting up  
@@ -71,6 +71,13 @@ Note the value of `control_plane_ip`.
 ... wait _awhile_ ...  
 
 ### cluster deploy
+```
+export AWS_ACCESS_KEY_ID=???
+export AWS_SECRET_ACCESS_KEY=???
+export AWS_ACCOUNT_ID=???
+export AWS_DEFAULT_REGION=us-east-1
+```
+
 Create `secrets.env` in the root of the repo:
 ```
 PLAID_CLIENT_ID=???
@@ -81,6 +88,7 @@ Export the Control Plane IP:
 `export CONTROL_PLANE_IP=???`
 
 Deploy the cluster:
+`./build/publish.sh`
 `./build/deploy.sh`
 
 ## graphql api
@@ -173,7 +181,6 @@ mutation {
 ## todo
 
 ### next
- - Figure out why cluster keeps crashing on AWS
  - Upload image to ECR
  - Better logging
 

@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: logic
-          image: common:latest
+          image: $IMAGE
           ports:
             - containerPort: 8080
           envFrom:

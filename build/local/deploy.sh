@@ -16,6 +16,7 @@ export LOCAL_VOLUME2="
           - name: dist
             hostPath:
               path: /dist"
+export IMAGE="common:latest"
 
 minikube mount $(PWD)/dist:/dist &
 

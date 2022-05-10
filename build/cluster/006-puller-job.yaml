@@ -10,7 +10,7 @@ spec:
         spec:
           containers:
             - name: puller-job
-              image: common:latest
+              image: $IMAGE
               envFrom:
                 - configMapRef:
                     name: config

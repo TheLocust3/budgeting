@@ -2,6 +2,8 @@
 
 echo "Deploying to ${CONTROL_PLANE_IP}"
 
+export IMAGE="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/budgeting:common"
+
 rm -rf tmp/
 mkdir -p tmp/build/cluster/
 
