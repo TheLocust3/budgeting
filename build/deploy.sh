@@ -13,5 +13,5 @@ ssh ubuntu@"${CONTROL_PLANE_IP}" "mkdir ~/cluster/"
 scp -r secrets.env ubuntu@"${CONTROL_PLANE_IP}":~/secrets.env
 scp -r tmp/build/cluster/* ubuntu@"${CONTROL_PLANE_IP}":~/cluster/
 
-ssh ubuntu@"${CONTROL_PLANE_IP}" "KUBECONFIG=/home/ubuntu/.kube/config kubectl create secret generic secrets --from-env-file secrets.env"
-ssh ubuntu@"${CONTROL_PLANE_IP}" "KUBECONFIG=/home/ubuntu/.kube/config kubectl apply -f ~/cluster/"
+ssh ubuntu@"${CONTROL_PLANE_IP}" "sudo kubectl create secret generic secrets --from-env-file secrets.env"
+ssh ubuntu@"${CONTROL_PLANE_IP}" "sudo kubectl apply -f ~/cluster/"

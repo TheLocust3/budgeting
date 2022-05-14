@@ -42,6 +42,6 @@ spec:
           imagePullPolicy: "IfNotPresent"
           command: ["/bin/sh", "-c", "pg_isready -h postgres -p 5432 && echo $?"]
         - name: wait-for-engine
-          image: common:latest
+          image: $IMAGE
           imagePullPolicy: "IfNotPresent"
           command: ["/bin/sh", "-c", "curl -XGET http://engine:3000/status && echo $?"]

@@ -10,7 +10,6 @@ terraform {
 }
 
 provider "aws" {
-  profile = "default"
   region  = "us-east-1"
 }
 
@@ -104,7 +103,7 @@ resource "aws_instance" "control_plane" {
   user_data                   = <<-EOL
   #!/bin/bash
 
-  cat install.sh | sh -
+  cat /home/ubuntu/install.sh | sh -
 
   echo "Control Plane setup complete"
   EOL

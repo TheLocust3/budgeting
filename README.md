@@ -46,7 +46,14 @@ Environment variables:
 ```
 export AWS_ACCESS_KEY_ID=???
 export AWS_SECRET_ACCESS_KEY=???
+export AWS_ACCOUNT_ID=???
 export AWS_DEFAULT_REGION=us-east-1
+```
+
+Create `secrets.env` in the root of the repo:
+```
+PLAID_CLIENT_ID=???
+PLAID_SECRET=???
 ```
   
 The following commands must be executed from `build/aws`
@@ -63,7 +70,7 @@ Build the image:
 `packer build image.pkr.hcl`
 
 ### aws build
-Create+install an EC2 Key Pair in the AWS Console called "budgeting".  
+Manually create+install an EC2 Key Pair in the AWS Console called "budgeting".  
 
 Build the resources:
 `terraform apply`
@@ -73,18 +80,6 @@ Note the value of `control_plane_ip`.
 ... wait _awhile_ ...  
 
 ### cluster deploy
-```
-export AWS_ACCESS_KEY_ID=???
-export AWS_SECRET_ACCESS_KEY=???
-export AWS_ACCOUNT_ID=???
-export AWS_DEFAULT_REGION=us-east-1
-```
-
-Create `secrets.env` in the root of the repo:
-```
-PLAID_CLIENT_ID=???
-PLAID_SECRET=???
-```
 
 Export the Control Plane IP:
 `export CONTROL_PLANE_IP=???`
