@@ -31,6 +31,12 @@ build {
 
   provisioner "shell" {
     inline = [
+      "sudo apt-get update",
+      "sudo apt-get install -y unzip",
+      "curl \"https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip\" -o \"awscliv2.zip\"",
+      "unzip awscliv2.zip",
+      "sudo ./aws/install",
+
       "curl -sfL https://get.k3s.io > install.sh"
     ]
   }

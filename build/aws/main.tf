@@ -100,6 +100,9 @@ resource "aws_instance" "control_plane" {
   key_name                    = data.aws_key_pair.budgeting.key_name
   security_groups             = ["${aws_security_group.control_plane.name}"]
   iam_instance_profile        = aws_iam_instance_profile.node.name
+  root_block_device {
+    volume_size = 32
+  }
   user_data                   = <<-EOL
   #!/bin/bash
 
