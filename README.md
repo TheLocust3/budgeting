@@ -5,6 +5,8 @@
 ### dependecies
  - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
  - [minikube](https://minikube.sigs.k8s.io/docs/)
+ - [nodejs](https://nodejs.org/en/)
+ - [yarn](https://classic.yarnpkg.com/lang/en/docs/install/)
 
 ### initial setup
 
@@ -18,7 +20,7 @@ PLAID_CLIENT_ID=???
 PLAID_SECRET=???
 ```
 
-### compile code  
+### setup + compile
 `yarn setup`  
 
 ### build+deploy
