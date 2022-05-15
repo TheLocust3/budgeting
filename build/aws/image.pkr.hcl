@@ -7,8 +7,12 @@ packer {
   }
 }
 
+locals {
+  date = formatdate("YYYY-MM-DD-hhmm", timestamp())
+}
+
 source "amazon-ebs" "ubuntu" {
-  ami_name      = "common-ubuntu"
+  ami_name      = "common-ubuntu-${local.date}"
   instance_type = "t4g.small"
   region        = "us-east-1"
   source_ami_filter {
@@ -29,15 +33,24 @@ build {
     "source.amazon-ebs.ubuntu"
   ]
 
+  provisioner "file" {
+    source = "tmp/ecr_refresh.sh"
+    destination = "/home/ubuntu/ecr_refresh.sh"
+  }
+
   provisioner "shell" {
     inline = [
+      "chmod 777 /home/ubuntu/ecr_refresh.sh",
+
       "sudo apt-get update",
       "sudo apt-get install -y unzip",
       "curl \"https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip\" -o \"awscliv2.zip\"",
       "unzip awscliv2.zip",
       "sudo ./aws/install",
 
-      "curl -sfL https://get.k3s.io > install.sh"
+      "curl -sfL https://get.k3s.io > install.sh",
+
+      "(sudo crontab -l 2>/dev/null; echo \"0 * * * *  cd /home/ubuntu/ && ./ecr_refresh.sh\") | sudo crontab -"
     ]
   }
 }

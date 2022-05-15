@@ -41,7 +41,9 @@ Navigate to `http://localhost:3001/external/graphql`
 ### depedencies
  - [Packer](http://packer.io)
  - [Terraform](https://www.terraform.io)
-  
+
+### initial setup
+
 Environment variables:
 ```
 export AWS_ACCESS_KEY_ID=???
@@ -56,37 +58,36 @@ PLAID_CLIENT_ID=???
 PLAID_SECRET=???
 ```
   
-The following commands must be executed from `build/aws`
-`cd build/aws/`
+Initialize the build depedencies:
+`./build/aws/init.sh`
 
-Set up packer:
-`packer init .`
+### aws setup
+Build the AMI:  
+`./build/aws/build_image.sh`
 
-Set up terraform:
-`terraform init`
-
-### ami build
-Build the image:
-`packer build image.pkr.hcl`
+Set up the ECR repo:  
+`./build/aws/build_repo.sh`
 
 ### aws build
 Manually create+install an EC2 Key Pair in the AWS Console called "budgeting".  
 
-Build the resources:
-`terraform apply`
+Build the resources:  
+`./build/aws/build.sh`  
   
-Note the value of `control_plane_ip`.
+Note the value of `control_plane_ip`.  
   
 ... wait _awhile_ ...  
 
 ### cluster deploy
 
-Export the Control Plane IP:
-`export CONTROL_PLANE_IP=???`
+Export the Control Plane IP:  
+`export CONTROL_PLANE_IP=???`  
 
-Deploy the cluster:
-`./build/publish.sh`
-`./build/deploy.sh`
+Deploy the cluster:  
+`./build/publish.sh`  
+`./build/deploy.sh`  
+
+... wait \~10minutes time (until `sudo kubectl get pods` shows all the containers running) ...  
 
 ## graphql api
 ### External API
@@ -178,12 +179,12 @@ mutation {
 ## todo
 
 ### next
- - Upload image to ECR
+ - Trigger rollup job on plaid integration creation
+ - Endpoint to create a manual account
+ - Endpoint to create a manual transaction
  - Better logging
 
 ### miscellaneous
- - priority rollup on account creation
-   - rollup-job needs to be trigger basically immediately
  - if rollup job fails, it will never retry
  - Return simplified rules interface
  - Optional remainder in SplitByValue

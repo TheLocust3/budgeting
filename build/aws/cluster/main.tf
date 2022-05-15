@@ -19,7 +19,7 @@ data "aws_ami" "common_ami" {
 
   filter {
     name   = "name"
-    values = ["common-ubuntu"]
+    values = ["common-ubuntu-"]
   }
 }
 
@@ -64,8 +64,8 @@ resource "aws_security_group" "control_plane" {
   name = "control_plane"
 
   ingress {
-    from_port        = 8080
-    to_port          = 8080
+    from_port        = 3001
+    to_port          = 3001
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
   }
@@ -107,6 +107,9 @@ resource "aws_instance" "control_plane" {
   #!/bin/bash
 
   cat /home/ubuntu/install.sh | sh -
+
+  sleep 60
+  cd /home/ubuntu && ./ecr_refresh.sh
 
   echo "Control Plane setup complete"
   EOL
