@@ -11,9 +11,6 @@ import * as Context from "../context";
 import * as Types from "../types";
 import * as PlaidMutation from "./plaid-mutation";
 
-import AccountChannel from "../../channel/account-channel";
-import RuleChannel from "../../channel/rule-channel";
-
 import { Account, Rule } from "../../../model";
 import { Exception, Pipe } from "../../../magic";
 

@@ -10,7 +10,6 @@ import * as graphql from "graphql";
 import { UserArena } from "../../user";
 import * as Context from "./context";
 import * as Types from "./types";
-import AccountChannel from "../channel/account-channel";
 
 import { Account, Transaction, Materialize } from "../../model";
 import { Exception, Pipe } from "../../magic";

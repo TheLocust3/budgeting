@@ -7,27 +7,26 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { GLOBAL_ACCOUNT, PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../util";
 import { UserArena } from "../index";
-import AccountChannel from "../../logic/channel/account-channel";
-import RuleChannel from "../../logic/channel/rule-channel";
 
+import { Validate } from "../../engine";
 import { User, Account, Rule, Source, Integration, Plaid } from "../../model";
-import { IntegrationFrontend, SourceFrontend, UserFrontend } from "../../storage";
+import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, UserFrontend } from "../../storage";
 import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../magic";
 
 export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
   return pipe(
       TE.Do
     , TE.bind("user", () => UserFrontend.create(pool)(user))
-    , TE.bind("globalAccount", ({ user }) => AccountChannel.create({ parentId: O.none, userId: user.id, name: GLOBAL_ACCOUNT }))
+    , TE.bind("globalAccount", ({ user }) => AccountFrontend.create(pool)({ parentId: O.none, userId: user.id, name: GLOBAL_ACCOUNT }))
     , TE.bind("globalRule", ({ user, globalAccount }) => {
-        return RuleChannel.create({
+        return RuleFrontend.create(pool)({
             accountId: globalAccount.id
           , userId: user.id
           , rule: <Rule.Internal.Rule>{ _type: "Include", where: { _type: "StringMatch", field: "userId", operator: "Eq", value: user.id } }
         });
       })
-    , TE.bind("physicalAccount", ({ user, globalAccount }) => AccountChannel.create({ parentId: O.some(globalAccount.id), userId: user.id, name: PHYSICAL_ACCOUNT }))
-    , TE.bind("virtualAccount", ({ user, globalAccount }) => AccountChannel.create({ parentId: O.some(globalAccount.id), userId: user.id, name: VIRTUAL_ACCOUNT }))
+    , TE.bind("physicalAccount", ({ user, globalAccount }) => AccountFrontend.create(pool)({ parentId: O.some(globalAccount.id), userId: user.id, name: PHYSICAL_ACCOUNT }))
+    , TE.bind("virtualAccount", ({ user, globalAccount }) => AccountFrontend.create(pool)({ parentId: O.some(globalAccount.id), userId: user.id, name: VIRTUAL_ACCOUNT }))
     , TE.map(({ user }) => user)
   );
 }
@@ -37,7 +36,7 @@ const createAccount = (pool: Pool) => (arena: UserArena.t) => (source: Source.In
     return pipe(
         UserArena.physical(pool)(arena)
       , TE.map((physical) => ({ userId: arena.user.id, parentId: O.some(physical.account.id), name: source.name }))
-      , TE.chain(AccountChannel.create)
+      , TE.chain(AccountFrontend.create(pool))
     );
   }
 
@@ -57,7 +56,7 @@ export const createBucket = (pool: Pool) => (arena: UserArena.t) => (name: strin
   return pipe(
       UserArena.virtual(pool)(arena)
     , TE.map((virtual) => ({ userId: arena.user.id, parentId: O.some(virtual.account.id), name: name }))
-    , TE.chain(AccountChannel.create)
+    , TE.chain(AccountFrontend.create(pool))
   );
 }
 
@@ -79,11 +78,11 @@ const createRule =
   return pipe(
       resolveUserAccount(pool)(arena)(key)
     , TE.chain((account) => {
-        return RuleChannel.create({
-            accountId: account.account.id
-          , userId: arena.user.id
-          , rule: rule
-        })
+        return pipe(
+            <Rule.Frontend.Create.t> { accountId: account.account.id, userId: arena.user.id, rule: rule }
+          , Validate.rule(pool)
+          , TE.chain(RuleFrontend.create(pool))
+        );
       })
   );
 }
@@ -108,7 +107,7 @@ export const splitTransaction =
 export const removeRule = (pool: Pool) => (arena: UserArena.t) => (ruleId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       UserArena.virtual(pool)(arena)
-    , TE.chain((virtual) => RuleChannel.deleteById(arena.user.id)(virtual.account.id)(ruleId))
+    , TE.chain((virtual) => RuleFrontend.deleteById(pool)(arena.user.id)(virtual.account.id)(ruleId))
     , TE.map(() => {})
   );
 }

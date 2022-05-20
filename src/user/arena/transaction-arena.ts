@@ -6,7 +6,6 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import * as Arena from "./index";
-import AccountChannel from "../../logic/channel/account-channel";
 
 import { Materialize } from "../../engine";
 import { User, Account, Rule, Materialize as MaterializeModel } from "../../model";
