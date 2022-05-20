@@ -31,7 +31,7 @@ namespace CreateBucket {
 
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
     return pipe(
-        UserResource.Bucket.create(context.arena)(name)
+        UserResource.Bucket.create(context.pool)(context.arena)(name)
       , Pipe.toPromise
     );
   }
@@ -62,7 +62,7 @@ namespace CreateSplitByValue {
 
   const resolve = (source: any, { transactionId, splits, remainder }: Args, context: Context.t): Promise<Rule.Internal.t> => {
     return pipe(
-        UserResource.Rule.splitTransaction(context.arena)(transactionId, splits, remainder)
+        UserResource.Rule.splitTransaction(context.pool)(context.arena)(transactionId, splits, remainder)
       , Pipe.toPromise
     );
   }
@@ -80,7 +80,7 @@ namespace DeleteRule {
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
-        UserResource.Rule.remove(context.arena)(id)
+        UserResource.Rule.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );

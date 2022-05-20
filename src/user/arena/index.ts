@@ -47,47 +47,47 @@ const resolve =
   )(get(arena))
 }
 
-export const physical = (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
+export const physical = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
   const get = (arena: t) => { return arena.physical.account };
   const set = (value: Resolvable<AccountArena.t>) => (arena: t) => { arena.physical.account = value };
 
-  return resolve(arena)(get)(set)(AccountArena.resolve(PHYSICAL_ACCOUNT))
+  return resolve(arena)(get)(set)(AccountArena.resolve(pool)(PHYSICAL_ACCOUNT))
 }
 
-export const materializePhysical = (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
+export const materializePhysical = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
   const get = (arena: t) => { return arena.physical.transactions };
   const set = (value: Resolvable<TransactionArena.t>) => (arena: t) => { arena.physical.transactions = value };
 
   return pipe(
-      physical(arena)
-    , TE.chain((physical) => resolve(arena)(get)(set)(TransactionArena.resolve(physical.account.id)))
+      physical(pool)(arena)
+    , TE.chain((physical) => resolve(arena)(get)(set)(TransactionArena.resolve(pool)(physical.account.id)))
   );
 }
 
-export const virtual = (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
+export const virtual = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
   const get = (arena: t) => { return arena.virtual.account };
   const set = (value: Resolvable<AccountArena.t>) => (arena: t) => { arena.virtual.account = value };
 
-  return resolve(arena)(get)(set)(AccountArena.resolve(VIRTUAL_ACCOUNT))
+  return resolve(arena)(get)(set)(AccountArena.resolve(pool)(VIRTUAL_ACCOUNT))
 }
 
-export const virtualRules = (arena: t): TE.TaskEither<Exception.t, RuleArena.t> => {
+export const virtualRules = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, RuleArena.t> => {
   const get = (arena: t) => { return arena.virtual.rules };
   const set = (value: Resolvable<RuleArena.t>) => (arena: t) => { arena.virtual.rules = value };
 
   return pipe(
-      virtual(arena)
-    , TE.chain((virtual) => resolve(arena)(get)(set)(RuleArena.resolve(virtual.account.id)))
+      virtual(pool)(arena)
+    , TE.chain((virtual) => resolve(arena)(get)(set)(RuleArena.resolve(pool)(virtual.account.id)))
   );
 }
 
-export const materializeVirtual = (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
+export const materializeVirtual = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
   const get = (arena: t) => { return arena.virtual.transactions };
   const set = (value: Resolvable<TransactionArena.t>) => (arena: t) => { arena.virtual.transactions = value };
 
   return pipe(
-      virtual(arena)
-    , TE.chain((virtual) => resolve(arena)(get)(set)(TransactionArena.resolve(virtual.account.id)))
+      virtual(pool)(arena)
+    , TE.chain((virtual) => resolve(arena)(get)(set)(TransactionArena.resolve(pool)(virtual.account.id)))
   );
 }
 

@@ -18,9 +18,9 @@ import { Exception, Pipe } from "../../magic";
 const materializeFor = (key: "physical" | "virtual") => (context: Context.t) => {
   switch (key) {
     case "physical":
-      return UserArena.materializePhysical(context.arena);
+      return UserArena.materializePhysical(context.pool)(context.arena);
     case "virtual":
-      return UserArena.materializeVirtual(context.arena);
+      return UserArena.materializeVirtual(context.pool)(context.arena);
   }
 }
 

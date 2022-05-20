@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -5,9 +6,9 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import * as Arena from "./index";
-import AccountChannel from "../../logic/channel/account-channel";
 
 import { User, Account, Rule, Materialize } from "../../model";
+import { AccountFrontend } from "../../storage";
 import { Exception } from "../../magic";
 
 export type t = {
@@ -30,6 +31,7 @@ const build = (accounts: Account.Internal.t[]) => (forAccount: Account.Internal.
 }
 
 export const resolve = 
+  (pool: Pool) => 
   (name: string) =>
   (arena: Arena.t): TE.TaskEither<Exception.t, t> => {
   const forName = (name: string) => (accounts: Account.Internal.t[]): TE.TaskEither<Exception.t, Account.Internal.t> => {
@@ -44,7 +46,7 @@ export const resolve =
 
   return pipe(
       TE.Do
-    , TE.bind("allAccounts", () => AccountChannel.all(arena.user.id))
+    , TE.bind("allAccounts", () => AccountFrontend.all(pool)(arena.user.id))
     , TE.bind("account", ({ allAccounts }) => forName(name)(allAccounts))
     , TE.map(({ allAccounts, account }) => {
         return build(allAccounts)(account);

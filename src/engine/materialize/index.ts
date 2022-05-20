@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Pool } from "pg";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
@@ -106,3 +107,12 @@ export const execute = (id: string) => (pool: Pool) => (account: Account.Interna
       })
   );
 };
+
+export const account = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+  return pipe(
+      AccountFrontend.getByIdAndUserId(pool)(userId)(accountId)
+    , TE.chain(AccountFrontend.withRules(pool))
+    , TE.chain(AccountFrontend.withChildren(pool))
+    , TE.chain((account) => execute(crypto.randomUUID())(pool)(account))
+  );
+}

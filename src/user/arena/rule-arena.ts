@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -8,12 +9,14 @@ import * as Arena from "./index";
 import RuleChannel from "../../logic/channel/rule-channel";
 
 import { User, Account, Rule, Materialize } from "../../model";
+import { RuleFrontend } from "../../storage";
 import { Exception } from "../../magic";
 
 export type t = Rule.Internal.t[];
 
 export const resolve = 
+  (pool: Pool) => 
   (accountId: string) =>
   (arena: Arena.t): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
-  return RuleChannel.all(arena.user.id)(accountId);
+  return RuleFrontend.getByAccountId(pool)(arena.user.id)(accountId)
 }

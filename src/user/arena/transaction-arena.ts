@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -7,13 +8,15 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as Arena from "./index";
 import AccountChannel from "../../logic/channel/account-channel";
 
-import { User, Account, Rule, Materialize } from "../../model";
+import { Materialize } from "../../engine";
+import { User, Account, Rule, Materialize as MaterializeModel } from "../../model";
 import { Exception } from "../../magic";
 
-export type t = Materialize.Internal.t;
+export type t = MaterializeModel.Internal.t;
 
 export const resolve = 
+  (pool: Pool) => 
   (accountId: string) =>
-  (arena: Arena.t): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
-  return AccountChannel.materialize(arena.user.id)(accountId);
+  (arena: Arena.t): TE.TaskEither<Exception.t, MaterializeModel.Internal.t> => {
+  return Materialize.account(pool)(arena.user.id)(accountId);
 }
