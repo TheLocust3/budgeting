@@ -179,38 +179,27 @@ mutation {
 ## todo
 
 ### next
- - refactor into virtual micro-serices
-   - logic layer just serves graphql API
-   - engine service shows rich frontend to accounts/rules/transactions
-     - materialize + rule validation in frontends
-   - user service shows rich frontend to users/integrations/sources
-     - manual sources + plaid integrations which create relevant accounts/rules
-     - users
+ - Materialize tests
+ - Validate tests
  - configure unique contraints across all tables to ensure that each graphql mutation request can be retried
  - on plaid integration creation, run rollup
+ - User Arena tests
+ - User Resources tests
  - Endpoint to create a manual account
  - Endpoint to create a manual transaction
- - GraphQL tests
 
 ### miscellaneous
- - if rollup job fails, it will never retry
- - Return simplified rules interface
  - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
  - Add comment mutation
- - token timeout on JWT
- - expect unordered lists in tests
  - Don't build plan/stages for every transaction
 
 ### future
+  - GraphQL tests
   - Better logging
   - Puller improvements
     - Handle Plaid pageination
     - Don't re-pull everything
-  - GraphQL
-   - Use fp-ts schemas to generate graphQL types (args, inputs, outputs)
-   - Push new GraphQL/iot types to model + remove old types there
  - Engine aggregations
- - Amazon Cognito?
  - basic rule pushdowns
    - all include rules are up for grabs
