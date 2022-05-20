@@ -176,6 +176,58 @@ mutation {
 }
 ```
 
+## nodes
+
+### code structure
+
+`logic`
+ - GraphQL API server
+  
+`user`
+ - Business logic layer over raw users/accounts/rules/integrations/sources
+ - Provides a simple interface to read/add/delete resources from individual users
+  
+`engine`
+ - The rules engine
+ - Provides an interface to materialize all transactions under an account via its rules
+ - Provides an interface to validate the creation of rules
+  
+`job`
+ - Jobs run on a schedule by Kubernetes
+
+`storage`
+ - Provides interfaces (i.e. frontends) to interact with each table in the database
+  
+`model`
+ - Typed models for every resource in the project
+ - JSON/SQL converters for said types
+  
+`magic`
+ - Miscellaneous utilities
+  
+
+### tables
+
+`users`
+ - the root user record with associated password
+
+`accounts`
+ - Either a physical account (bank account) or virtual account (ex. vacation)
+
+`rules`
+ - Rules to divide transactions across accounts
+
+`transactions`
+ - The actual transactions recording the amount + various other details
+ - Attached to a user + source
+
+`sources`
+ - Essential a label of where a transaction came from
+
+`integrations`
+ - Plaid credentials associated with a source
+ - Transactions pulled from these credentials will be tagged with the associated source
+
 ## todo
 
 ### next
