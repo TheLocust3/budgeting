@@ -21,7 +21,8 @@ namespace Query {
       created_at TIMESTAMP NOT NULL DEFAULT now(),
       last_refreshed TIMESTAMP,
       FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE,
-      CONSTRAINT uq UNIQUE(user_id, tag)
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(user_id, tag)
     )
   `;
 

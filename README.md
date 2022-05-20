@@ -179,10 +179,17 @@ mutation {
 ## todo
 
 ### next
- - Trigger rollup job on plaid integration creation
+ - refactor into virtual micro-serices
+   - logic layer just serves graphql API
+   - engine service shows rich frontend to accounts/rules/transactions
+     - materialize + rule validation in frontends
+   - user service shows rich frontend to users/integrations/sources
+     - manual sources + plaid integrations which create relevant accounts/rules
+     - users
+ - configure unique contraints across all tables to ensure that each graphql mutation request can be retried
+ - on plaid integration creation, run rollup
  - Endpoint to create a manual account
  - Endpoint to create a manual transaction
- - Better logging
 
 ### miscellaneous
  - if rollup job fails, it will never retry
@@ -195,6 +202,7 @@ mutation {
  - Don't build plan/stages for every transaction
 
 ### future
+  - Better logging
   - Puller improvements
     - Handle Plaid pageination
     - Don't re-pull everything

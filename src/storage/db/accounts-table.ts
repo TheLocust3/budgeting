@@ -17,7 +17,8 @@ namespace Query {
       parent_id TEXT,
       user_id TEXT NOT NULL,
       name TEXT NOT NULL,
-      FOREIGN KEY(parent_id) REFERENCES accounts(id) ON DELETE CASCADE
+      FOREIGN KEY(parent_id) REFERENCES accounts(id) ON DELETE CASCADE,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `;
 

@@ -70,26 +70,12 @@ namespace DeleteUser {
     id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
   };
 
-  const resolve = (source: any, { id }: Args, context: Context.t): boolean => {
-    Reaper.enqueue((job) => {
-      console.log(`DeleteUser[${job}] user ${id}`);
-
-      return pipe(
-          cleanup(id)(context)
-        , TE.match(
-              (error) => {
-                console.log(`DeleteUser[${job}] failed with ${error}`)
-                return false
-              }
-            , () => {
-                console.log(`DeleteUser[${job}] complete`)
-                return true;
-              }
-          )
-      );
-    });
-
-    return true;
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    return pipe(
+        UserFrontend.deleteById(context.pool)(id)
+      , TE.map(() => true)
+      , Pipe.toPromise
+    );
   }
 
   export const t = {
@@ -97,62 +83,6 @@ namespace DeleteUser {
     , args: Args
     , resolve: resolve
   };
-}
-
-// TODO: JK really don't want to pull all user's resources into memory
-const cleanup = (userId: string) => (context: Context.t): TE.TaskEither<Exception.t, void> => {
-  const deleteAll =
-    (deleteById: (id: string) => TE.TaskEither<Exception.t, void>) =>
-    (ids: TE.TaskEither<Exception.t, string[]>): TE.TaskEither<Exception.t, void> => {
-    return pipe(
-        ids
-      , TE.map(A.map((id) => deleteById(id)))
-      , TE.chain(A.sequence(TE.ApplicativeSeq))
-      , TE.map((_) => {})
-    );
-  }
-
-  const cleanupSources = () => {
-    return pipe(
-        SourceFrontend.all(context.pool)(userId)
-      , TE.map(A.map((source) => source.id))
-      , deleteAll(SourceFrontend.deleteById(context.pool)(userId))
-    );
-  }
-
-  const cleanupIntegrations = () => {
-    return pipe(
-        IntegrationFrontend.all(context.pool)(userId)
-      , TE.map(A.map((source) => source.id))
-      , deleteAll(IntegrationFrontend.deleteById(context.pool)(userId))
-    );
-  }
-
-  const cleanupAccounts = () => {
-    return pipe(
-        AccountChannel.all(userId)
-      , TE.map(A.map((source) => source.id))
-      , deleteAll(AccountChannel.deleteById(userId))
-    );
-  }
-
-  const cleanupTransactions = () => {
-    return pipe(
-        TransactionChannel.all(userId)
-      , TE.map(A.map((source) => source.id))
-      , deleteAll(TransactionChannel.deleteById(userId))
-    );
-  }
-
-  return pipe(
-      cleanupSources()
-    , TE.chain((_) => cleanupIntegrations())
-    , TE.chain((_) => cleanupAccounts())
-    , TE.chain((_) => cleanupAccounts())
-    , TE.chain((_) => cleanupTransactions())
-    , TE.chain((_) => UserFrontend.deleteById(context.pool)(userId))
-    , TE.map((_) => {})
-  );
 }
 
 const mutation = new graphql.GraphQLObjectType({

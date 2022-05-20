@@ -21,7 +21,9 @@ namespace Query {
       description TEXT NOT NULL,
       authorized_at TIMESTAMP NOT NULL,
       captured_at TIMESTAMP,
-      metadata JSONB NOT NULL
+      metadata JSONB NOT NULL,
+      FOREIGN KEY(source_id) REFERENCES sources(id),
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `;
 

@@ -17,7 +17,8 @@ namespace Query {
       account_id TEXT NOT NULL,
       user_id TEXT NOT NULL,
       rule JSONB NOT NULL,
-      FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE
+      FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `;
 
