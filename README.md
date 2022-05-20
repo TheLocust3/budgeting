@@ -176,7 +176,7 @@ mutation {
 }
 ```
 
-## nodes
+## notes
 
 ### code structure
 
