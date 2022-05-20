@@ -7,7 +7,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { UserArena } from "../user";
+import { UserArena } from "../../user";
 
 type Resolvable<T> = O.Option<Promise<T>>;
 

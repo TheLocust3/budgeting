@@ -5,7 +5,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import { UserResource } from "../user";
+import { UserResource } from "../../user";
 import * as Context from './context';
 import * as Types from "../graphql/types";
 import { JWT } from "../util";

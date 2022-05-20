@@ -7,12 +7,12 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { GLOBAL_ACCOUNT, PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../util";
 import { UserArena } from "../index";
-import AccountChannel from "../../channel/account-channel";
-import RuleChannel from "../../channel/rule-channel";
+import AccountChannel from "../../logic/channel/account-channel";
+import RuleChannel from "../../logic/channel/rule-channel";
 
-import { User, Account, Rule, Source, Integration, Plaid } from "../../../model";
-import { IntegrationFrontend, SourceFrontend, UserFrontend } from "../../../storage";
-import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../../magic";
+import { User, Account, Rule, Source, Integration, Plaid } from "../../model";
+import { IntegrationFrontend, SourceFrontend, UserFrontend } from "../../storage";
+import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../magic";
 
 export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
   return pipe(

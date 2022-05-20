@@ -7,7 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import { UserArena } from "../user";
+import { UserArena } from "../../user";
 import * as Context from "./context";
 import * as Types from "./types";
 import AccountChannel from "../channel/account-channel";

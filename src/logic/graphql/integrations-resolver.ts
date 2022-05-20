@@ -8,7 +8,7 @@ import * as graphql from "graphql";
 import * as Context from './context';
 import * as Types from './types';
 
-import { UserArena } from "../user";
+import { UserArena } from "../../user";
 
 import { Exception, Pipe } from "../../magic";
 

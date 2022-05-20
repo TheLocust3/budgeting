@@ -11,9 +11,9 @@ import * as RuleArena from "./rule-arena";
 import * as TransactionArena from "./transaction-arena";
 import * as IntegrationArena from "./integration-arena";
 
-import { User } from "../../../model";
-import { UserFrontend } from "../../../storage";
-import { Exception, Pipe } from "../../../magic";
+import { User } from "../../model";
+import { UserFrontend } from "../../storage";
+import { Exception, Pipe } from "../../magic";
 
 type Resolvable<T> = O.Option<Promise<T>>;
 

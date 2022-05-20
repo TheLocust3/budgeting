@@ -7,9 +7,9 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import * as Arena from "./index";
 
-import { Integration, Source } from "../../../model";
-import { IntegrationFrontend, SourceFrontend } from "../../../storage";
-import { Exception } from "../../../magic";
+import { Integration, Source } from "../../model";
+import { IntegrationFrontend, SourceFrontend } from "../../storage";
+import { Exception } from "../../magic";
 
 type WithSources = {
   integration: Integration.Internal.t;

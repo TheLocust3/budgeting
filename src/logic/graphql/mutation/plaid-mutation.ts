@@ -7,7 +7,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 import { ItemPublicTokenExchangeResponse } from "plaid";
 
-import { UserResource } from "../../user";
+import { UserResource } from "../../../user";
 import * as Context from "../context";
 import * as Types from "../types";
 import { asList } from "../util";

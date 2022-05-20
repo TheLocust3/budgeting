@@ -190,6 +190,7 @@ mutation {
  - on plaid integration creation, run rollup
  - Endpoint to create a manual account
  - Endpoint to create a manual transaction
+ - GraphQL tests
 
 ### miscellaneous
  - if rollup job fails, it will never retry

@@ -6,7 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import { UserArena, UserResource } from "../../user";
+import { UserArena, UserResource } from "../../../user";
 import * as Context from "../context";
 import * as Types from "../types";
 import * as PlaidMutation from "./plaid-mutation";
