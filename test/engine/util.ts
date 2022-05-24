@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { Pool } from "pg";
 import { pipe } from "fp-ts/lib/pipeable";
 import fetch, { Response } from "node-fetch";
 import * as A from "fp-ts/Array";
@@ -6,9 +7,13 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
-import { Account } from "model";
-import { Rule } from "model";
-import { Transaction } from "model";
+import { Materialize, Validate } from "../../src/engine";
+
+import { Pipe } from "../../src/magic";
+import { Account, Rule, Transaction } from "../../src/model";
+import { AccountFrontend, TransactionFrontend, RuleFrontend, UserFrontend } from "../../src/storage";
+
+const pool = new Pool();
 
 export const uuid = (): string => crypto.randomUUID();
 
@@ -111,7 +116,13 @@ export const addTransaction = (system: System) => ({
 };
 
 export class System {
-  constructor(readonly host: string = "localhost", readonly port: string = "3000") {}
+  createTestUser(): Promise<string> {
+    return pipe(
+        UserFrontend.create(pool)({ email: "test", password: "foobar", role: "user" })
+      , TE.map((user) => user.id)
+      , Pipe.toPromise
+    );
+  }
 
   addTransaction(
       sourceId: string
@@ -123,124 +134,73 @@ export class System {
     , capturedAt: O.Option<Date>
     , metadata: any
   ): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask("/transactions/")("POST")(O.some({
-            sourceId: sourceId
-          , userId: userId
-          , amount: amount
-          , merchantName: merchantName
-          , description: description
-          , authorizedAt: authorizedAt.getTime()
-          , capturedAt: O.map((capturedAt: Date) => capturedAt.getTime())(capturedAt)
-          , metadata: metadata
-        }))
-      , TE.chain(this.json)
-    );
+    return pipe(TransactionFrontend.create(pool)(<Transaction.Internal.t> {
+        id: uuid()
+      , sourceId: sourceId
+      , userId: userId
+      , amount: amount
+      , merchantName: merchantName
+      , description: description
+      , authorizedAt: authorizedAt
+      , capturedAt: capturedAt
+      , metadata: metadata
+    }), TE.mapLeft(E.toError));
   }
 
   getTransaction(id: string, userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/transactions/${id}?userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
+    return pipe(TransactionFrontend.getById(pool)(userId)(id), TE.mapLeft(E.toError));
   }
 
   listTransactions(userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/transactions?userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
+    return pipe(TransactionFrontend.all(pool)(userId), TE.mapLeft(E.toError));
   }
 
   deleteTransaction(id: string, userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/transactions/${id}?userId=${userId}`)("DELETE")()
-      , TE.chain(this.json)
-    );
+    return pipe(TransactionFrontend.deleteById(pool)(userId)(id), TE.mapLeft(E.toError));
   }
 
-  addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = "test"): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask("/accounts/")("POST")(O.some({ name: name, userId: userId, parentId: parentId }))
-      , TE.chain(this.json)
-    );
+  addAccount(name: string, parentId: O.Option<string> = O.none, userId: string): TE.TaskEither<Error, any> {
+    return pipe(AccountFrontend.create(pool)({
+        parentId: parentId
+      , userId: userId
+      , name: name
+    }), TE.mapLeft(E.toError));
   }
 
   getAccount(id: string, userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/accounts/${id}?userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
+    return pipe(AccountFrontend.getByIdAndUserId(pool)(userId)(id), TE.mapLeft(E.toError));
   }
 
   listAccounts(userId: string): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/accounts?userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
+    return pipe(AccountFrontend.all(pool)(userId), TE.mapLeft(E.toError));
   }
 
   deleteAccount(id: string, userId: string): TE.TaskEither<Error, any> {
+    return pipe(AccountFrontend.deleteById(pool)(userId)(id), TE.mapLeft(E.toError));
+  }
+
+  addRule(accountId: string, rule: any, userId: string): TE.TaskEither<Error, any> {
     return pipe(
-        this.fetchTask(`/accounts/${id}?userId=${userId}`)("DELETE")()
-      , TE.chain(this.json)
+        { accountId: accountId , userId: userId , rule: rule }
+      , Validate.rule(pool)
+      , TE.chain(RuleFrontend.create(pool))
+      , TE.mapLeft(E.toError)
     );
   }
 
-  addRule(accountId: string, rule: any, userId: string = "test"): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask("/rules/")("POST")(O.some({ accountId: accountId, userId: userId, rule: rule }))
-      , TE.chain(this.json)
-    );
+  getRule(id: string, accountId: string, userId: string): TE.TaskEither<Error, any> {
+    return pipe(RuleFrontend.getById(pool)(userId)(accountId)(id), TE.mapLeft(E.toError));
   }
 
-  getRule(id: string, accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/rules/${id}?accountId=${accountId}&userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
+  listRules(accountId: string, userId: string): TE.TaskEither<Error, any> {
+    return pipe(RuleFrontend.getByAccountId(pool)(userId)(accountId), TE.mapLeft(E.toError));
   }
 
-  listRules(accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/rules?accountId=${accountId}&userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
+  deleteRule(id: string, accountId: string, userId: string): TE.TaskEither<Error, any> {
+    return pipe(RuleFrontend.deleteById(pool)(userId)(accountId)(id), TE.mapLeft(E.toError));
   }
 
-  deleteRule(id: string, accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/rules/${id}?accountId=${accountId}&userId=${userId}`)("DELETE")()
-      , TE.chain(this.json)
-    );
+  materialize(accountId: string, userId: string): TE.TaskEither<Error, any> {
+    return pipe(Materialize.account(pool)(userId)(accountId), TE.mapLeft(E.toError));
   }
-
-  materialize(accountId: string, userId: string = "test"): TE.TaskEither<Error, any> {
-    return pipe(
-        this.fetchTask(`/accounts/${accountId}/materialize?userId=${userId}`)("GET")()
-      , TE.chain(this.json)
-    );
-  }
-
-  private fetchTask = (uri: string) => (method: string) => (body: O.Option<any> = O.none): TE.TaskEither<Error, Response> => {
-    const resolved = O.match(
-      () => { return {}; },
-      (body) => { return { body: JSON.stringify(body) }; }
-    )(body);
-
-    return TE.tryCatch(
-        () => fetch(
-            `http://${this.host}:${this.port}/channel${uri}`
-          , { method: method, ...resolved, headers: { "Content-Type": "application/json" } }
-        )
-      , E.toError
-    );
-  };
-
-  private json = (res: Response): TE.TaskEither<Error, any> => {
-    return TE.tryCatch(
-        () => res.json()
-      , E.toError
-    );
-  };
 }

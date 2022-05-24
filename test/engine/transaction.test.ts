@@ -97,7 +97,7 @@ it("can list transactions", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {
-            const transaction = transactions.transactions.filter((transaction: any) => transaction.merchantName === merchantName)[0];
+            const transaction = transactions.filter((transaction: any) => transaction.merchantName === merchantName)[0];
 
             expect(transaction).toEqual(expect.objectContaining({
                 sourceId: sourceId
@@ -126,7 +126,7 @@ it("can delete transaction", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactions) => {
-            const transaction = transactions.transactions.filter((transaction: any) => transaction.merchantName === merchantName);
+            const transaction = transactions.filter((transaction: any) => transaction.merchantName === merchantName);
 
             expect(transaction.length).toEqual(0);
           }

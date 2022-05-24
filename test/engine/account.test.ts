@@ -7,18 +7,20 @@ import * as TE from "fp-ts/TaskEither";
 import { System, uuid } from "./util";
 
 let system: System;
+let userId: string;
 beforeAll(async () => {
   system = new System();
+  userId = await system.createTestUser();
 });
 
 it("can add account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name, O.none, "user")
+      system.addAccount(name, O.none, userId)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account: any) => {
-            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
+            expect(account).toEqual(expect.objectContaining({ name: name, userId: userId }));
             expect(typeof account.id).toBe("string");
           }
       )
@@ -28,12 +30,12 @@ it("can add account", async () => {
 it("can get account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name, O.none, "user")
+      system.addAccount(name, O.none, userId)
     , TE.chain((account) => system.getAccount(account.id, account.userId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account) => {
-            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
+            expect(account).toEqual(expect.objectContaining({ name: name, userId: userId }));
             expect(typeof account.id).toBe("string");
           }
       )
@@ -43,14 +45,14 @@ it("can get account", async () => {
 it("can list accounts", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name, O.none, "user")
+      system.addAccount(name, O.none, userId)
     , TE.chain((account) => system.listAccounts(account.userId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
-            const account = accounts.accounts.filter((account: any) => account.name === name)[0];
+            const account = accounts.filter((account: any) => account.name === name)[0];
 
-            expect(account).toEqual(expect.objectContaining({ name: name, userId: "user" }));
+            expect(account).toEqual(expect.objectContaining({ name: name, userId: userId }));
             expect(typeof account.id).toBe("string");
           }
       )
@@ -60,13 +62,13 @@ it("can list accounts", async () => {
 it("can delete account", async () => {
   const name = `test-${uuid()}`;
   await pipe(
-      system.addAccount(name, O.none, "user")
-    , TE.chain((account) => system.deleteAccount(account.id, "user"))
-    , TE.chain(() => system.listAccounts("user"))
+      system.addAccount(name, O.none, userId)
+    , TE.chain((account) => system.deleteAccount(account.id, userId))
+    , TE.chain(() => system.listAccounts(userId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accounts) => {
-            const account = accounts.accounts.filter((account: any) => account.name === name);
+            const account = accounts.filter((account: any) => account.name === name);
 
             expect(account.length).toEqual(0);
           }

@@ -40,6 +40,7 @@ spec:
     - port: 5432
   selector:
     app: postgres
+$POSTGRES_LB
 ---
 apiVersion: apps/v1
 kind: Deployment

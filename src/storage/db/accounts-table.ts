@@ -162,7 +162,10 @@ export const create = (pool: Pool) => (account: Account.Frontend.Create.t) : TE.
           , account.userId
           , account.name
         )),
-        E.toError
+        (error) => {
+          console.log(error)
+          return E.toError(error);
+        }
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Account.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))

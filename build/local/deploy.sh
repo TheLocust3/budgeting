@@ -17,6 +17,18 @@ export LOCAL_VOLUME2="
             hostPath:
               path: /dist"
 export IMAGE="common:latest"
+export POSTGRES_LB="---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: LoadBalancer"
 
 minikube mount $(PWD)/dist:/dist &
 
