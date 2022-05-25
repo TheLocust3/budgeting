@@ -10,13 +10,11 @@ const ruleBody = RuleBuilder.attach(RuleBuilder.stringMatch("id", "Eq", "nonesen
 
 let system: System;
 let accountId: string;
-let userId: string;
 beforeAll(async () => {
-  system = new System();
-  userId = await system.createTestUser();
+  system = await System.build();
 
   await pipe(
-      system.addAccount(`test-${uuid()}`, O.none, userId)
+      system.addAccount(`test-${uuid()}`)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (account: any) => {
@@ -28,7 +26,7 @@ beforeAll(async () => {
 
 it("can add rule 1", async () => {
   await pipe(
-      system.addRule(accountId, ruleBody, userId)
+      system.addRule(accountId, ruleBody)
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rule: any) => {
@@ -45,7 +43,7 @@ it("can add rule 2", async () => {
           RuleBuilder.stringMatch("id", "Neq", "")
         , "test"
         , "hello"
-      ), userId)
+      ))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rule: any) => {
@@ -65,17 +63,7 @@ it("can add rule 2", async () => {
 
 it("can't add rule with invalid accountId", async () => {
   await pipe(
-      system.addRule("test", ruleBody, userId)
-    , TE.match(
-          (error) => { expect(true);; }
-        , (res) => { expect(false); }
-      )
-  )();
-});
-
-it("can't add rule with made up field", async () => {
-  await pipe(
-      system.addRule(accountId, RuleBuilder.attach(RuleBuilder.stringMatch("test", "Eq", "nonesense"), "test", "hello"), userId)
+      system.addRule("test", ruleBody)
     , TE.match(
           (error) => { expect(true);; }
         , (res) => { expect(false); }
@@ -85,8 +73,8 @@ it("can't add rule with made up field", async () => {
 
 it("can get rule", async () => {
   await pipe(
-      system.addRule(accountId, ruleBody, userId)
-    , TE.chain((rule) => system.getRule(rule.id, accountId, userId))
+      system.addRule(accountId, ruleBody)
+    , TE.chain((rule) => system.getRule(rule.id, accountId))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (rule) => {
@@ -99,8 +87,8 @@ it("can get rule", async () => {
 
 it("can list rules", async () => {
   await pipe(
-      system.addRule(accountId, ruleBody, userId)
-    , TE.chain((rule) => TE.map(rules => [rules, rule.id])(system.listRules(accountId, userId)))
+      system.addRule(accountId, ruleBody)
+    , TE.chain((rule) => TE.map(rules => [rules, rule.id])(system.listRules(accountId)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ([rules, ruleId]) => {
@@ -115,9 +103,9 @@ it("can list rules", async () => {
 
 it("can delete rule", async () => {
   await pipe(
-      system.addRule(accountId, ruleBody, userId)
-    , TE.chain((rule) => TE.map(_ => rule.id)(system.deleteRule(rule.id, accountId, userId)))
-    , TE.chain((ruleId) => TE.map(rules => [rules, ruleId])(system.listRules(accountId, userId)))
+      system.addRule(accountId, ruleBody)
+    , TE.chain((rule) => TE.map(_ => rule.id)(system.deleteRule(rule.id, accountId)))
+    , TE.chain((ruleId) => TE.map(rules => [rules, ruleId])(system.listRules(accountId)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ([rules, ruleId]) => {

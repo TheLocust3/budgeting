@@ -6,14 +6,16 @@ import * as TE from "fp-ts/TaskEither";
 
 import { System, uuid, RuleBuilder, MetadataBuilder, JsonTransaction, defaultTransaction, addTransaction as addTransaction2 } from "./util";
 
-const addTransaction = (transaction: JsonTransaction = defaultTransaction): TE.TaskEither<Error, any> => {
-  return addTransaction2(system)(transaction);
-};
-
 let system: System;
+let sourceId: string;
 beforeAll(async () => {
-  system = new System();
+  system = await System.build();
+  sourceId = await system.buildTestSource();
 });
+
+const addTransaction = (transaction: JsonTransaction = defaultTransaction): TE.TaskEither<Error, any> => {
+  return addTransaction2(system)({ ...transaction, userId: system.userId, sourceId: sourceId });
+};
 
 it("can materialize empty", async () => {
   const name = `test-${uuid()}`;
