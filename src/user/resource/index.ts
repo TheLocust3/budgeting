@@ -10,8 +10,8 @@ import { GLOBAL_ACCOUNT, PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../util";
 import { UserArena } from "../index";
 
 import { Validate } from "../../engine";
-import { User, Account, Rule, Source, Integration, Plaid } from "../../model";
-import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, UserFrontend } from "../../storage";
+import { User, Account, Rule, Source, Integration, Plaid, Transaction } from "../../model";
+import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, TransactionFrontend, UserFrontend } from "../../storage";
 import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../magic";
 
 export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
@@ -140,6 +140,13 @@ export const removeSource = (pool: Pool) => (arena: UserArena.t) => (sourceId: s
   );
 }
 
+export const removeTransaction = (pool: Pool) => (arena: UserArena.t) => (transactionId: string): TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      TransactionFrontend.deleteById(pool)(arena.user.id)(transactionId)
+    , TE.map(() => {})
+  );
+}
+
 export const createManualAccount =
   (pool: Pool) =>
   (arena: UserArena.t) =>
@@ -161,6 +168,13 @@ export const createManualAccount =
         return account;
       })
   );
+}
+
+export const createTransaction =
+  (pool: Pool) =>
+  (arena: UserArena.t) =>
+  (transaction: Transaction.Arena.Create.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+  return TransactionFrontend.create(pool)({ ...transaction, id: UserArena.idFor(arena)("transaction"), userId: arena.user.id });
 }
 
 export const createIntegration =

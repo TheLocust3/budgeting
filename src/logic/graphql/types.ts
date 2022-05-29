@@ -55,8 +55,8 @@ export namespace Transaction {
         , amount: { type: graphql.GraphQLFloat }
         , merchantName: { type: graphql.GraphQLString }
         , description: { type: graphql.GraphQLString }
-        , authorizedAt: { type: graphql.GraphQLInt }
-        , capturedAt: { type: graphql.GraphQLInt }
+        , authorizedAt: { type: graphql.GraphQLFloat }
+        , capturedAt: { type: graphql.GraphQLFloat }
       }
   });
 }

@@ -5,13 +5,14 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { UserArena, UserResource } from "../../../user";
 import * as Context from "../context";
 import * as Types from "../types";
 import * as PlaidMutation from "./plaid-mutation";
 
-import { Account, Rule } from "../../../model";
+import { Account, Rule, Transaction } from "../../../model";
 import { Exception, Pipe } from "../../../magic";
 
 namespace CreateBucket {
@@ -61,6 +62,46 @@ namespace CreateAccount {
 
   export const t = {
       type: JustAccount
+    , args: Args
+    , resolve: resolve
+  };
+}
+
+namespace CreateTransaction {
+  type Args = {
+    sourceId: string;
+    amount: number;
+    merchantName: string;
+    description: string;
+    authorizedAt: number;
+    capturedAt?: number;
+    metadata: object;
+  };
+  const Args = {
+      sourceId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , amount: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
+    , merchantName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , description: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+    , authorizedAt: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
+    , capturedAt: { type: graphql.GraphQLFloat }
+    , metadata: { type: new graphql.GraphQLNonNull(GraphQLJSONObject) }
+  };
+
+  const resolve = (source: any, args: Args, context: Context.t): Promise<Transaction.Internal.t> => {
+    const authorizedAt: Date = new Date(args.authorizedAt);
+    const capturedAt: O.Option<Date> = pipe(
+        O.fromNullable(args.capturedAt)
+      , O.map((capturedAt) => new Date(capturedAt))
+    );
+
+    return pipe(
+        UserResource.Transaction.create(context.pool)(context.arena)({ ...args, authorizedAt: authorizedAt, capturedAt: capturedAt })
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: Types.Transaction.t
     , args: Args
     , resolve: resolve
   };
@@ -173,16 +214,37 @@ namespace DeleteSource {
   };
 }
 
+namespace DeleteTransaction {
+  type Args = { id: string; };
+  const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
+
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    return pipe(
+        UserResource.Transaction.remove(context.pool)(context.arena)(id)
+      , TE.map(() => true)
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: Types.Void.t
+    , args: Args
+    , resolve: resolve
+  };
+}
+
 export const mutationType = new graphql.GraphQLObjectType({
     name: 'Mutation'
   , fields: {
         createBucket: CreateBucket.t
       , createManualAccount: CreateAccount.t
       , createSplitByValue: CreateSplitByValue.t
+      , createTransaction: CreateTransaction.t
       , deleteRule: DeleteRule.t
       , deleteIntegration: DeleteIntegration.t
       , deleteManualAccount: DeleteAccount.t
       , deleteManualSource: DeleteSource.t
+      , deleteTransaction: DeleteTransaction.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t
       , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
     }

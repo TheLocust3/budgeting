@@ -27,4 +27,9 @@ export namespace UserResource {
     export const create = Resource.createIntegration;
     export const remove = Resource.removeIntegration;
   }
+
+  export namespace Transaction {
+    export const create = Resource.createTransaction;
+    export const remove = Resource.removeTransaction
+  }
 }

@@ -232,8 +232,6 @@ mutation {
 
 ### next
  - on plaid integration creation, run rollup
- - Endpoint to create a manual transaction
- - Endpoint to delete a transaction
 
 ### miscellaneous
  - User Arena tests
