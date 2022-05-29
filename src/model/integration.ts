@@ -58,7 +58,8 @@ export namespace Internal {
 export namespace Frontend {
   export namespace Create {
     const t = iot.type({
-        userId: iot.string
+        id: iot.string
+      , userId: iot.string
       , name: iot.string
       , credentials: Internal.Credentials
     });

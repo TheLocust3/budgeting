@@ -231,16 +231,13 @@ mutation {
 ## todo
 
 ### next
- - Materialize tests
- - Validate tests
- - configure unique contraints across all tables to ensure that each graphql mutation request can be retried
  - on plaid integration creation, run rollup
- - User Arena tests
- - User Resources tests
  - Endpoint to create a manual account
  - Endpoint to create a manual transaction
 
 ### miscellaneous
+ - User Arena tests
+ - User Resources tests
  - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
  - Add comment mutation

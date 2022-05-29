@@ -13,7 +13,7 @@ import { Db } from "../../magic";
 namespace Query {
   export const createTable = `
     CREATE TABLE integrations (
-      id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
+      id TEXT NOT NULL UNIQUE PRIMARY KEY,
       user_id TEXT NOT NULL,
       name TEXT NOT NULL,
       credentials JSONB NOT NULL,
@@ -23,14 +23,14 @@ namespace Query {
 
   export const dropTable = "DROP TABLE integrations";
 
-  export const create = (userId: string, name: string, credentials: any) => {
+  export const create = (id: string, userId: string, name: string, credentials: any) => {
     return {
       text: `
-        INSERT INTO integrations (user_id, name, credentials)
-        VALUES ($1, $2, $3)
+        INSERT INTO integrations (id, user_id, name, credentials)
+        VALUES ($1, $2, $3, $4)
         RETURNING *
       `,
-      values: [userId, name, credentials]
+      values: [id, userId, name, credentials]
     };
   };
 
@@ -132,7 +132,7 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
 export const create = (pool: Pool) => (integration: Integration.Frontend.Create.t) : TE.TaskEither<Error, Integration.Internal.t> => {
   return pipe(
       TE.tryCatch(
-          () => pool.query(Query.create(integration.userId, integration.name, integration.credentials))
+          () => pool.query(Query.create(integration.id, integration.userId, integration.name, integration.credentials))
         , E.toError
       )
     , Db.expectOne

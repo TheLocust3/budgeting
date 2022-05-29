@@ -23,6 +23,6 @@ export const empty = (request: any, response: any) => {
       id: response.locals.id
     , pool: request.app.locals.db
     , plaidClient: request.app.locals.plaidClient
-    , arena: UserArena.empty(response.locals.user)
+    , arena: UserArena.empty(response.locals.id)(response.locals.user)
   }
 }

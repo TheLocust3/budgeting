@@ -118,7 +118,7 @@ export const addTransaction = (system: System) => ({
 export class System {
   static async build() {
     const userId = await pipe(
-        UserFrontend.create(pool)({ email: "test", password: "foobar", role: "user" })
+        UserFrontend.create(pool)({ id: uuid(), email: "test", password: "foobar", role: "user" })
       , TE.map((user) => user.id)
       , Pipe.toPromise
     );
@@ -130,7 +130,7 @@ export class System {
 
   buildTestSource(): Promise<string> {
     return pipe(
-        SourceFrontend.create(pool)({ userId: this.userId, name: "test", integrationId: O.none, tag: "test" })
+        SourceFrontend.create(pool)({ id: uuid(), userId: this.userId, name: "test", integrationId: O.none, tag: "test" })
       , TE.map((source) => source.id)
       , Pipe.toPromise
     );
@@ -173,7 +173,8 @@ export class System {
 
   addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = this.userId): TE.TaskEither<Error, any> {
     return pipe(AccountFrontend.create(pool)({
-        parentId: parentId
+        id: uuid()
+      , parentId: parentId
       , userId: userId
       , name: name
     }), TE.mapLeft(E.toError));
@@ -193,7 +194,7 @@ export class System {
 
   addRule(accountId: string, rule: any, userId: string = this.userId): TE.TaskEither<Error, any> {
     return pipe(
-        { accountId: accountId , userId: userId , rule: rule }
+        { id: uuid(), accountId: accountId , userId: userId , rule: rule }
       , Validate.rule(pool)
       , TE.chain(RuleFrontend.create(pool))
       , TE.mapLeft(E.toError)

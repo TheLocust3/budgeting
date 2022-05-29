@@ -17,6 +17,7 @@ export LOCAL_VOLUME2="
             hostPath:
               path: /dist"
 export IMAGE="common:latest"
+export IMAGE_POLICY="Never"
 export POSTGRES_LB="---
 apiVersion: v1
 kind: Service

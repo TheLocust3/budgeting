@@ -13,7 +13,7 @@ import { Db } from "../../magic";
 namespace Query {
   export const createTable = `
     CREATE TABLE sources (
-      id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
+      id TEXT NOT NULL UNIQUE PRIMARY KEY,
       user_id TEXT NOT NULL,
       tag TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -28,14 +28,14 @@ namespace Query {
 
   export const dropTable = "DROP TABLE sources";
 
-  export const create = (userId: string, name: string, integrationId: string | null, tag: string) => {
+  export const create = (id: string, userId: string, name: string, integrationId: string | null, tag: string) => {
     return {
       text: `
-        INSERT INTO sources (user_id, name, integration_id, tag)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO sources (id, user_id, name, integration_id, tag)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
       `,
-      values: [userId, name, integrationId, tag]
+      values: [id, userId, name, integrationId, tag]
     };
   };
 
@@ -192,7 +192,8 @@ export const create = (pool: Pool) => (source: Source.Frontend.Create.t) : TE.Ta
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(
-            source.userId
+            source.id
+          , source.userId
           , source.name
           , O.match(() => null, (id: string) => id)(source.integrationId)
           , source.tag

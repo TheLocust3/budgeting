@@ -11,13 +11,13 @@ spec:
           envFrom:
             - configMapRef:
                 name: config
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: $IMAGE_POLICY
           command: ["/bin/sh", "-c", "node /home/node/app/dist/job/migrate/index.js"]
           volumeMounts: $LOCAL_MOUNT
       volumes: $LOCAL_VOLUME
       initContainers:
         - name: wait-for-postgres
           image: postgres:13.4
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c", "pg_isready -h postgres -p 5432 && echo $?"]
       restartPolicy: OnFailure

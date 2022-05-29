@@ -16,7 +16,7 @@ spec:
                     name: config
                 - secretRef:
                     name: secrets
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: $IMAGE_POLICY
               command: ["/bin/sh", "-c", "node /home/node/app/dist/job/rollup/index.js"]
               volumeMounts: $LOCAL_MOUNT2
           volumes: $LOCAL_VOLUME2

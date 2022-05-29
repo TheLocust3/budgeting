@@ -63,7 +63,8 @@ export namespace Internal {
 export namespace Frontend {
   export namespace Create {
     const t = iot.type({
-        parentId: types.option(iot.string)
+        id: iot.string
+      , parentId: types.option(iot.string)
       , userId: iot.string
       , name: iot.string
     });

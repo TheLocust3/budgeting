@@ -13,7 +13,7 @@ import { Db } from "../../magic";
 namespace Query {
   export const createTable = `
     CREATE TABLE accounts (
-      id TEXT NOT NULL UNIQUE PRIMARY KEY DEFAULT gen_random_uuid(),
+      id TEXT NOT NULL UNIQUE PRIMARY KEY,
       parent_id TEXT,
       user_id TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -24,14 +24,14 @@ namespace Query {
 
   export const dropTable = "DROP TABLE accounts";
 
-  export const create = (parentId: string | null, userId: string, name: string) => {
+  export const create = (id: string, parentId: string | null, userId: string, name: string) => {
     return {
       text: `
-        INSERT INTO accounts (parent_id, user_id, name)
-        VALUES ($1, $2, $3)
+        INSERT INTO accounts (id, parent_id, user_id, name)
+        VALUES ($1, $2, $3, $4)
         RETURNING *
       `,
-      values: [parentId, userId, name]
+      values: [id, parentId, userId, name]
     };
   };
 
@@ -158,7 +158,8 @@ export const create = (pool: Pool) => (account: Account.Frontend.Create.t) : TE.
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(
-            pipe(account.parentId, O.match(() => null, (parentId) => parentId))
+            account.id
+          , pipe(account.parentId, O.match(() => null, (parentId) => parentId))
           , account.userId
           , account.name
         )),

@@ -36,7 +36,12 @@ app.locals.plaidClient = plaidClient;
 app.use(async (request, response, next) => {
   const start = Date.now();
 
-  response.locals.id = crypto.randomUUID();
+  if (request.get("request-id")) {
+    response.locals.id = request.get("request-id");
+  } else {
+    response.locals.id = crypto.randomUUID();
+  }
+
   console.log(`[${response.locals.id}] ${request.method}: ${request.url}`)
 
   await next();

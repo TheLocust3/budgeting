@@ -32,7 +32,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: config
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: $IMAGE_POLICY
           command: ["/bin/sh", "-c", "node /home/node/app/dist/logic/index.js"]
           volumeMounts: $LOCAL_MOUNT
       volumes: $LOCAL_VOLUME

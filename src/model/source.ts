@@ -55,7 +55,8 @@ export namespace Internal {
 export namespace Frontend {
   export namespace Create {
     const t = iot.type({
-        userId: iot.string
+        id: iot.string
+      , userId: iot.string
       , name: iot.string
       , integrationId: types.option(iot.string)
       , tag: iot.string
@@ -70,7 +71,8 @@ export namespace Channel {
   export namespace Request {
     export namespace Create {
       const t = iot.type({
-          userId: iot.string
+          id: iot.string
+        , userId: iot.string
         , name: iot.string
         , integrationId: types.option(iot.string)
       });
@@ -85,7 +87,8 @@ export namespace External {
   export namespace Request {
     export namespace Create {
       const t = iot.type({
-          name: iot.string
+          id: iot.string
+        , name: iot.string
         , integrationId: types.option(iot.string)
       });
 

@@ -47,9 +47,9 @@ export namespace CreatePlaidIntegration {
 
   const resolve = (source: any, { userId, itemId, accessToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
-        UserArena.fromId(context.pool)(userId)
+        UserArena.fromId(context.pool)(context.id)(userId)
       , TE.chain((arena) => {
-          return UserResource.Integration.create(context.pool)(context.id)(arena)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken });
+          return UserResource.Integration.create(context.pool)(arena)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken });
         })
       , TE.map(() => true)
       , Pipe.toPromise

@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { v5 as uuid } from 'uuid';
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -26,6 +27,7 @@ export namespace Layer {
 }
 
 export type t = {
+  id: string;
   user: User.Internal.t;
   physical: Layer.t;
   virtual: Layer.t;
@@ -98,19 +100,24 @@ export const integrations = (pool: Pool) => (arena: t): TE.TaskEither<Exception.
   return resolve(arena)(get)(set)(IntegrationArena.resolve(pool))
 }
 
-export const empty = (user: User.Internal.t): t => {
+export const idFor = (arena: t) => (tag: string) => {
+  return uuid(`${arena.id}_${tag}`, uuid.URL);
+}
+
+export const empty = (id: string) => (user: User.Internal.t): t => {
   return {
-      user: user
+      id: id
+    , user: user
     , physical: { account: O.none, rules: O.none, transactions: O.none }
     , virtual: { account: O.none, rules: O.none, transactions: O.none }
     , integrations: O.none
   }
 }
 
-export const fromId = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, t> => {
+export const fromId = (pool: Pool) => (id: string) => (userId: string): TE.TaskEither<Exception.t, t> => {
   return pipe(
       UserFrontend.getById(pool)(userId)
-    , TE.map(empty)
+    , TE.map(empty(id))
   );
 }
 

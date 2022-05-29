@@ -44,7 +44,8 @@ export namespace Internal {
 export namespace Frontend {
   export namespace Create {
     const t = iot.type({
-        email: iot.string
+        id: iot.string
+      , email: iot.string
       , password: iot.string
       , role: iot.string
     });
@@ -68,7 +69,8 @@ export namespace External {
 
     export namespace Create {
       const t = iot.type({
-          email: iot.string
+          id: iot.string
+        , email: iot.string
         , password: iot.string
       });
 
