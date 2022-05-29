@@ -18,10 +18,12 @@ namespace Query {
       tag TEXT NOT NULL,
       name TEXT NOT NULL,
       integration_id TEXT,
+      account_id TEXT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT now(),
       last_refreshed TIMESTAMP,
       FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(account_id) REFERENCES account(id) ON DELETE CASCADE,
       UNIQUE(user_id, tag)
     )
   `;
@@ -72,6 +74,17 @@ namespace Query {
         WHERE user_id = $1 AND integration_id = $2
       `,
       values: [userId, integrationId]
+    };
+  };
+
+  export const withoutIntegrationId = (userId: string) => {
+    return {
+      text: `
+        SELECT id, user_id, name, integration_id, tag, created_at
+        FROM sources
+        WHERE user_id = $1 AND integration_id IS NULL
+      `,
+      values: [userId]
     };
   };
 
@@ -169,6 +182,21 @@ export const byIntegrationId = (pool: Pool) => (userId: string) => (integrationI
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.byIntegrationId(userId, integrationId)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Source.Internal.Database.from)
+        , A.map(E.mapLeft(E.toError))
+        , A.sequence(E.Applicative)
+      )))
+  );
+};
+
+export const withoutIntegrationId = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Source.Internal.t[]> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.withoutIntegrationId(userId)),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(

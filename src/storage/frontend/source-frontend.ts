@@ -36,6 +36,13 @@ export namespace SourceFrontend {
     );
   };
 
+  export const allWithoutIntegrationId = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+    return pipe(
+        SourcesTable.withoutIntegrationId(pool)(userId)
+      , TE.mapLeft((_) => Exception.throwInternalError)
+    );
+  };
+
   export const create = (pool: Pool) => (source: Source.Frontend.Create.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         source

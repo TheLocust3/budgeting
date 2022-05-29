@@ -126,6 +126,43 @@ export const removeIntegration = (pool: Pool) => (arena: UserArena.t) => (integr
   );
 }
 
+export const removeAccount = (pool: Pool) => (arena: UserArena.t) => (accountId: string): TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      AccountFrontend.deleteById(pool)(arena.user.id)(accountId)
+    , TE.map(() => {})
+  );
+}
+
+export const removeSource = (pool: Pool) => (arena: UserArena.t) => (sourceId: string): TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      SourceFrontend.deleteById(pool)(arena.user.id)(sourceId)
+    , TE.map(() => {})
+  );
+}
+
+export const createManualAccount =
+  (pool: Pool) =>
+  (arena: UserArena.t) =>
+  (name: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
+  console.log(`[${arena.id}] - building source + account`);
+
+  return pipe(
+      <Source.Frontend.Create.t>{
+          id: UserArena.idFor(arena)(`source_${name}`)
+        , userId: arena.user.id
+        , name: name
+        , integrationId: O.none
+        , tag: ""
+      }
+    , SourceFrontend.create(pool)
+    , TE.chain(createAccount(pool)(arena))
+    , TE.map((account) => {
+        console.log(`[${arena.id}] - source + account built`);
+        return account;
+      })
+  );
+}
+
 export const createIntegration =
   (pool: Pool) =>
   (arena: UserArena.t) =>
@@ -181,5 +218,5 @@ export const createIntegration =
     , TE.map(() => {
         console.log(`[${arena.id}] - integration/sources built`);
       })
-);
+  );
 }

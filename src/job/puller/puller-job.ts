@@ -7,7 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { Context, PullerException, withIntegration, pushTransactions } from "../util";
+import { Context, PullerException, withIntegration, pushTransactions, accessToken } from "../util";
 
 import { Plaid, Pipe } from "../../magic";
 import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../../storage";
@@ -39,7 +39,7 @@ const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Co
   const createdAt = context.source.createdAt;
 
   return pipe(
-      Plaid.getTransactions(plaidClient)(context.integration.credentials.accessToken, createdAt, new Date())
+      Plaid.getTransactions(plaidClient)(accessToken(context.integration), createdAt, new Date())
     , TE.mapLeft((error) => {
         console.log(error);
         return <PullerException>"Exception";

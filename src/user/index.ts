@@ -5,6 +5,15 @@ export * as UserArena from "./arena";
 export namespace UserResource {
   export const create = Resource.createUser;
 
+  export namespace Account {
+    export const create = Resource.createManualAccount;
+    export const remove = Resource.removeAccount;
+  }
+
+  export namespace Source {
+    export const remove = Resource.removeSource
+  }
+
   export namespace Bucket {
     export const create = Resource.createBucket;
   }

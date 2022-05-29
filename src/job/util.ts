@@ -17,6 +17,15 @@ export type Context = {
 
 export type PullerException = "NoWork" | "Exception";
 
+export const accessToken = (integration: Integration.Internal.t) => {
+  switch (integration.credentials._type) {
+    case "Plaid":
+      return integration.credentials.accessToken;
+    case "Null":
+      return "";
+  }
+}
+
 export const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<PullerException, Context> => {
   // at this point, an integration id must exist
   const integrationId = O.match(() => "", (integrationId: string) => integrationId)(source.integrationId);

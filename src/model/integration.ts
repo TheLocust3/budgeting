@@ -13,14 +13,18 @@ export namespace Internal {
     , accessToken: iot.string
   });
 
-  export const Credentials = PlaidCredentials;
+  const NullCredentials = iot.type({
+    _type: iot.literal("Null")
+  });
+
+  export const Credentials = iot.union([PlaidCredentials, NullCredentials]);
   export type Credentials = iot.TypeOf<typeof Credentials>;
 
   const t = iot.type({
       id: iot.string
     , userId: iot.string
     , name: iot.string
-    , credentials: PlaidCredentials
+    , credentials: Credentials
   });
 
   export type t = iot.TypeOf<typeof t>
@@ -30,7 +34,7 @@ export namespace Internal {
         id: iot.string
       , user_id: iot.string
       , name: iot.string
-      , credentials: PlaidCredentials
+      , credentials: Credentials
     });    
 
     public from = (obj: any): E.Either<Exception.t, t> => {

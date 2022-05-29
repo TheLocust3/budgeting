@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { NIL as NIL_UUID } from 'uuid';
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -29,10 +30,25 @@ export const resolve =
     );
   }
 
+  const resolveManual = (): TE.TaskEither<Exception.t, WithSources> => {
+    const integration: Integration.Internal.t = { id: NIL_UUID, userId: arena.user.id, name: "Manual Sources", credentials: { _type: "Null" } }
+    
+    return pipe(
+        SourceFrontend.allWithoutIntegrationId(pool)(arena.user.id)
+      , TE.map((sources) => ({ integration: integration, sources: sources }))
+    );
+  }
+
   return pipe(
       IntegrationFrontend.all(pool)(arena.user.id)
     , TE.chain((integrations) => {
         return pipe(integrations, A.map(withSources), A.sequence(TE.ApplicativeSeq))
+      })
+    , TE.chain((withSources) => {
+        return pipe(
+            resolveManual()
+          , TE.map((manual) => withSources.concat([manual]))
+        );
       })
   )
 }

@@ -8,7 +8,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { Context, PullerException, withIntegration, pushTransactions } from "../util";
+import { Context, PullerException, withIntegration, pushTransactions, accessToken } from "../util";
 
 import { Exception, Plaid, Pipe } from "../../magic";
 import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../../storage";
@@ -35,7 +35,7 @@ const rollup = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE
   const createdAt = context.source.createdAt;
 
   return pipe(
-      Plaid.getAccounts(plaidClient)(context.integration.credentials.accessToken, createdAt, new Date())
+      Plaid.getAccounts(plaidClient)(accessToken(context.integration), createdAt, new Date())
     , TE.mapLeft((error) => {
         console.log(error);
         return <PullerException>"Exception";
