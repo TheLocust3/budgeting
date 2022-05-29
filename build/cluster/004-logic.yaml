@@ -6,7 +6,7 @@ spec:
   selector:
     app: logic
   ports:
-    - port: 3001
+    - port: 8080
       targetPort: 8080
   type: LoadBalancer
 ---
