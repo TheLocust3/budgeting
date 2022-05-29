@@ -28,6 +28,8 @@ namespace Query {
       text: `
         INSERT INTO integrations (id, user_id, name, credentials)
         VALUES ($1, $2, $3, $4)
+        ON CONFLICT (id)
+        DO UPDATE SET user_id=excluded.user_id, name=excluded.name, credentials=excluded.credentials
         RETURNING *
       `,
       values: [id, userId, name, credentials]

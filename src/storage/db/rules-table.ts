@@ -29,6 +29,8 @@ namespace Query {
       text: `
         INSERT INTO rules (id, account_id, user_id, rule)
         VALUES ($1, $2, $3, $4)
+        ON CONFLICT (id)
+        DO UPDATE SET account_id=excluded.account_id, user_id=excluded.user_id, rule=excluded.rule
         RETURNING *
       `,
       values: [id, accountId, userId, rule]

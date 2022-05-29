@@ -33,6 +33,8 @@ namespace Query {
       text: `
         INSERT INTO sources (id, user_id, name, integration_id, tag)
         VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (id)
+        DO UPDATE SET user_id=excluded.user_id, name=excluded.name, integration_id=excluded.integration_id, tag=excluded.tag
         RETURNING *
       `,
       values: [id, userId, name, integrationId, tag]

@@ -27,6 +27,8 @@ namespace Query {
       text: `
         INSERT INTO users (id, email, password, role)
         VALUES ($1, $2, $3, $4)
+        ON CONFLICT (id)
+        DO UPDATE SET email=excluded.email, password=excluded.password, role=excluded.role
         RETURNING *
       `,
       values: [id, email, password, role]

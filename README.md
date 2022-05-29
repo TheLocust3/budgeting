@@ -32,7 +32,7 @@ PLAID_SECRET=???
   
 Navigate to `http://localhost:8080/external/graphql`  
 
-### start hot-reload
+### build + hot-reload
 `yarn deploy`
 
 
