@@ -64,8 +64,8 @@ resource "aws_security_group" "control_plane" {
   name = "control_plane"
 
   ingress {
-    from_port        = 3001
-    to_port          = 3001
+    from_port        = 8080
+    to_port          = 8080
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
   }

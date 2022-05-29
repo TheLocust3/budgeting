@@ -30,7 +30,7 @@ PLAID_SECRET=???
 ... some amount of waiting ...  
 `kubectl get pods` should show the containers starting up  
   
-Navigate to `http://localhost:3001/external/graphql`  
+Navigate to `http://localhost:8080/external/graphql`  
 
 ### start hot-reload
 `yarn deploy`
@@ -91,7 +91,7 @@ Deploy the cluster:
 
 ## graphql api
 ### External API
-Open `localhost:3001/external/graphql`.
+Open `localhost:8080/external/graphql`.
 
 Login:
 ```
@@ -106,7 +106,7 @@ Store the token as a cookie using the Developer Console:
 `document.cookie="auth-token=${TOKEN}"`
 
 ### Authenticated API
-Open `localhost:3001/graphql`.
+Open `localhost:8080/graphql`.
 
 Sample query:
 ```
@@ -157,7 +157,7 @@ Sample query:
 ```
 
 ### Admin API
-Open `localhost:3001/admin/graphql`.
+Open `localhost:8080/admin/graphql`.
 
 Sample query:
 ```
