@@ -51,7 +51,7 @@ export namespace ExchangePublicToken {
     return pipe(
         PlaidHelper.exchangePublicToken(context.plaidClient)(publicToken)
       , TE.chain((publicToken) =>
-          UserResource.Integration.create(context.pool)(context.arena)({ institutionName: institutionName, accounts: asList(accounts) })(publicToken)
+          UserResource.Integration.create(context.pool)(context.plaidClient)(context.arena)({ institutionName: institutionName, accounts: asList(accounts) })(publicToken)
         )
       , TE.map(() => true)
       , Pipe.toPromise

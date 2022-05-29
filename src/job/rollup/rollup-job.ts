@@ -65,6 +65,14 @@ const rollup = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE
   );
 }
 
+export const rollupFor = (pool: Pool) => (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, void> => {
+  return pipe(
+      context
+    , rollup(plaidClient)(id)
+    , TE.chain(pushTransactions(pool)(id))
+  );
+}
+
 export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Task<boolean> => {
   return pipe(
       pull(pool)
@@ -73,8 +81,7 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Ta
         console.log(`Scheduler.rollup[${id}] - pulling for ${context.source.id}`)
         return context;
       })
-    , TE.chain(rollup(plaidClient)(id))
-    , TE.chain(pushTransactions(pool)(id))
+    , TE.chain(rollupFor(pool)(plaidClient)(id))
     , TE.match(
           (error) => {
             switch (error) {

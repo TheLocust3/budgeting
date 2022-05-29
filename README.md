@@ -231,11 +231,10 @@ mutation {
 ## todo
 
 ### next
- - on plaid integration creation, run rollup
-
-### miscellaneous
  - User Arena tests
  - User Resources tests
+
+### miscellaneous
  - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
  - Add comment mutation

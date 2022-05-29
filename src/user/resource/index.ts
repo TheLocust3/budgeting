@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { PlaidApi } from "plaid";
 import { v5 as uuid } from 'uuid';
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -10,6 +11,8 @@ import { GLOBAL_ACCOUNT, PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../util";
 import { UserArena } from "../index";
 
 import { Validate } from "../../engine";
+import { Context } from "../../job/util"
+import { rollupFor } from "../../job/rollup/rollup-job";
 import { User, Account, Rule, Source, Integration, Plaid, Transaction } from "../../model";
 import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, TransactionFrontend, UserFrontend } from "../../storage";
 import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../magic";
@@ -179,6 +182,7 @@ export const createTransaction =
 
 export const createIntegration =
   (pool: Pool) =>
+  (plaidClient: PlaidApi) =>
   (arena: UserArena.t) =>
   (request: { institutionName: string, accounts: { id: string, name: string }[] }) =>
   (publicToken: { item_id: string, access_token: string }): TE.TaskEither<Exception.t, void> => {
@@ -198,7 +202,7 @@ export const createIntegration =
     return IntegrationFrontend.create(pool)(integration);
   }
 
-  const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
+  const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Context[]> => {
     console.log(`[${arena.id}] - building sources "${request.accounts}"`);
     const sources: Source.Frontend.Create.t[] = A.map(({ id, name }: Plaid.External.Request.ExchangePublicToken.Account) => {
       return <Source.Frontend.Create.t>{
@@ -212,16 +216,34 @@ export const createIntegration =
 
     return pipe(
         sources
-      , A.map(SourceFrontend.create(pool))
+      , A.map((source) => {
+          return pipe(
+              source
+            , SourceFrontend.create(pool)
+            , TE.map((source) => (<Context>{ source: source, integration: integration }))
+          );
+        })
       , A.sequence(TE.ApplicativeSeq)
     );
   }
 
-  const buildAccounts = (sources: Source.Internal.t[]): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
+  const buildAccounts = (contexts: Context[]): TE.TaskEither<Exception.t, Context[]> => {
     return pipe(
-        sources
+        contexts
+      , A.map(({ source }) => source)
       , A.map(createAccount(pool)(arena))
       , A.sequence(TE.ApplicativeSeq)
+      , TE.map(() => contexts)
+    );
+  }
+
+  const rollupAll = (contexts: Context[]): TE.TaskEither<Exception.t, void> => {
+    return pipe(
+        contexts
+      , A.map(rollupFor(pool)(plaidClient)(arena.id))
+      , A.sequence(TE.ApplicativeSeq)
+      , TE.map(() => {})
+      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   }
 
@@ -229,6 +251,7 @@ export const createIntegration =
       buildIntegration()
     , TE.chain(buildSources)
     , TE.chain(buildAccounts)
+    , TE.chain(rollupAll)
     , TE.map(() => {
         console.log(`[${arena.id}] - integration/sources built`);
       })

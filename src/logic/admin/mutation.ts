@@ -49,7 +49,7 @@ export namespace CreatePlaidIntegration {
     return pipe(
         UserArena.fromId(context.pool)(context.id)(userId)
       , TE.chain((arena) => {
-          return UserResource.Integration.create(context.pool)(arena)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken });
+          return UserResource.Integration.create(context.pool)(context.plaidClient)(arena)({ institutionName: institutionName, accounts: asList(accounts) })({ item_id: itemId, access_token: accessToken });
         })
       , TE.map(() => true)
       , Pipe.toPromise

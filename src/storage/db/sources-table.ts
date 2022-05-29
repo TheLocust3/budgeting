@@ -18,12 +18,10 @@ namespace Query {
       tag TEXT NOT NULL,
       name TEXT NOT NULL,
       integration_id TEXT,
-      account_id TEXT NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT now(),
-      last_refreshed TIMESTAMP,
+      last_refreshed TIMESTAMP NOT NULL DEFAULT now(),
       FOREIGN KEY(integration_id) REFERENCES integrations(id) ON DELETE CASCADE,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY(account_id) REFERENCES account(id) ON DELETE CASCADE,
       UNIQUE(user_id, tag)
     )
   `;
