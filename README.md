@@ -233,23 +233,50 @@ mutation {
 ### next
  - User Arena tests
  - User Resources tests
+ - Transaction aggregations
+   - `grouper` - uses grouping rules to produce grouped transactions
+     - Operates on `tagged` transactions
+     - Grouping is just a function supplied to the `executor`
+   - `aggregator` - uses aggregation rules to produce aggregations
+     - Operates on `grouped` transactions
+     - Aggregation is just a function supplied to the `executor`
+   - Combine empty grouping + sum aggregation to calculate total
+   - Combine account grouping + sum aggregation to calculate total per account
+   - tests
+ - IR (materializer => grouper => aggregator)
+   - Source (db call) => Materializer => Split stage => Sink
+     - Split 1: Empty grouping => Sum aggregation
+     - Split 2: Accounts grouping => Sum aggregation
+     - Sink
+       - Inputs: materialized transactions + results of each split stage
+       - Compute user friendly value
+   - Frontends handle these details
+     - Plan (what rules? => what groups + aggregations)
+     - Frontend then pulls the transactions from the DB, pushes them through the executable plan, receives the output, converts the output into something useful
+     - Frontends act as both the Source and the Sink as well as supply the plan
+     - Examples
+       - frontend for materializing virtual/physical accounts (to supply GraphQL results)
+       - frontend for producing graphs
  - cluster upgrade strategy
    - pin version to hash?
    - hash to hash upgrade?
    - kubernetes probably has some guidance on this
 
 ### miscellaneous
+ - Uniqueness constraints on everything
+   - Especially users
  - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
  - Add comment mutation
  - Don't build plan/stages for every transaction
 
 ### future
+  - Move control plane to separate instance + use ASGs for nodes
+    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
   - GraphQL tests
   - Better logging
   - Puller improvements
     - Handle Plaid pageination
     - Don't re-pull everything
- - Engine aggregations
  - basic rule pushdowns
    - all include rules are up for grabs
