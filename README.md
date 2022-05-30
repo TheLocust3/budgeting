@@ -233,6 +233,10 @@ mutation {
 ### next
  - User Arena tests
  - User Resources tests
+ - cluster upgrade strategy
+   - pin version to hash?
+   - hash to hash upgrade?
+   - kubernetes probably has some guidance on this
 
 ### miscellaneous
  - Optional remainder in SplitByValue

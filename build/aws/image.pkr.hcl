@@ -43,6 +43,7 @@ build {
       "chmod 777 /home/ubuntu/ecr_refresh.sh",
 
       "sudo apt-get update",
+      "sleep 15",
       "sudo apt-get install -y unzip",
       "curl \"https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip\" -o \"awscliv2.zip\"",
       "unzip awscliv2.zip",

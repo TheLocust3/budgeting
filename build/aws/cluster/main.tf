@@ -19,7 +19,7 @@ data "aws_ami" "common_ami" {
 
   filter {
     name   = "name"
-    values = ["common-ubuntu-"]
+    values = ["common-ubuntu-*"]
   }
 }
 
