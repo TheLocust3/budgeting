@@ -6,4 +6,4 @@ export PGPORT=5432
 export PGUSER=jakekinsella
 export PGPASSWORD=foobar
 
-jest --forceExit --verbose
+jest --forceExit --verbose user/

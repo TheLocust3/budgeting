@@ -12,9 +12,11 @@ import { UserFrontend } from "../../src/storage";
 import { User } from "../../src/model";
 import { Exception } from "../../src/magic";
 
-const pool = new Pool();
+import { pool, wrapperBuilder, Wrapper } from './util';
+
 let user: User.Internal.t;
-beforeAll(async () => {
+let wrap: Wrapper;
+beforeEach(async () => {
   const id = crypto.randomUUID();
   const email = `test-${crypto.randomUUID()}`;
 
@@ -22,15 +24,9 @@ beforeAll(async () => {
       (error: Exception.t) => { throw new Error(`Failed with ${error}`); }
     , (newUser: User.Internal.t) => user = newUser
   )(UserResource.create(pool)({ id: id, email: email, password: "foobar", role: User.DEFAULT_ROLE }))();
-});
 
-type Wrapped<T> = (arena: UserArena.t) => TE.TaskEither<Exception.t, T>;
-const wrap = <T>(func: Wrapped<T>): TE.TaskEither<Exception.t, T> => {
-  return pipe(
-      UserArena.fromId(pool)(crypto.randomUUID())(user.id)
-    , TE.chain((arena: UserArena.t) => func(arena))
-  );
-}
+  wrap = wrapperBuilder(user);
+});
 
 it("can resolve physical accounts", async () => {
   await pipe(
@@ -73,6 +69,60 @@ it("can add physical account", async () => {
             expect(accountArena.children).toEqual(expect.arrayContaining([
               expect.objectContaining({ account: expect.objectContaining({ name: name }) })
             ]));
+          }
+      )
+  )();
+});
+
+it("can delete physical account", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      wrap((arena) => UserResource.Account.create(pool)(arena)(name))
+    , TE.chain((account) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
+    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${JSON.stringify(error)}`); }
+        , (accountArena: UserArena.Account.t) => {
+            expect(accountArena.account).toEqual(expect.objectContaining({ name: PHYSICAL_ACCOUNT }));
+            expect(accountArena.children.length).toEqual(0);
+          }
+      )
+  )();
+});
+
+it("can add virtual bucket", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
+    , TE.chain(() => wrap((arena) => UserArena.virtual(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (accountArena: UserArena.Account.t) => {
+            expect(accountArena.account).toEqual(expect.objectContaining({ name: VIRTUAL_ACCOUNT }));
+
+            expect(accountArena.children.length).toEqual(1);
+            expect(accountArena.children).toEqual(expect.arrayContaining([
+              expect.objectContaining({ account: expect.objectContaining({ name: name }) })
+            ]));
+          }
+      )
+  )();
+});
+
+it("can delete virtual bucket", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
+    , TE.chain((account) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)(account.id)))
+    , TE.chain(() => wrap((arena) => UserArena.virtual(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (accountArena: UserArena.Account.t) => {
+            expect(accountArena.account).toEqual(expect.objectContaining({ name: VIRTUAL_ACCOUNT }));
+            expect(accountArena.children.length).toEqual(0);
           }
       )
   )();

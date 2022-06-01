@@ -269,6 +269,9 @@ mutation {
    - need way of raising a conflict inside of a single split rule
  - Add comment mutation
  - Don't build plan/stages for every transaction
+ - Prevent deletion of virtual/physical/global accounts
+   - Only allow deletion of _accounts_ not buckets via the remove account endpoint
+   - Only allow deletion of _buckets_ not accounts via the remove bucket endpoint
 
 ### future
   - Move control plane to separate instance + use ASGs for nodes
