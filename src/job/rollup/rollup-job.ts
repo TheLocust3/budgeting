@@ -36,6 +36,10 @@ const rollup = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE
 
   return pipe(
       Plaid.getAccounts(plaidClient)(accessToken(context.integration), createdAt, new Date())
+    , TE.map((accounts) => {
+        console.log(JSON.stringify(accounts))
+        return accounts;
+      })
     , TE.mapLeft((error) => {
         console.log(error);
         return <PullerException>"Exception";
@@ -43,6 +47,7 @@ const rollup = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE
     , TE.map(A.filter((account: AccountBase) => account.account_id === accountId))
     , TE.chain((accounts) => {
         if (accounts.length !== 1) {
+          console.log(JSON.stringify(accounts))
           console.log(`Scheduler.rollup[${id}] - wrong number of matching accounts ${accounts}`);
           return TE.throwError<PullerException, AccountBase>(<PullerException>"Exception");
         } else {

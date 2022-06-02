@@ -6,4 +6,9 @@ export PGPORT=5432
 export PGUSER=jakekinsella
 export PGPASSWORD=foobar
 
-jest --forceExit --verbose user/
+# sandbox credentials
+export PLAID_CLIENT_ID=***REMOVED***
+export PLAID_SECRET=***REMOVED***
+export ENVIRONMENT=test
+
+jest --forceExit --verbose

@@ -9,9 +9,10 @@ import * as TE from "fp-ts/TaskEither";
 import { UserArena, UserResource } from "../../src/user";
 
 import { User } from "../../src/model";
-import { Exception } from "../../src/magic";
+import { Exception, Plaid } from "../../src/magic";
 
 export const pool = new Pool();
+export const plaidClient = Plaid.buildClient();
 
 type Wrapped<T> = (arena: UserArena.t) => TE.TaskEither<Exception.t, T>;
 export type Wrapper = <T>(func: Wrapped<T>) => TE.TaskEither<Exception.t, T>;

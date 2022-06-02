@@ -9,21 +9,11 @@ import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
 import * as RollupJob from "./rollup-job";
 
-import { Exception, Reaper } from "../../magic";
+import { Exception, Reaper, Plaid } from "../../magic";
 import { SourceFrontend } from "../../storage";
 import { Source } from "../../model";
 
-const plaidConfig = new Configuration({
-  basePath: PlaidEnvironments.development,
-  baseOptions: {
-    headers: {
-      'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
-      'PLAID-SECRET': process.env.PLAID_SECRET
-    },
-  },
-});
-
-const plaidClient = new PlaidApi(plaidConfig);
+const plaidClient = Plaid.buildClient();
 const pool = new Pool();
 const id = crypto.randomUUID();
 

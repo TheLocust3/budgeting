@@ -15,23 +15,12 @@ import ExternalEndpoint from "./external/index";
 import { AuthenticationFor } from "./util";
 import { router as rootRouter } from "./route/root";
 
-import { Reaper } from "../magic";
+import { Reaper, Plaid } from "../magic";
 import { User } from "../model";
-
-const plaidConfig = new Configuration({
-  basePath: PlaidEnvironments.development,
-  baseOptions: {
-    headers: {
-      'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
-      'PLAID-SECRET': process.env.PLAID_SECRET
-    },
-  },
-});
-const plaidClient = new PlaidApi(plaidConfig);
 
 const app = Express();
 app.locals.db = new Pool();
-app.locals.plaidClient = plaidClient;
+app.locals.plaidClient = Plaid.buildClient();
 
 app.use(async (request, response, next) => {
   const start = Date.now();

@@ -8,6 +8,8 @@ import {
   , LinkTokenCreateResponse
   , ItemPublicTokenExchangeResponse
   , Products
+  , Configuration
+  , PlaidEnvironments
 } from "plaid";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -18,6 +20,30 @@ import { pipe } from "fp-ts/lib/pipeable";
 import moment from "moment";
 
 import { Exception } from "./index";
+
+const environment = () => {
+  switch (process.env.ENVIRONMENT) {
+    case "test":
+    case "TEST":
+      return PlaidEnvironments.sandbox;
+    default:
+      return PlaidEnvironments.development;
+  }
+}
+
+export const buildClient = () => {
+  const plaidConfig = new Configuration({
+    basePath: environment(),
+    baseOptions: {
+      headers: {
+        'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
+        'PLAID-SECRET': process.env.PLAID_SECRET
+      },
+    },
+  });
+
+  return new PlaidApi(plaidConfig);
+}
 
 const pull =
   (plaidClient: PlaidApi) =>
