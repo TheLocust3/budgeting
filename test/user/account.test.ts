@@ -79,7 +79,7 @@ it("can delete physical account", async () => {
 
   await pipe(
       wrap((arena) => UserResource.Account.create(pool)(arena)(name))
-    , TE.chain((account) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
+    , TE.chain(({ account }) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
     , TE.chain(() => wrap((arena) => UserArena.physical(pool)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${JSON.stringify(error)}`); }

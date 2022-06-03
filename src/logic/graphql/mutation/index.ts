@@ -56,6 +56,7 @@ namespace CreateAccount {
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
     return pipe(
         UserResource.Account.create(context.pool)(context.arena)(name)
+      , TE.map(({ account }) => account)
       , Pipe.toPromise
     );
   }

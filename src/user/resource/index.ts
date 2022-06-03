@@ -153,7 +153,7 @@ export const removeTransaction = (pool: Pool) => (arena: UserArena.t) => (transa
 export const createManualAccount =
   (pool: Pool) =>
   (arena: UserArena.t) =>
-  (name: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
+  (name: string): TE.TaskEither<Exception.t, { account: Account.Internal.t, source: Source.Internal.t }> => {
   console.log(`[${arena.id}] - building source + account`);
 
   return pipe(
@@ -165,10 +165,10 @@ export const createManualAccount =
         , tag: ""
       }
     , SourceFrontend.create(pool)
-    , TE.chain(createAccount(pool)(arena))
-    , TE.map((account) => {
+    , TE.chain((source) => pipe(createAccount(pool)(arena)(source), TE.map((account) => ({ account: account, source: source }))))
+    , TE.map((both) => {
         console.log(`[${arena.id}] - source + account built`);
-        return account;
+        return both;
       })
   );
 }
