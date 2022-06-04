@@ -231,8 +231,6 @@ mutation {
 ## todo
 
 ### next
- - User Arena tests
- - User Resources tests
  - Transaction aggregations
    - `grouper` - uses grouping rules to produce grouped transactions
      - Operates on `tagged` transactions

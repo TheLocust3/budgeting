@@ -128,20 +128,106 @@ it("can materialize physical and 1 transaction", async () => {
 
 it("can materialize virtual and 1 transaction and no rules", async () => {
   const name = `test-${crypto.randomUUID()}`;
+  const bucketName = `test-${crypto.randomUUID()}`;
 
   await pipe(
       TE.Do
     , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
     , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
     , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ account, materialized }) => {
+        , ({ materialized }) => {
             expect(materialized.tagged).toEqual({});
             expect(materialized.conflicts).toEqual([]);
             expect(materialized.untagged).toEqual(expect.arrayContaining([
               expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })
             ]));
+          }
+      )
+  )();
+});
+
+it("can materialize mutliple buckets", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const bucket1 = `test-${crypto.randomUUID()}`;
+  const bucket2 = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket1)))
+    , TE.bind("bucket2", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket2)))
+    , TE.bind("rule", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 1 }], bucket2.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ bucket1, bucket2, materialized }) => {
+            expect(materialized.tagged[bucket1.id]).toEqual(expect.arrayContaining([
+              expect.objectContaining({ amount: 1, merchantName: "Test Merchant", description: "A purchase" })
+            ]))
+            expect(materialized.tagged[bucket2.id]).toEqual(expect.arrayContaining([
+              expect.objectContaining({ amount: 99, merchantName: "Test Merchant", description: "A purchase" })
+            ]))
+            expect(materialized.conflicts).toEqual([]);
+            expect(materialized.untagged).toEqual([]);
+          }
+      )
+  )();
+});
+
+it("can materialize rule over amount", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const bucket1 = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket1)))
+    , TE.bind("rule", ({ transaction, bucket1 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 101 }], bucket1.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ bucket1, materialized }) => {
+            expect(materialized.tagged[bucket1.id]).toEqual(expect.arrayContaining([
+              expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })
+            ]))
+            expect(materialized.conflicts).toEqual([]);
+            expect(materialized.untagged).toEqual([]);
+          }
+      )
+  )();
+});
+
+it("can materialize conflict", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const bucket1 = `test-${crypto.randomUUID()}`;
+  const bucket2 = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket1)))
+    , TE.bind("bucket2", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket2)))
+    , TE.bind("rule1", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 1 }], bucket2.id)))
+    , TE.bind("rule2", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 99 }], bucket2.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ bucket1, rule1, rule2, materialized }) => {
+            expect(materialized.tagged).toEqual({})
+            expect(materialized.conflicts).toEqual(expect.arrayContaining([
+              {
+                _type: "Conflict",
+                element: expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" }),
+                rules: expect.arrayContaining(A.map((rule: any) => rule.rule)([rule1, rule2]))
+              }
+            ]));
+            expect(materialized.untagged).toEqual([]);
           }
       )
   )();
