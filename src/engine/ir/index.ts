@@ -7,8 +7,8 @@ import * as E from "fp-ts/Either";
 import * as Materializer from "../materialize";
 import * as MaterializePlan from "../materialize/plan";
 
-import { Transaction, Materialize as MaterializeModel } from "../../model";
-import { TransactionFrontend } from "../../storage";
+import { Account, Transaction, Materialize as MaterializeModel } from "../../model";
+import { AccountFrontend, TransactionFrontend } from "../../storage";
 import { Exception } from "../../magic";
 
 export namespace Plan {
@@ -91,5 +91,59 @@ export namespace Frontend {
         sourceFor(pool)(plan)
       , TE.map(executablePlan)
     );
+  }
+}
+
+export namespace Builder {
+  export namespace GroupAndAggregate {
+    export namespace Group {
+      export type Empty = { _type: "Empty" };
+
+      export type t = Empty;
+    }
+
+    export namespace Aggregate {
+      export type Sum = { _type: "Sum" };
+
+      export type t = Sum;
+    }
+
+    export type t = { [key: string]: { group: Group.t, aggregate: Aggregate.t } };
+
+    export const build = (aggregations: t): { [key: string]: Plan.GroupByAndReduce.t<any, any> } => {
+      throw new Error("TODO");
+    }
+  }
+
+  export namespace ForUser {
+    export type t = {
+      userId: string;
+      accountId: string;
+      aggregations: GroupAndAggregate.t
+    };
+
+    export const build = (pool: Pool) => (builder: t): TE.TaskEither<Exception.t, Plan.t> => {
+      const buildAccount = (): TE.TaskEither<Exception.t, Account.Internal.Rich> => {
+        return pipe(
+            AccountFrontend.getByIdAndUserId(pool)(builder.userId)(builder.accountId)
+          , TE.chain(AccountFrontend.withRules(pool))
+          , TE.chain(AccountFrontend.withChildren(pool))
+        );
+      }
+
+      pipe(
+          buildAccount()
+        , TE.chain((account) => pipe(Materializer.linkedAccounts(pool)(account), TE.map((accounts) => accounts.concat(account))))
+        , TE.map(MaterializePlan.build)
+        , TE.map((materializePlan) => {
+            return <Plan.t> {
+                source: { _type: "TransactionsForUser", userId: builder.userId }
+              , materialize: materializePlan
+              , reductions: GroupAndAggregate.build(builder.aggregations)
+            };
+          })
+      );
+      throw new Error("TODO");
+    }
   }
 }

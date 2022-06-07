@@ -13,7 +13,7 @@ import { Transaction, Rule, Account, Materialize } from "../../model";
 import { AccountFrontend, TransactionFrontend, RuleFrontend } from "../../storage";
 import { Exception, Format } from "../../magic";
 
-const linkedAccounts = (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Account.Internal.Rich[]> => {
+export const linkedAccounts = (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Account.Internal.Rich[]> => {
   return O.match(
       () => TE.of([])
     , (parentId: string) => pipe(
