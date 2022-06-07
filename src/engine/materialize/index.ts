@@ -68,7 +68,7 @@ const executeStage = (stage: Plan.Stage) => (materialized: Materialize.Internal.
   );
 };
 
-const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): Materialize.Internal.t => {
+export const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal.t[]): Materialize.Internal.t => {
   if (plan.stages.length < 1) {
     return {
         conflicts: []
