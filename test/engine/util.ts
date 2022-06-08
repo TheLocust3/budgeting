@@ -7,7 +7,7 @@ import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 
-import { Materialize, Validate } from "../../src/engine";
+import { Frontend, Validate } from "../../src/engine";
 
 import { Pipe } from "../../src/magic";
 import { Account, Rule, Transaction } from "../../src/model";
@@ -214,6 +214,6 @@ export class System {
   }
 
   materialize(accountId: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(Materialize.account(pool)(userId)(accountId), TE.mapLeft(E.toError));
+    return pipe(Frontend.ForAccount.execute(pool)(userId)(accountId), TE.mapLeft(E.toError));
   }
 }

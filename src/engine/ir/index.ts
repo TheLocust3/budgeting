@@ -67,9 +67,11 @@ export namespace Frontend {
   const build = (plan: Plan.t): ExecutablePlan => {
     return (transactions: Transaction.Internal.t[]): Result.t => {
       const materialized = Materializer.executePlan(plan.materialize)(transactions);
-      // run reductions
-      // collect result
-      throw new Error("TODO");
+      
+      return {
+          materialized: materialized
+        , reductions: {} // TODO: JK
+      }
     }
   }
 
@@ -111,11 +113,11 @@ export namespace Builder {
     export type t = { [key: string]: { group: Group.t, aggregate: Aggregate.t } };
 
     export const build = (aggregations: t): { [key: string]: Plan.GroupByAndReduce.t<any, any> } => {
-      throw new Error("TODO");
+      return {}; // TODO: JK
     }
   }
 
-  export namespace ForUser {
+  export namespace ForAccount {
     export type t = {
       userId: string;
       accountId: string;
@@ -131,7 +133,7 @@ export namespace Builder {
         );
       }
 
-      pipe(
+      return pipe(
           buildAccount()
         , TE.chain((account) => pipe(Materializer.linkedAccounts(pool)(account), TE.map((accounts) => accounts.concat(account))))
         , TE.map(MaterializePlan.build)
@@ -143,7 +145,6 @@ export namespace Builder {
             };
           })
       );
-      throw new Error("TODO");
     }
   }
 }

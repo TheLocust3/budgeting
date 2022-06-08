@@ -7,7 +7,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import * as Arena from "./index";
 
-import { Materialize } from "../../engine";
+import { Frontend } from "../../engine";
 import { User, Account, Rule, Materialize as MaterializeModel } from "../../model";
 import { Exception } from "../../magic";
 
@@ -17,5 +17,5 @@ export const resolve =
   (pool: Pool) => 
   (accountId: string) =>
   (arena: Arena.t): TE.TaskEither<Exception.t, MaterializeModel.Internal.t> => {
-  return Materialize.account(pool)(arena.user.id)(accountId);
+  return Frontend.ForAccount.execute(pool)(arena.user.id)(accountId);
 }
