@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
@@ -27,7 +28,7 @@ export namespace Plan {
 
   export namespace GroupByAndReduce {
     export namespace GroupBy {
-      export type t<Key> = (transaction: Transaction.Internal.t) => Key;
+      export type t<Key> = (account: string, transaction: Transaction.Internal.t) => Key;
     }
 
     export namespace Reduce {
@@ -43,34 +44,50 @@ export namespace Plan {
     };
   }
 
+  export type Reductions = { [key: string]: GroupByAndReduce.t<any, any> };
+
   export type t = {
     source: Source.t;
     materialize: Materialize.t;
-    reductions: { [key: string]: GroupByAndReduce.t<any, any> };
+    reductions: Reductions;
   }
 }
 
 export namespace Result {
   export namespace GroupByAndReduce {
-    export type t<Key, Out> = { value: Out, _witness: GroupByAndReduce.t<Key, Out> }
+    export type t<Key, Out> = { value: Out, _witness: Plan.GroupByAndReduce.t<Key, Out> }
   }
 
+  export type Reductions = { [key: string]: GroupByAndReduce.t<any, any> };
   export type t = {
     materialized: MaterializeModel.Internal.t;
-    reductions: { [key: string]: GroupByAndReduce.t<any, any> }
+    reductions: Reductions;
   }
 }
 
 export namespace Frontend {
   type ExecutablePlan = (transaction: Transaction.Internal.t[]) => Result.t;
 
+  const buildReducation = <Key, Out>(reduction : Plan.GroupByAndReduce.t<Key, Out>): (materialized: MaterializeModel.Internal.t) => Out => {
+    throw new Error("TODO")
+  }
+
   const build = (plan: Plan.t): ExecutablePlan => {
     return (transactions: Transaction.Internal.t[]): Result.t => {
       const materialized = Materializer.executePlan(plan.materialize)(transactions);
+      const reduced = pipe(
+          Object.keys(plan.reductions)
+        , A.map((key) => ({ key: key, reduction: plan.reductions[key] }))
+        , A.map(({ key, reduction }) => ({ key: key, reduction: reduction, run: buildReducation(reduction) }))
+        , A.map(({ key, reduction, run }) => ({ key: key, reduction: reduction, out: run(materialized) }))
+        , A.reduce(<Result.Reductions>{}, (acc, { key, reduction, out }) => {
+            return { ...acc, [key]: { value: out, _witness: reduction } };
+          })
+      );
       
       return {
           materialized: materialized
-        , reductions: {} // TODO: JK
+        , reductions: reduced
       }
     }
   }
@@ -100,20 +117,55 @@ export namespace Builder {
   export namespace GroupAndAggregate {
     export namespace Group {
       export type Empty = { _type: "Empty" };
+      export type Account = { _type: "Account" };
 
-      export type t = Empty;
+      export type t = Empty | Account;
+
+      export const build = (group: t): Plan.GroupByAndReduce.GroupBy.t<any> => {
+        switch (group._type) {
+          case "Empty":
+            return (account: string, transaction: Transaction.Internal.t) => "";
+          case "Account":
+            return (account: string, transaction: Transaction.Internal.t) => account;
+        }
+      }
     }
 
     export namespace Aggregate {
       export type Sum = { _type: "Sum" };
 
       export type t = Sum;
+
+      // TODO: JK it feels like we can bind the type of an aggregation with its groupBy
+      export const build = (aggregate: t): Plan.GroupByAndReduce.Reduce.t<any, any> => {
+        switch (aggregate._type) {
+          case "Sum":
+            return <Plan.GroupByAndReduce.Reduce.t<any, number>>{
+                empty: 0
+              , reduce: (acc, { transaction }) => {
+                  return acc + transaction.amount;
+                }
+            };
+        }
+      }
     }
 
     export type t = { [key: string]: { group: Group.t, aggregate: Aggregate.t } };
 
-    export const build = (aggregations: t): { [key: string]: Plan.GroupByAndReduce.t<any, any> } => {
-      return {}; // TODO: JK
+    export const build = (aggregations: t): Plan.Reductions => {
+      const buildOne = ({ group, aggregate }: { group: Group.t, aggregate: Aggregate.t }): Plan.GroupByAndReduce.t<any, any> => {
+        return {
+            groupBy: Group.build(group)
+          , reduce: Aggregate.build(aggregate)
+        };
+      }
+
+      return pipe(
+          Object.keys(aggregations)
+        , A.reduce(<Plan.Reductions>{}, (acc: Plan.Reductions, key: string) => {
+            return { ...acc, [key]: buildOne(aggregations[key]) };
+          })
+      );
     }
   }
 

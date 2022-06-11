@@ -232,29 +232,10 @@ mutation {
 
 ### next
  - Transaction aggregations
-   - `grouper` - uses grouping rules to produce grouped transactions
-     - Operates on `tagged` transactions
-     - Grouping is just a function supplied to the `executor`
-   - `aggregator` - uses aggregation rules to produce aggregations
-     - Operates on `grouped` transactions
-     - Aggregation is just a function supplied to the `executor`
+   - Implement reductions
    - Combine empty grouping + sum aggregation to calculate total
    - Combine account grouping + sum aggregation to calculate total per account
-   - tests
- - IR (materializer => grouper => aggregator)
-   - Source (db call) => Materializer => Split stage => Sink
-     - Split 1: Empty grouping => Sum aggregation
-     - Split 2: Accounts grouping => Sum aggregation
-     - Sink
-       - Inputs: materialized transactions + results of each split stage
-       - Compute user friendly value
-   - Frontends handle these details
-     - Plan (what rules? => what groups + aggregations)
-     - Frontend then pulls the transactions from the DB, pushes them through the executable plan, receives the output, converts the output into something useful
-     - Frontends act as both the Source and the Sink as well as supply the plan
-     - Examples
-       - frontend for materializing virtual/physical accounts (to supply GraphQL results)
-       - frontend for producing graphs
+   - tests (UserArena + engine specific)
  - cluster upgrade strategy
    - pin version to hash?
    - hash to hash upgrade?
