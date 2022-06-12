@@ -28,23 +28,23 @@ export namespace Plan {
 
   export namespace GroupByAndReduce {
     export namespace GroupBy {
-      export type t<Key> = (account: string, transaction: Transaction.Internal.t) => Key;
+      export type t = (input: { account: string, transaction: Transaction.Internal.t }) => string;
     }
 
     export namespace Reduce {
-      export type t<Key, Out> = {
+      export type t<Out> = {
         empty: Out;
-        reduce: (acc: Out, input: { key: Key, transaction: Transaction.Internal.t }) => Out;
+        reduce: (acc: Out, input: { key: string, account: string, transaction: Transaction.Internal.t }) => Out;
       }
     }
 
-    export type t<Key, Out> = {
-      groupBy: GroupBy.t<Key>;
-      reduce: Reduce.t<Key, Out>;
+    export type t<Out> = {
+      groupBy: GroupBy.t;
+      reduce: Reduce.t<Out>;
     };
   }
 
-  export type Reductions = { [key: string]: GroupByAndReduce.t<any, any> };
+  export type Reductions = Record<string, GroupByAndReduce.t<any>>;
 
   export type t = {
     source: Source.t;
@@ -55,10 +55,10 @@ export namespace Plan {
 
 export namespace Result {
   export namespace GroupByAndReduce {
-    export type t<Key, Out> = { value: Out, _witness: Plan.GroupByAndReduce.t<Key, Out> }
+    export type t<Out> = { value: Record<string, Out>, _witness: Plan.GroupByAndReduce.t<Out> };
   }
 
-  export type Reductions = { [key: string]: GroupByAndReduce.t<any, any> };
+  export type Reductions = Record<string, GroupByAndReduce.t<any>>;
   export type t = {
     materialized: MaterializeModel.Internal.t;
     reductions: Reductions;
@@ -68,8 +68,26 @@ export namespace Result {
 export namespace Frontend {
   type ExecutablePlan = (transaction: Transaction.Internal.t[]) => Result.t;
 
-  const buildReducation = <Key, Out>(reduction : Plan.GroupByAndReduce.t<Key, Out>): (materialized: MaterializeModel.Internal.t) => Out => {
-    throw new Error("TODO")
+  const buildReducation = <Out>(reduction : Plan.GroupByAndReduce.t<Out>): (materialized: MaterializeModel.Internal.t) => Record<string, Out> => {
+    const groupBy = reduction.groupBy;
+    const empty = reduction.reduce.empty;
+    const reduce = reduction.reduce.reduce;
+
+    return (materialized: MaterializeModel.Internal.t): Record<string, Out> => {
+      return pipe(
+          Object.keys(materialized.tagged)
+        , A.chain((account: string) => pipe(materialized.tagged[account], A.map((transaction) => ({ account: account, transaction: transaction }))))
+        , A.map(({ account, transaction }: { account: string, transaction: Transaction.Internal.t }) => ({ key: groupBy({ account, transaction }), account: account, transaction: transaction }))
+        , A.reduce(<Record<string, Out>>{}, (acc, { key, account, transaction }) => {
+            let forGroup: Out = empty;
+            if (key in acc) {
+              forGroup = acc[key];
+            }
+
+            return { ... acc, key: reduce(forGroup, { key, account, transaction }) }
+          })
+      );
+    }
   }
 
   const build = (plan: Plan.t): ExecutablePlan => {
@@ -121,12 +139,12 @@ export namespace Builder {
 
       export type t = Empty | Account;
 
-      export const build = (group: t): Plan.GroupByAndReduce.GroupBy.t<any> => {
+      export const build = (group: t): Plan.GroupByAndReduce.GroupBy.t => {
         switch (group._type) {
           case "Empty":
-            return (account: string, transaction: Transaction.Internal.t) => "";
+            return ({ account, transaction }) => "";
           case "Account":
-            return (account: string, transaction: Transaction.Internal.t) => account;
+            return ({ account, transaction }) => account;
         }
       }
     }
@@ -136,11 +154,10 @@ export namespace Builder {
 
       export type t = Sum;
 
-      // TODO: JK it feels like we can bind the type of an aggregation with its groupBy
-      export const build = (aggregate: t): Plan.GroupByAndReduce.Reduce.t<any, any> => {
+      export const build = (aggregate: t): Plan.GroupByAndReduce.Reduce.t<any> => {
         switch (aggregate._type) {
           case "Sum":
-            return <Plan.GroupByAndReduce.Reduce.t<any, number>>{
+            return <Plan.GroupByAndReduce.Reduce.t<number>>{
                 empty: 0
               , reduce: (acc, { transaction }) => {
                   return acc + transaction.amount;
@@ -153,7 +170,7 @@ export namespace Builder {
     export type t = { [key: string]: { group: Group.t, aggregate: Aggregate.t } };
 
     export const build = (aggregations: t): Plan.Reductions => {
-      const buildOne = ({ group, aggregate }: { group: Group.t, aggregate: Aggregate.t }): Plan.GroupByAndReduce.t<any, any> => {
+      const buildOne = ({ group, aggregate }: { group: Group.t, aggregate: Aggregate.t }): Plan.GroupByAndReduce.t<any> => {
         return {
             groupBy: Group.build(group)
           , reduce: Aggregate.build(aggregate)
