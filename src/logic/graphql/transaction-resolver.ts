@@ -29,9 +29,9 @@ const resolveForAccount =
   return pipe(
       materializeFor(key)(context)
     , TE.map((materialize) => {
-        const out = materialize.tagged[source.id]
+        const out = materialize.tagged[source.id];
         if (out) {
-          return out
+          return out;
         } else {
           return [];
         }

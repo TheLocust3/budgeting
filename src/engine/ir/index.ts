@@ -167,7 +167,7 @@ export namespace Builder {
       }
     }
 
-    export type t = { [key: string]: { group: Group.t, aggregate: Aggregate.t } };
+    export type t = Record<string, { group: Group.t, aggregate: Aggregate.t }>;
 
     export const build = (aggregations: t): Plan.Reductions => {
       const buildOne = ({ group, aggregate }: { group: Group.t, aggregate: Aggregate.t }): Plan.GroupByAndReduce.t<any> => {

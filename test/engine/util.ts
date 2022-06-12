@@ -214,6 +214,20 @@ export class System {
   }
 
   materialize(accountId: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(Frontend.ForAccount.execute(pool)(userId)(accountId), TE.mapLeft(E.toError));
+    return pipe(
+        Frontend.ForAccount.execute(pool)(userId)(accountId)
+      , TE.mapLeft(E.toError)
+      , TE.map(({ conflicts, tagged, untagged }) => {
+          const retagged = pipe(
+              Object.keys(tagged)
+            , A.map((account) => ({ account: account, transactions: tagged[account].transactions }))
+            , A.reduce(<Record<string, Transaction.Internal.t[]>>{}, (acc, { account, transactions }) => {
+                return { ...acc, [account]: transactions };
+              })
+          );
+
+          return { conflicts, untagged, tagged: retagged };
+        })
+    );
   }
 }
