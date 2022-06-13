@@ -37,9 +37,9 @@ export namespace ForAccount {
       , TE.map(({ materialized, reductions }) => {
           const tagged = pipe(
               Object.keys(materialized.tagged)
-            , A.map((account) => ({ account: account, transactions: materialized.tagged[account], total: <number>reductions["totalPerAccount"].value[accountId] }))
+            , A.map((account) => ({ account: account, transactions: materialized.tagged[account], total: <number>reductions["totalPerAccount"][account] }))
             , A.reduce(<Record<string, Result.TaggedAccount>>{}, (acc, { account, transactions, total }) => {
-                return { ...acc, [account]: { transactions, total } };
+                return { ...acc, [account]: { transactions: transactions, total: total } };
               })
           );
 
@@ -47,7 +47,7 @@ export namespace ForAccount {
               conflicts: materialized.conflicts
             , tagged: tagged
             , untagged: materialized.untagged
-            , total: <number>reductions["total"].value[""]
+            , total: <number>reductions["total"][""]
           };
         })
     );

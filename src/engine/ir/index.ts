@@ -55,7 +55,7 @@ export namespace Plan {
 
 export namespace Result {
   export namespace GroupByAndReduce {
-    export type t<Out> = { value: Record<string, Out>, _witness: Plan.GroupByAndReduce.t<Out> };
+    export type t<Out> = Record<string, Out>;
   }
 
   export type Reductions = Record<string, GroupByAndReduce.t<any>>;
@@ -84,7 +84,7 @@ export namespace Frontend {
               forGroup = acc[key];
             }
 
-            return { ... acc, key: reduce(forGroup, { key, account, transaction }) }
+            return { ... acc, [key]: reduce(forGroup, { key, account, transaction }) }
           })
       );
     }
@@ -96,10 +96,10 @@ export namespace Frontend {
       const reduced = pipe(
           Object.keys(plan.reductions)
         , A.map((key) => ({ key: key, reduction: plan.reductions[key] }))
-        , A.map(({ key, reduction }) => ({ key: key, reduction: reduction, run: buildReducation(reduction) }))
-        , A.map(({ key, reduction, run }) => ({ key: key, reduction: reduction, out: run(materialized) }))
-        , A.reduce(<Result.Reductions>{}, (acc, { key, reduction, out }) => {
-            return { ...acc, [key]: { value: out, _witness: reduction } };
+        , A.map(({ key, reduction }) => ({ key: key, run: buildReducation(reduction) }))
+        , A.map(({ key, run }) => ({ key: key, out: run(materialized) }))
+        , A.reduce(<Result.Reductions>{}, (acc, { key, out }) => {
+            return { ...acc, [key]: out };
           })
       );
       
