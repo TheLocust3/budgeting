@@ -45,6 +45,7 @@ export namespace Accounts {
               id: { type: graphql.GraphQLString }
             , name: { type: graphql.GraphQLString }
             , transactions: Transactions.Physical.t
+            , total: Transactions.PhysicalTotal.t
           }
       }))
     , resolve: resolveChildrenFor("physical")
@@ -60,6 +61,7 @@ export namespace Buckets {
             , name: { type: graphql.GraphQLString }
             , rules: Rules.Virtual.t
             , transactions: Transactions.Virtual.t
+            , total: Transactions.VirtualTotal.t
           }
       }))
     , resolve: resolveChildrenFor("virtual")

@@ -8,6 +8,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
 import { UserArena } from "../../user";
+import { Frontend } from "../../engine";
 import * as Context from "./context";
 import * as Types from "./types";
 
@@ -29,11 +30,28 @@ const resolveForAccount =
   return pipe(
       materializeFor(key)(context)
     , TE.map((materialize) => {
-        const out = materialize.tagged[source.id];
+        const out = materialize.tagged[source.id].transactions;
         if (out) {
           return out;
         } else {
           return [];
+        }
+      })
+    , Pipe.toPromise
+  );
+}
+
+const resolveTotalForAccount =
+  (key: "physical" | "virtual") =>
+  (source: Account.Internal.t, args: any, context: Context.t): Promise<number> => {
+  return pipe(
+      materializeFor(key)(context)
+    , TE.map((materialize) => {
+        const out = materialize.tagged[source.id].total;
+        if (out) {
+          return out;
+        } else {
+          return 0;
         }
       })
     , Pipe.toPromise
@@ -64,10 +82,24 @@ export namespace Transactions {
     }
   }
 
-    export namespace Virtual {
+  export namespace PhysicalTotal {
+    export const t = {
+        type: graphql.GraphQLFloat
+      , resolve: resolveTotalForAccount("physical")
+    }
+  }
+
+  export namespace Virtual {
     export const t = {
         type: new graphql.GraphQLList(Types.Transaction.t)
       , resolve: resolveForAccount("virtual")
+    }
+  }
+
+  export namespace VirtualTotal {
+    export const t = {
+        type: graphql.GraphQLFloat
+      , resolve: resolveTotalForAccount("virtual")
     }
   }
 }

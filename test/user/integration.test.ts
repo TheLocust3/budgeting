@@ -150,9 +150,9 @@ it("can create an integration and rollup initial balance", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactionArena: UserArena.Transaction.t) => {
-            expect(transactionArena.tagged[Object.keys(transactionArena.tagged)[0]]).toEqual(expect.arrayContaining([
-                expect.objectContaining({ amount: 110, "description": "Starting balance" })
-            ]))
+            expect(transactionArena.tagged[Object.keys(transactionArena.tagged)[0]]).toEqual(expect.objectContaining({
+              transactions: expect.arrayContaining([expect.objectContaining({ amount: 110, "description": "Starting balance" })])
+            }));
           }
       )
   )();

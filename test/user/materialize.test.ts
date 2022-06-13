@@ -117,9 +117,9 @@ it("can materialize physical and 1 transaction", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ account, materialized }) => {
-            expect(materialized.tagged[account.account.id]).toEqual(expect.arrayContaining([
-              expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })
-            ]))
+            expect(materialized.tagged[account.account.id]).toEqual(expect.objectContaining({
+              transactions: expect.arrayContaining([expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })])
+            }));
             expect(materialized.conflicts).toEqual([]);
           }
       )
@@ -165,12 +165,13 @@ it("can materialize mutliple buckets", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket1, bucket2, materialized }) => {
-            expect(materialized.tagged[bucket1.id]).toEqual(expect.arrayContaining([
-              expect.objectContaining({ amount: 1, merchantName: "Test Merchant", description: "A purchase" })
-            ]))
-            expect(materialized.tagged[bucket2.id]).toEqual(expect.arrayContaining([
-              expect.objectContaining({ amount: 99, merchantName: "Test Merchant", description: "A purchase" })
-            ]))
+            expect(materialized.tagged[bucket1.id]).toEqual(expect.objectContaining({
+              transactions: expect.arrayContaining([expect.objectContaining({ amount: 1, merchantName: "Test Merchant", description: "A purchase" })])
+            }));
+            expect(materialized.tagged[bucket2.id]).toEqual(expect.objectContaining({
+              transactions: expect.arrayContaining([expect.objectContaining({ amount: 99, merchantName: "Test Merchant", description: "A purchase" })])
+
+            }));
             expect(materialized.conflicts).toEqual([]);
             expect(materialized.untagged).toEqual([]);
           }
@@ -192,9 +193,9 @@ it("can materialize rule over amount", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket1, materialized }) => {
-            expect(materialized.tagged[bucket1.id]).toEqual(expect.arrayContaining([
-              expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })
-            ]))
+            expect(materialized.tagged[bucket1.id]).toEqual(expect.objectContaining({
+              transactions: expect.arrayContaining([expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })])
+            }));
             expect(materialized.conflicts).toEqual([]);
             expect(materialized.untagged).toEqual([]);
           }

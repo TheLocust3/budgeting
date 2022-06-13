@@ -126,6 +126,7 @@ Sample query:
   accounts {
     id,
     name,
+    total,
     transactions {
       id
     }
@@ -133,6 +134,7 @@ Sample query:
   buckets {
     id,
     name,
+    total,
     rules {
       id,
       rule

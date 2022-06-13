@@ -54,9 +54,9 @@ it("can create a split rule", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket, materialized }) => {
-            expect(materialized.tagged[bucket.id]).toEqual(expect.arrayContaining([
-              expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })
-            ]))
+            expect(materialized.tagged[bucket.id]).toEqual(expect.objectContaining({
+              transactions: expect.arrayContaining([expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })])
+            }));
             expect(materialized.conflicts).toEqual([]);
             expect(materialized.untagged).toEqual([]);
           }
@@ -78,10 +78,12 @@ it("can create a split rule 2", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket, materialized }) => {
-            expect(materialized.tagged[bucket.id]).toEqual(expect.arrayContaining([
-              expect.objectContaining({ amount: 1, merchantName: "Test Merchant", description: "A purchase" }),
-              expect.objectContaining({ amount: 99, merchantName: "Test Merchant", description: "A purchase" })
-            ]))
+            expect(materialized.tagged[bucket.id]).toEqual(expect.objectContaining({
+              transactions: expect.arrayContaining([
+                expect.objectContaining({ amount: 1, merchantName: "Test Merchant", description: "A purchase" }),
+                expect.objectContaining({ amount: 99, merchantName: "Test Merchant", description: "A purchase" })
+              ])
+            }));
             expect(materialized.conflicts).toEqual([]);
             expect(materialized.untagged).toEqual([]);
           }
