@@ -16,6 +16,7 @@ const queryType = new graphql.GraphQLObjectType({
     name: 'Query'
   , fields: {
         user: UserResolver.t
+      , total: TransactionResolver.Transactions.Total.t
       , accounts: AccountResolver.Accounts.t
       , buckets: AccountResolver.Buckets.t
       , untagged: TransactionResolver.Untagged.t

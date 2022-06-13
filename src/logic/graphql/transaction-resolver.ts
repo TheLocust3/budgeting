@@ -58,6 +58,23 @@ const resolveTotalForAccount =
   );
 }
 
+const resolveTotal =
+  (key: "physical" | "virtual") =>
+  (source: any, args: any, context: Context.t): Promise<number> => {
+  return pipe(
+      materializeFor(key)(context)
+    , TE.map((materialize) => {
+        const out = materialize.total;
+        if (out) {
+          return out;
+        } else {
+          return 0;
+        }
+      })
+    , Pipe.toPromise
+  );
+}
+
 const resolveForUntagged = (source: any, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
   return pipe(
       materializeFor("virtual")(context)
@@ -75,6 +92,13 @@ const resolveForConflicts = (source: any, args: any, context: Context.t): Promis
 }
 
 export namespace Transactions {
+  export namespace Total {
+    export const t = {
+        type: graphql.GraphQLFloat
+      , resolve: resolveTotal("physical")
+    }
+  }
+
   export namespace Physical {
     export const t = {
         type: new graphql.GraphQLList(Types.Transaction.t)

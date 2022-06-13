@@ -122,7 +122,8 @@ Sample query:
       id,
       name
     }
-  }
+  },
+  total,
   accounts {
     id,
     name,
@@ -233,11 +234,7 @@ mutation {
 ## todo
 
 ### next
- - Transaction aggregations
-   - Implement reductions
-   - Combine empty grouping + sum aggregation to calculate total
-   - Combine account grouping + sum aggregation to calculate total per account
-   - tests (UserArena + engine specific)
+ - Test aggregations
  - cluster upgrade strategy
    - pin version to hash?
    - hash to hash upgrade?
