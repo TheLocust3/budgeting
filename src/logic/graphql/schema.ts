@@ -10,7 +10,9 @@ import * as UserResolver from './user-resolver';
 import * as AccountResolver from './account-resolver';
 import * as TransactionResolver from './transaction-resolver';
 import * as IntegrationsResolver from './integrations-resolver';
-import MutationType from './mutation/index';
+import * as Mutation from './mutation/index';
+import * as PlaidMutation from "./mutation/plaid-mutation";
+import * as ExternalMutation from "./external";
 
 const queryType = new graphql.GraphQLObjectType({
     name: 'Query'
@@ -25,6 +27,25 @@ const queryType = new graphql.GraphQLObjectType({
     }
 });
 
-const schema = new graphql.GraphQLSchema({ query: queryType, mutation: MutationType });
+const mutationType = new graphql.GraphQLObjectType({
+    name: 'Mutation'
+  , fields: {
+        login: ExternalMutation.Login.t
+      , createUser: ExternalMutation.CreateUser.t
+      , createBucket: Mutation.CreateBucket.t
+      , createManualAccount: Mutation.CreateAccount.t
+      , createSplitByValue: Mutation.CreateSplitByValue.t
+      , createTransaction: Mutation.CreateTransaction.t
+      , deleteRule: Mutation.DeleteRule.t
+      , deleteIntegration: Mutation.DeleteIntegration.t
+      , deleteManualAccount: Mutation.DeleteAccount.t
+      , deleteManualSource: Mutation.DeleteSource.t
+      , deleteTransaction: Mutation.DeleteTransaction.t
+      , createLinkToken: PlaidMutation.CreateLinkToken.t
+      , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
+    }
+});
+
+const schema = new graphql.GraphQLSchema({ query: queryType, mutation: mutationType });
 
 export default schema;

@@ -10,12 +10,11 @@ import { GraphQLJSONObject } from 'graphql-type-json';
 import { UserArena, UserResource } from "../../../user";
 import * as Context from "../context";
 import * as Types from "../types";
-import * as PlaidMutation from "./plaid-mutation";
 
 import { Account, Rule, Transaction } from "../../../model";
 import { Exception, Pipe } from "../../../magic";
 
-namespace CreateBucket {
+export namespace CreateBucket {
   const JustBucket = new graphql.GraphQLObjectType({
       name: 'JustBucket'
     , fields: {
@@ -41,7 +40,7 @@ namespace CreateBucket {
   };
 }
 
-namespace CreateAccount {
+export namespace CreateAccount {
   const JustAccount = new graphql.GraphQLObjectType({
       name: 'JustAccount'
     , fields: {
@@ -68,7 +67,7 @@ namespace CreateAccount {
   };
 }
 
-namespace CreateTransaction {
+export namespace CreateTransaction {
   type Args = {
     sourceId: string;
     amount: number;
@@ -108,7 +107,7 @@ namespace CreateTransaction {
   };
 }
 
-namespace CreateSplitByValue {
+export namespace CreateSplitByValue {
   type Value = { bucket: string, value: number };
   const Value = new graphql.GraphQLInputObjectType({
       name: "Value"
@@ -139,7 +138,7 @@ namespace CreateSplitByValue {
   };
 }
 
-namespace DeleteRule {
+export namespace DeleteRule {
   type Args = { id: string; };
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
@@ -158,7 +157,7 @@ namespace DeleteRule {
   };
 }
 
-namespace DeleteIntegration {
+export namespace DeleteIntegration {
   type Args = { id: string; };
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
@@ -177,7 +176,7 @@ namespace DeleteIntegration {
   };
 }
 
-namespace DeleteAccount {
+export namespace DeleteAccount {
   type Args = { id: string; };
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
@@ -196,7 +195,7 @@ namespace DeleteAccount {
   };
 }
 
-namespace DeleteSource {
+export namespace DeleteSource {
   type Args = { id: string; };
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
@@ -215,7 +214,7 @@ namespace DeleteSource {
   };
 }
 
-namespace DeleteTransaction {
+export namespace DeleteTransaction {
   type Args = { id: string; };
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
@@ -233,22 +232,3 @@ namespace DeleteTransaction {
     , resolve: resolve
   };
 }
-
-export const mutationType = new graphql.GraphQLObjectType({
-    name: 'Mutation'
-  , fields: {
-        createBucket: CreateBucket.t
-      , createManualAccount: CreateAccount.t
-      , createSplitByValue: CreateSplitByValue.t
-      , createTransaction: CreateTransaction.t
-      , deleteRule: DeleteRule.t
-      , deleteIntegration: DeleteIntegration.t
-      , deleteManualAccount: DeleteAccount.t
-      , deleteManualSource: DeleteSource.t
-      , deleteTransaction: DeleteTransaction.t
-      , createLinkToken: PlaidMutation.CreateLinkToken.t
-      , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
-    }
-});
-
-export default mutationType;

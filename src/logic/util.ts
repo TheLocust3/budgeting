@@ -25,7 +25,10 @@ export namespace AuthenticationFor {
         tryHeader(request)
       , TE.orElse(() => tryCookie(request))
       , TE.match(
-          Message.respondWithError({ request, response })
+          () => {
+            response.locals.user = undefined;
+            next();
+          }
         , async (user) => {
             response.locals.user = user;
             next();

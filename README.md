@@ -91,7 +91,7 @@ Deploy the cluster:
 
 ## graphql api
 ### External API
-Open `localhost:8080/external/graphql`.
+Open `localhost:8080/graphql`.
 
 Login:
 ```
@@ -234,11 +234,13 @@ mutation {
 ## todo
 
 ### next
- - Test aggregations
+ - merge graphql endpoints
  - cluster upgrade strategy
    - pin version to hash?
    - hash to hash upgrade?
    - kubernetes probably has some guidance on this
+ - Test aggregations
+ - Return a real unauthenticated error when trying to access internal routes without authentication
 
 ### miscellaneous
  - Uniqueness constraints on everything
