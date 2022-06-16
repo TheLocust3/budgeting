@@ -2,7 +2,7 @@
 
 export VERSION=${1:-latest}
 
-echo "Pushing tools to $CONTROL_PLANE_IP @ $VERSION"
+echo "Pushing to ${CONTROL_PLANE_IP} @ $VERSION"
 
 export IMAGE="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/common:$VERSION"
 export IMAGE_POLICY="IfNotPresent"

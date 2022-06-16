@@ -234,11 +234,7 @@ mutation {
 ## todo
 
 ### next
- - merge graphql endpoints
- - cluster upgrade strategy
-   - pin version to hash?
-   - hash to hash upgrade?
-   - kubernetes probably has some guidance on this
+ - figure out why the ecr_refresh job isn't running
  - Test aggregations
  - Return a real unauthenticated error when trying to access internal routes without authentication
 

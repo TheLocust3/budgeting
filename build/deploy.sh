@@ -1,8 +1,8 @@
 #! /bin/bash
 
-echo "Deploying to ${CONTROL_PLANE_IP}"
+export VERSION=${1:-latest}
 
-VERSION=${1:-latest}
+echo "Deploying to ${CONTROL_PLANE_IP} @ $VERSION"
 
 ./build/push.sh $VERSION
 
