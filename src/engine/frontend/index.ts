@@ -43,11 +43,13 @@ export namespace ForAccount {
               })
           );
 
+          const total = reductions["total"][""] === undefined ? 0 : <number>reductions["total"][""];
+
           return {
               conflicts: materialized.conflicts
             , tagged: tagged
             , untagged: materialized.untagged
-            , total: <number>reductions["total"][""]
+            , total: total
           };
         })
     );

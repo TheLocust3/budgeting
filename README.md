@@ -234,8 +234,10 @@ mutation {
 ## todo
 
 ### next
- - Test aggregations
  - Return a real unauthenticated error when trying to access internal routes without authentication
+ - Return real errors from graphql
+   - Make sure the errors are delivered in a consistent way
+ - Logging
 
 ### miscellaneous
  - Uniqueness constraints on everything
@@ -252,7 +254,6 @@ mutation {
   - Move control plane to separate instance + use ASGs for nodes
     - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
   - GraphQL tests
-  - Better logging
   - Puller improvements
     - Handle Plaid pageination
     - Don't re-pull everything
