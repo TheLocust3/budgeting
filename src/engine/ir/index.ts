@@ -47,6 +47,7 @@ export namespace Plan {
   export type Reductions = Record<string, GroupByAndReduce.t<any>>;
 
   export type t = {
+    queryId: string;
     source: Source.t;
     materialize: Materialize.t;
     reductions: Reductions;
@@ -112,6 +113,7 @@ export namespace Frontend {
 
   const sourceFor = (pool: Pool) => (plan: Plan.t): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     const buildTransactionsForUser = (planSource: Plan.Source.TransactionsForUser): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
+      console.log(`Frontend.sourceFor[${plan.queryId}] - getting transactions for user ${planSource.userId}`)
       return TransactionFrontend.all(pool)(planSource.userId);
     }
 
@@ -122,11 +124,16 @@ export namespace Frontend {
   }
 
   export const execute = (pool: Pool) => (plan: Plan.t): TE.TaskEither<Exception.t, Result.t> => {
+    console.log(`Frontend.execute[${plan.queryId}] - ${JSON.stringify(plan, null, 2)}`)
     const executablePlan = build(plan);
 
     return pipe(
         sourceFor(pool)(plan)
       , TE.map(executablePlan)
+      , TE.map((result) => {
+          console.log(`Frontend.execute[${plan.queryId}] - complete`)
+          return result;
+        })
     );
   }
 }
@@ -188,6 +195,7 @@ export namespace Builder {
 
   export namespace ForAccount {
     export type t = {
+      queryId: string;
       userId: string;
       accountId: string;
       aggregations: GroupAndAggregate.t;
@@ -202,6 +210,8 @@ export namespace Builder {
         );
       }
 
+      console.log(`ForAccount.build[${builder.queryId}] - ${JSON.stringify(builder, null, 2)}`)
+
       return pipe(
           TE.Do
         , TE.bind("account", () => buildAccount())
@@ -209,10 +219,13 @@ export namespace Builder {
         , TE.bind("materializePlan", ({ linkedAccounts }) => TE.of(MaterializePlan.build(linkedAccounts)))
         , TE.map(({ account, materializePlan }) => {
             const plan = <Plan.t> {
-                source: { _type: "TransactionsForUser", userId: builder.userId }
+                queryId: builder.queryId
+              , source: { _type: "TransactionsForUser", userId: builder.userId }
               , materialize: materializePlan
               , reductions: GroupAndAggregate.build(builder.aggregations)
             };
+
+            console.log(`ForAccount.build[${builder.queryId}] - ${JSON.stringify(plan, null, 2)} - complete`)
 
             return { plan: plan, account: account };
           })

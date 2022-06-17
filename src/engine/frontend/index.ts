@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Pool } from "pg";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
@@ -24,8 +25,11 @@ export namespace ForAccount {
   export const execute = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Result.t> => {
     const round = (num: number): number => +(num.toFixed(2)) // TODO: JK this round is not _technically_ correct for exact amounts
 
+    const queryId = crypto.randomUUID();
+
     const builder: Builder.ForAccount.t = {
-        userId: userId
+        queryId: queryId
+      , userId: userId
       , accountId: accountId
       , aggregations: {
             total: { group: { _type: "Empty" }, aggregate: { _type: "Sum" } }
@@ -33,10 +37,14 @@ export namespace ForAccount {
         }
     };
 
+    console.log(`ForAccount.execute[${queryId}] - user: ${userId} account: ${accountId}`)
+
     return pipe(
         Builder.ForAccount.build(pool)(builder)
       , TE.chain(({ account, plan }) => pipe(Frontend.execute(pool)(plan), TE.map((result) => ({ account, result }))))
       , TE.map(({ account, result }) => {
+          console.log(`ForAccount.execute[${queryId}] - user: ${userId} account: ${account} - complete`)
+
           const { materialized, reductions } = result;
 
           const tagged = pipe(
