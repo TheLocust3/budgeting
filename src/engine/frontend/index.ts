@@ -33,11 +33,18 @@ export namespace ForAccount {
 
     return pipe(
         Builder.ForAccount.build(pool)(builder)
-      , TE.chain(Frontend.execute(pool))
-      , TE.map(({ materialized, reductions }) => {
+      , TE.chain(({ account, plan }) => pipe(Frontend.execute(pool)(plan), TE.map((result) => ({ account, result }))))
+      , TE.map(({ account, result }) => {
+          const { materialized, reductions } = result;
+
           const tagged = pipe(
-              Object.keys(materialized.tagged)
-            , A.map((account) => ({ account: account, transactions: materialized.tagged[account], total: <number>reductions["totalPerAccount"][account] }))
+              account.children
+            , A.map((account) => {
+                const transactions = materialized.tagged[account] === undefined ? [] : materialized.tagged[account];
+                const total = reductions["totalPerAccount"][account] === undefined ? 0 : <number>reductions["totalPerAccount"][account];
+
+                return { account: account, transactions: transactions, total: total };
+              })
             , A.reduce(<Record<string, Result.TaggedAccount>>{}, (acc, { account, transactions, total }) => {
                 return { ...acc, [account]: { transactions: transactions, total: total } };
               })

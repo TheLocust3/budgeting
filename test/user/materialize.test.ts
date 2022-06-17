@@ -44,12 +44,15 @@ it("can materialize physical", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
   await pipe(
-      wrap((arena) => UserResource.Account.create(pool)(arena)(name))
-    , TE.chain(() => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transactionArena", () => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (transactionArena: UserArena.Transaction.t) => {
-            expect(transactionArena.tagged).toEqual({});
+        , ({ account, transactionArena }) => {
+            expect(transactionArena.tagged).toEqual({
+              [account.account.id]: { transactions: [], total: 0 }
+            });
             expect(transactionArena.conflicts).toEqual([]);
             expect(transactionArena.untagged).toEqual([]);
             expect(transactionArena.total).toEqual(0);
@@ -79,12 +82,15 @@ it("can materialize virtual", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
   await pipe(
-      wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
-    , TE.chain(() => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+      TE.Do
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(name)))
+    , TE.bind("transactionArena", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , (transactionArena: UserArena.Transaction.t) => {
-            expect(transactionArena.tagged).toEqual({});
+        , ({ bucket, transactionArena }) => {
+            expect(transactionArena.tagged).toEqual({
+              [bucket.id]: { transactions: [], total: 0 }
+            });
             expect(transactionArena.conflicts).toEqual([]);
             expect(transactionArena.untagged).toEqual([]);
             expect(transactionArena.total).toEqual(0);
@@ -144,8 +150,10 @@ it("can materialize virtual and 1 transaction and no rules", async () => {
     , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ materialized }) => {
-            expect(materialized.tagged).toEqual({});
+        , ({ bucket, materialized }) => {
+            expect(materialized.tagged).toEqual({
+              [bucket.id]: { transactions: [], total: 0 }
+            });
             expect(materialized.conflicts).toEqual([]);
             expect(materialized.untagged).toEqual(expect.arrayContaining([
               expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })
@@ -231,8 +239,11 @@ it("can materialize conflict", async () => {
     , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
-        , ({ bucket1, rule1, rule2, materialized }) => {
-            expect(materialized.tagged).toEqual({})
+        , ({ bucket1, bucket2, rule1, rule2, materialized }) => {
+            expect(materialized.tagged).toEqual({
+                [bucket1.id]: { transactions: [], total: 0 }
+              , [bucket2.id]: { transactions: [], total: 0 }
+            })
             expect(materialized.conflicts).toEqual(expect.arrayContaining([
               {
                 _type: "Conflict",

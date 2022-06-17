@@ -54,7 +54,6 @@ it("can materialize split with no matches", async () => {
         , (rows: any) => {
             expect(rows).toEqual(expect.objectContaining({
                 conflicts: []
-              , tagged: {}
             }));
           }
       )
@@ -923,6 +922,7 @@ it("can split transaction in three by value without remainder", async () => {
               , tagged: {
                     [child1.id]: [{ ...transaction, amount: 6 }]
                   , [child2.id]: [{ ...transaction, amount: 4 }]
+                  , [child3.id]: []
                 }
             }));
           }

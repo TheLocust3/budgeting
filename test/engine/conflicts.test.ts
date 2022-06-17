@@ -44,7 +44,6 @@ it("can raise simple conflict", async () => {
         , ({ transaction, rule1, rule2, rows }) => {
             expect(rows).toEqual(expect.objectContaining({
                 conflicts: [{ _type: "Conflict", element: transaction, rules: [rule1.rule, rule2.rule] }]
-              , tagged: {}
             }));
           }
       )
@@ -85,7 +84,7 @@ it("can raise conflict without aborting", async () => {
         , ({ transaction1, transaction2, child2, rule1, rule2, rows }) => {
             expect(rows).toEqual(expect.objectContaining({
                 conflicts: [{ _type: "Conflict", element: transaction1, rules: [rule1.rule, rule2.rule] }]
-              , tagged: { [child2.id]: [transaction2] }
+              , tagged: expect.objectContaining({ [child2.id]: [transaction2] })
             }));
           }
       )
@@ -135,7 +134,6 @@ it("can raise two conflicts", async () => {
                     { _type: "Conflict", element: transaction1, rules: [rule1.rule, rule2.rule] }
                   , { _type: "Conflict", element: transaction2, rules: [rule3.rule, rule4.rule] }
                 ]
-              , tagged: {}
             }));
           }
       )

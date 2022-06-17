@@ -190,10 +190,10 @@ export namespace Builder {
     export type t = {
       userId: string;
       accountId: string;
-      aggregations: GroupAndAggregate.t
+      aggregations: GroupAndAggregate.t;
     };
 
-    export const build = (pool: Pool) => (builder: t): TE.TaskEither<Exception.t, Plan.t> => {
+    export const build = (pool: Pool) => (builder: t): TE.TaskEither<Exception.t, { plan: Plan.t, account: Account.Internal.Rich }> => {
       const buildAccount = (): TE.TaskEither<Exception.t, Account.Internal.Rich> => {
         return pipe(
             AccountFrontend.getByIdAndUserId(pool)(builder.userId)(builder.accountId)
@@ -203,15 +203,18 @@ export namespace Builder {
       }
 
       return pipe(
-          buildAccount()
-        , TE.chain((account) => pipe(Materializer.linkedAccounts(pool)(account), TE.map((accounts) => accounts.concat(account))))
-        , TE.map(MaterializePlan.build)
-        , TE.map((materializePlan) => {
-            return <Plan.t> {
+          TE.Do
+        , TE.bind("account", () => buildAccount())
+        , TE.bind("linkedAccounts", ({ account }) => pipe(Materializer.linkedAccounts(pool)(account), TE.map((accounts) => accounts.concat(account))))
+        , TE.bind("materializePlan", ({ linkedAccounts }) => TE.of(MaterializePlan.build(linkedAccounts)))
+        , TE.map(({ account, materializePlan }) => {
+            const plan = <Plan.t> {
                 source: { _type: "TransactionsForUser", userId: builder.userId }
               , materialize: materializePlan
               , reductions: GroupAndAggregate.build(builder.aggregations)
             };
+
+            return { plan: plan, account: account };
           })
       );
     }

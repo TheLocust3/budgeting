@@ -234,6 +234,8 @@ mutation {
 ## todo
 
 ### next
+ - Fix up transaction pulling
+ - Round totals
  - Return a real unauthenticated error when trying to access internal routes without authentication
  - Return real errors from graphql
    - Make sure the errors are delivered in a consistent way
