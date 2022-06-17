@@ -22,6 +22,8 @@ export namespace ForAccount {
   }
 
   export const execute = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Result.t> => {
+    const round = (num: number): number => +(num.toFixed(2)) // TODO: JK this round is not _technically_ correct for exact amounts
+
     const builder: Builder.ForAccount.t = {
         userId: userId
       , accountId: accountId
@@ -41,7 +43,7 @@ export namespace ForAccount {
               account.children
             , A.map((account) => {
                 const transactions = materialized.tagged[account] === undefined ? [] : materialized.tagged[account];
-                const total = reductions["totalPerAccount"][account] === undefined ? 0 : <number>reductions["totalPerAccount"][account];
+                const total = reductions["totalPerAccount"][account] === undefined ? 0 : round(<number>reductions["totalPerAccount"][account]);
 
                 return { account: account, transactions: transactions, total: total };
               })
@@ -50,7 +52,7 @@ export namespace ForAccount {
               })
           );
 
-          const total = reductions["total"][""] === undefined ? 0 : <number>reductions["total"][""];
+          const total = reductions["total"][""] === undefined ? 0 : round(<number>reductions["total"][""]);
 
           return {
               conflicts: materialized.conflicts

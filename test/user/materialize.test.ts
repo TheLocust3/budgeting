@@ -257,3 +257,25 @@ it("can materialize conflict", async () => {
       )
   )();
 });
+
+it("can round totals", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)({ ...sampleTransaction(account.source.id), amount: 67.743 })))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ account, materialized }) => {
+            expect(materialized.tagged[account.account.id]).toEqual(expect.objectContaining({
+                transactions: expect.arrayContaining([expect.objectContaining({ amount: 67.743, merchantName: "Test Merchant", description: "A purchase" })])
+              , total: 67.74
+            }));
+            expect(materialized.conflicts).toEqual([]);
+            expect(materialized.total).toEqual(67.74);
+          }
+      )
+  )();
+});
