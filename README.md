@@ -234,29 +234,32 @@ mutation {
 ## todo
 
 ### next
- - Fix up transaction pulling
+ - Tighten graphql schema with not null constraints
+ - Add ability to sort transactions in IR
  - Return a real unauthenticated error when trying to access internal routes without authentication
  - Return real errors from graphql
    - Make sure the errors are delivered in a consistent way
  - Logging
 
 ### miscellaneous
+ - Conflicts graphql endpoint is probably broken
+   - Need to include an id on the rule, not just the body
  - Uniqueness constraints on everything
    - Especially users
- - Optional remainder in SplitByValue
-   - need way of raising a conflict inside of a single split rule
- - Add comment mutation
  - Don't build plan/stages for every transaction
  - Prevent deletion of virtual/physical/global accounts
    - Only allow deletion of _accounts_ not buckets via the remove account endpoint
    - Only allow deletion of _buckets_ not accounts via the remove bucket endpoint
 
 ### future
+  - Optional remainder in SplitByValue
+   - need way of raising a conflict inside of a single split rule
+  - Add comment mutation
   - Move control plane to separate instance + use ASGs for nodes
     - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
-  - GraphQL tests
   - Puller improvements
     - Handle Plaid pageination
     - Don't re-pull everything
+    - Some way to alert users of failures
  - basic rule pushdowns
    - all include rules are up for grabs

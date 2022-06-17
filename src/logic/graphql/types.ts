@@ -47,6 +47,16 @@ export namespace Rule {
 }
 
 export namespace Transaction {
+  export type t = {
+    id: string;
+    sourceId: string;
+    amount: number;
+    merchantName: string;
+    description: string;
+    authorizedAt: number;
+    capturedAt?: number;
+  }
+
   export const t = new graphql.GraphQLObjectType({
       name: 'Transaction'
     , fields: {

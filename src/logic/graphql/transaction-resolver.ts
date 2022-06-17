@@ -12,7 +12,7 @@ import { Frontend } from "../../engine";
 import * as Context from "./context";
 import * as Types from "./types";
 
-import { Account, Transaction, Materialize } from "../../model";
+import { Account, Transaction, Materialize, Rule } from "../../model";
 import { Exception, Pipe } from "../../magic";
 
 const materializeFor = (key: "physical" | "virtual") => (context: Context.t) => {
@@ -24,15 +24,26 @@ const materializeFor = (key: "physical" | "virtual") => (context: Context.t) => 
   }
 }
 
+const transformTransaction = (transaction: Transaction.Internal.t): Types.Transaction.t => {
+  return <Types.Transaction.t>{
+      id: transaction.id
+    , sourceId: transaction.sourceId
+    , amount: transaction.amount
+    , merchantName: transaction.merchantName
+    , authorizedAt: transaction.authorizedAt.getTime()
+    , capturedAt: pipe(transaction.capturedAt, O.match(() => undefined, (capturedAt) => capturedAt.getTime()))
+  };
+}
+
 const resolveForAccount =
   (key: "physical" | "virtual") =>
-  (source: Account.Internal.t, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
+  (source: Account.Internal.t, args: any, context: Context.t): Promise<Types.Transaction.t[]> => {
   return pipe(
       materializeFor(key)(context)
     , TE.map((materialize) => {
         const out = materialize.tagged[source.id].transactions;
         if (out) {
-          return out;
+          return A.map(transformTransaction)(out);
         } else {
           return [];
         }
@@ -75,18 +86,23 @@ const resolveTotal =
   );
 }
 
-const resolveForUntagged = (source: any, args: any, context: Context.t): Promise<Transaction.Internal.t[]> => {
+const resolveForUntagged = (source: any, args: any, context: Context.t): Promise<Types.Transaction.t[]> => {
   return pipe(
       materializeFor("virtual")(context)
-    , TE.map((materialize) => materialize.untagged)
+    , TE.map((materialize) => A.map(transformTransaction)(materialize.untagged))
     , Pipe.toPromise
   );
 }
 
-const resolveForConflicts = (source: any, args: any, context: Context.t): Promise<Materialize.Internal.Conflict[]> => {
+const resolveForConflicts = (source: any, args: any, context: Context.t): Promise<Conflicts.t> => {
   return pipe(
       materializeFor("virtual")(context)
-    , TE.map((materialize) => materialize.conflicts)
+    , TE.map((materialize) => {
+        return pipe(
+            materialize.conflicts
+          , A.map(({ element, rules }) => ({ element: transformTransaction(element), rules: rules }))
+        );
+      })
     , Pipe.toPromise
   );
 }
@@ -136,11 +152,16 @@ export namespace Untagged {
 }
 
 export namespace Conflicts {
+  export type t = {
+    element: Types.Transaction.t;
+    rules: Rule.Internal.Rule[]
+  }[];
+
   export const t = {
       type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
           name: "Conflict"
         , fields: {
-              element: { type: new graphql.GraphQLList(Types.Transaction.t) }
+              element: { type: Types.Transaction.t }
             , rules: { type: new graphql.GraphQLList(Types.Rule.t) }
           }
       }))
