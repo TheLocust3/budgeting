@@ -30,7 +30,7 @@ PLAID_SECRET=???
 ... some amount of waiting ...  
 `kubectl get pods` should show the containers starting up  
   
-Navigate to `http://localhost:8080/external/graphql`  
+Navigate to `http://localhost:8080/graphql`  
 
 ### build + hot-reload
 `yarn deploy`
@@ -234,7 +234,6 @@ mutation {
 ## todo
 
 ### next
- - Tighten graphql schema with not null constraints
  - Add ability to sort transactions in IR
  - Return a real unauthenticated error when trying to access internal routes without authentication
  - Return real errors from graphql

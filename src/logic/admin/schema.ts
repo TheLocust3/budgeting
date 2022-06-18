@@ -23,7 +23,7 @@ namespace ListUsers {
   }
 
   export const t = {
-      type: new graphql.GraphQLList(Types.User.t)
+      type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.User.t))
     , resolve: resolve
   };
 }
@@ -42,7 +42,7 @@ namespace GetUser {
   }
 
   export const t = {
-      type: Types.User.t
+      type: new graphql.GraphQLNonNull(Types.User.t)
     , args: Args
     , resolve: resolve
   };

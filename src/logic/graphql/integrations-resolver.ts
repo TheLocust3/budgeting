@@ -21,6 +21,6 @@ const resolve = (source: any, args: any, context: Context.t): Promise<Types.Inte
 }
 
 export const t = {
-    type: new graphql.GraphQLList(Types.Integration.t)
+    type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.Integration.t))
   , resolve: resolve
 }

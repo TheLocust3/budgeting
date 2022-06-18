@@ -6,6 +6,6 @@ import * as Types from './types';
 import { User } from "../../model";
 
 export const t = {
-    type: Types.User.t
+    type: new graphql.GraphQLNonNull(Types.User.t)
   , resolve: (source: any, args: any, context: Context.t) => context.arena.user
 }

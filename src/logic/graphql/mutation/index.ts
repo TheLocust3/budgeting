@@ -18,8 +18,8 @@ export namespace CreateBucket {
   const JustBucket = new graphql.GraphQLObjectType({
       name: 'JustBucket'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , name: { type: graphql.GraphQLString }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   })
 
@@ -34,7 +34,7 @@ export namespace CreateBucket {
   }
 
   export const t = {
-      type: JustBucket
+      type: new graphql.GraphQLNonNull(JustBucket)
     , args: Args
     , resolve: resolve
   };
@@ -44,8 +44,8 @@ export namespace CreateAccount {
   const JustAccount = new graphql.GraphQLObjectType({
       name: 'JustAccount'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , name: { type: graphql.GraphQLString }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   })
 
@@ -61,7 +61,7 @@ export namespace CreateAccount {
   }
 
   export const t = {
-      type: JustAccount
+      type: new graphql.GraphQLNonNull(JustAccount)
     , args: Args
     , resolve: resolve
   };
@@ -101,7 +101,7 @@ export namespace CreateTransaction {
   }
 
   export const t = {
-      type: Types.Transaction.t
+      type: new graphql.GraphQLNonNull(Types.Transaction.t)
     , args: Args
     , resolve: resolve
   };
@@ -132,7 +132,7 @@ export namespace CreateSplitByValue {
   }
 
   export const t = {
-      type: Types.Rule.t
+      type: new graphql.GraphQLNonNull(Types.Rule.t)
     , args: Args
     , resolve: resolve
   };
@@ -151,7 +151,7 @@ export namespace DeleteRule {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };
@@ -170,7 +170,7 @@ export namespace DeleteIntegration {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };
@@ -189,7 +189,7 @@ export namespace DeleteAccount {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };
@@ -208,7 +208,7 @@ export namespace DeleteSource {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };
@@ -227,7 +227,7 @@ export namespace DeleteTransaction {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };

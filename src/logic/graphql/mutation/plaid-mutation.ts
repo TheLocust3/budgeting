@@ -34,7 +34,7 @@ export namespace CreateLinkToken {
   }
 
   export const t = {
-      type: Token
+      type: new graphql.GraphQLNonNull(Token)
     , resolve: resolve
   };
 }
@@ -43,7 +43,7 @@ export namespace ExchangePublicToken {
   type Args = { publicToken: string; accounts: Types.PlaidAccount.t[]; institutionName: string; };
   const Args = {
       publicToken: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , accounts: { type: new graphql.GraphQLList(Types.PlaidAccount.t) }
+    , accounts: { type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.PlaidAccount.t)) }
     , institutionName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
   };
 
@@ -59,7 +59,7 @@ export namespace ExchangePublicToken {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };

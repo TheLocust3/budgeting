@@ -19,7 +19,7 @@ export namespace Login {
   const Token = new graphql.GraphQLObjectType({
       name: 'Token'
     , fields: {
-        token: { type: graphql.GraphQLString }
+        token: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   })
 
@@ -39,7 +39,7 @@ export namespace Login {
   }
 
   export const t = {
-      type: Token
+      type: new graphql.GraphQLNonNull(Token)
     , args: Args
     , resolve: resolve
   };
@@ -60,7 +60,7 @@ export namespace CreateUser {
   }
 
   export const t = {
-      type: Types.User.t
+      type: new graphql.GraphQLNonNull(Types.User.t)
     , args: Args
     , resolve: resolve
   };

@@ -110,35 +110,35 @@ const resolveForConflicts = (source: any, args: any, context: Context.t): Promis
 export namespace Transactions {
   export namespace Total {
     export const t = {
-        type: graphql.GraphQLFloat
+        type: new graphql.GraphQLNonNull(graphql.GraphQLFloat)
       , resolve: resolveTotal("physical")
     }
   }
 
   export namespace Physical {
     export const t = {
-        type: new graphql.GraphQLList(Types.Transaction.t)
+        type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.Transaction.t))
       , resolve: resolveForAccount("physical")
     }
   }
 
   export namespace PhysicalTotal {
     export const t = {
-        type: graphql.GraphQLFloat
+        type: new graphql.GraphQLNonNull(graphql.GraphQLFloat)
       , resolve: resolveTotalForAccount("physical")
     }
   }
 
   export namespace Virtual {
     export const t = {
-        type: new graphql.GraphQLList(Types.Transaction.t)
+        type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.Transaction.t))
       , resolve: resolveForAccount("virtual")
     }
   }
 
   export namespace VirtualTotal {
     export const t = {
-        type: graphql.GraphQLFloat
+        type: new graphql.GraphQLNonNull(graphql.GraphQLFloat)
       , resolve: resolveTotalForAccount("virtual")
     }
   }
@@ -146,7 +146,7 @@ export namespace Transactions {
 
 export namespace Untagged {
   export const t = {
-      type: new graphql.GraphQLList(Types.Transaction.t)
+      type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.Transaction.t))
     , resolve: resolveForUntagged
   }
 }
@@ -158,13 +158,13 @@ export namespace Conflicts {
   }[];
 
   export const t = {
-      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
+      type: new graphql.GraphQLNonNull(new graphql.GraphQLList(new graphql.GraphQLObjectType({
           name: "Conflict"
         , fields: {
-              element: { type: Types.Transaction.t }
-            , rules: { type: new graphql.GraphQLList(Types.Rule.t) }
+              element: { type: new graphql.GraphQLNonNull(Types.Transaction.t) }
+            , rules: { type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.Rule.t)) }
           }
-      }))
+      })))
     , resolve: resolveForConflicts
   }
 }

@@ -5,8 +5,8 @@ export namespace User {
   export const t = new graphql.GraphQLObjectType({
       name: 'User'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , email: { type: graphql.GraphQLString }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , email: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   })
 }
@@ -21,17 +21,17 @@ export namespace Integration {
   const Source = new graphql.GraphQLObjectType({
       name: 'Source'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , name: { type: graphql.GraphQLString }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   })
 
   export const t = new graphql.GraphQLObjectType({
       name: 'Integration'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , name: { type: graphql.GraphQLString }
-        , sources: { type: new graphql.GraphQLList(Source) }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , sources: { type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Source)) }
       }
   })
 }
@@ -40,8 +40,8 @@ export namespace Rule {
   export const t = new graphql.GraphQLObjectType({
       name: 'Rule'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , rule: { type: GraphQLJSONObject }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , rule: { type: new graphql.GraphQLNonNull(GraphQLJSONObject) }
       }
   });
 }
@@ -60,12 +60,12 @@ export namespace Transaction {
   export const t = new graphql.GraphQLObjectType({
       name: 'Transaction'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , sourceId: { type: graphql.GraphQLString }
-        , amount: { type: graphql.GraphQLFloat }
-        , merchantName: { type: graphql.GraphQLString }
-        , description: { type: graphql.GraphQLString }
-        , authorizedAt: { type: graphql.GraphQLFloat }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , sourceId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , amount: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
+        , merchantName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , description: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , authorizedAt: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
         , capturedAt: { type: graphql.GraphQLFloat }
       }
   });
@@ -75,8 +75,8 @@ export namespace Account {
   export const t = new graphql.GraphQLObjectType({
       name: 'Transaction'
     , fields: {
-          id: { type: graphql.GraphQLString }
-        , name: { type: graphql.GraphQLString }
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
   });
 }

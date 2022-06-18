@@ -29,7 +29,7 @@ namespace MakeSuperuser {
   }
 
   export const t = {
-      type: Types.User.t
+      type: new graphql.GraphQLNonNull(Types.User.t)
     , args: Args
     , resolve: resolve
   };
@@ -57,7 +57,7 @@ export namespace CreatePlaidIntegration {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };
@@ -78,7 +78,7 @@ namespace DeleteUser {
   }
 
   export const t = {
-      type: Types.Void.t
+      type: new graphql.GraphQLNonNull(Types.Void.t)
     , args: Args
     , resolve: resolve
   };

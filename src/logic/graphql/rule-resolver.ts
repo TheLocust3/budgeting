@@ -24,7 +24,7 @@ const resolve = (source: any, args: any, context: Context.t): Promise<Rule.Inter
 export namespace Rules {
   export namespace Virtual {
     export const t = {
-        type: new graphql.GraphQLList(Types.Rule.t)
+        type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.Rule.t))
       , resolve: resolve
     }
   }

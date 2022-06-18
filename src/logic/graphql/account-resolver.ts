@@ -39,31 +39,31 @@ const resolveChildrenFor =
 
 export namespace Accounts {
   export const t = {
-      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
+      type: new graphql.GraphQLNonNull(new graphql.GraphQLList(new graphql.GraphQLObjectType({
           name: 'Account'
         , fields: {
-              id: { type: graphql.GraphQLString }
-            , name: { type: graphql.GraphQLString }
+              id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+            , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
             , transactions: Transactions.Physical.t
             , total: Transactions.PhysicalTotal.t
           }
-      }))
+      })))
     , resolve: resolveChildrenFor("physical")
   }
 }
 
 export namespace Buckets {
   export const t = {
-      type: new graphql.GraphQLList(new graphql.GraphQLObjectType({
+      type: new graphql.GraphQLNonNull(new graphql.GraphQLList(new graphql.GraphQLObjectType({
           name: 'Bucket'
         , fields: {
-              id: { type: graphql.GraphQLString }
-            , name: { type: graphql.GraphQLString }
+              id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+            , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
             , rules: Rules.Virtual.t
             , transactions: Transactions.Virtual.t
             , total: Transactions.VirtualTotal.t
           }
-      }))
+      })))
     , resolve: resolveChildrenFor("virtual")
   }
 }
