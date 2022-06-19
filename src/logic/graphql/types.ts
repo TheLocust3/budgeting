@@ -52,7 +52,7 @@ export namespace Transaction {
     sourceId: string;
     amount: number;
     merchantName: string;
-    description: string;
+    description?: string;
     authorizedAt: number;
     capturedAt?: number;
   }
@@ -64,7 +64,7 @@ export namespace Transaction {
         , sourceId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
         , amount: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
         , merchantName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-        , description: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , description: { type: graphql.GraphQLString }
         , authorizedAt: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
         , capturedAt: { type: graphql.GraphQLFloat }
       }
