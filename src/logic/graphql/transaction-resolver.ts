@@ -163,7 +163,7 @@ export namespace Conflicts {
           name: "Conflict"
         , fields: {
               element: { type: new graphql.GraphQLNonNull(Types.Transaction.t) }
-            , rules: { type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.Rule.t)) }
+            , rules: { type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Types.RuleBody.t)) }
           }
       })))
     , resolve: resolveForConflicts

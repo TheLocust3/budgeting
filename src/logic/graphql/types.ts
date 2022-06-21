@@ -46,6 +46,10 @@ export namespace Rule {
   });
 }
 
+export namespace RuleBody {
+  export const t = new graphql.GraphQLNonNull(GraphQLJSONObject)
+}
+
 export namespace Transaction {
   export type t = {
     id: string;

@@ -120,7 +120,7 @@ export namespace CreateSplitByValue {
   type Args = { transactionId: string; splits: Value[]; remainder: string; };
   const Args = {
       transactionId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , splits: { type: new graphql.GraphQLList(Value) }
+    , splits: { type: new graphql.GraphQLNonNull(new graphql.GraphQLList(Value)) }
     , remainder: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
   }
 

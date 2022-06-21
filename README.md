@@ -233,24 +233,34 @@ mutation {
 
 ## todo
 
-### next
+### polish
+ - Uniqueness constraints on everything
+   - Especially users
+ - Prevent deletion of virtual/physical/global accounts
+   - Only allow deletion of _accounts_ not buckets via the remove account endpoint
+   - Only allow deletion of _buckets_ not accounts via the remove bucket endpoint
  - Return real errors from graphql
-   - Make sure the errors are delivered in a consistent way
+   - createUser not unique
+   - deleteRule: rule not found
+   - deleteTransaction: transaction not found
+   - deleteBucket: bucket not found
+   - createTransaction: source not found
+   - createSplitByValue: transaction not found
+   - createSplitByValue: bucket not found
+   - deleteManualSource: source not found
+   - createLinkToken: as much of an error as we can return
+   - exchangePublicToken: as much of an error as we can return
  - Logging
  - Move back to separate login/user graphql endpoints
+   - means no need to handle unauthorized in endpoints
+
+### next
  - HTTPS infrastructure
    - pull certs from S3 on logic container start
  - Add ability to sort transactions in IR
 
 ### miscellaneous
- - Conflicts graphql endpoint is probably broken
-   - Need to include an id on the rule, not just the body
- - Uniqueness constraints on everything
-   - Especially users
  - Don't build plan/stages for every transaction
- - Prevent deletion of virtual/physical/global accounts
-   - Only allow deletion of _accounts_ not buckets via the remove account endpoint
-   - Only allow deletion of _buckets_ not accounts via the remove bucket endpoint
 
 ### future
   - Optional remainder in SplitByValue
