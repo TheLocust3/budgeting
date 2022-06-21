@@ -30,6 +30,7 @@ const transformTransaction = (transaction: Transaction.Internal.t): Types.Transa
     , sourceId: transaction.sourceId
     , amount: transaction.amount
     , merchantName: transaction.merchantName
+    , description: transaction.description
     , authorizedAt: transaction.authorizedAt.getTime()
     , capturedAt: pipe(transaction.capturedAt, O.match(() => undefined, (capturedAt) => capturedAt.getTime()))
   };

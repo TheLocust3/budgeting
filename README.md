@@ -234,11 +234,13 @@ mutation {
 ## todo
 
 ### next
- - Add ability to sort transactions in IR
- - Return a real unauthenticated error when trying to access internal routes without authentication
  - Return real errors from graphql
    - Make sure the errors are delivered in a consistent way
  - Logging
+ - Move back to separate login/user graphql endpoints
+ - HTTPS infrastructure
+   - pull certs from S3 on logic container start
+ - Add ability to sort transactions in IR
 
 ### miscellaneous
  - Conflicts graphql endpoint is probably broken
