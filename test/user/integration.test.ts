@@ -89,6 +89,20 @@ it("can delete manual source", async () => {
   )();
 });
 
+it("can't delete unknown manual source", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      wrap((arena) => UserResource.Account.create(pool)(arena)(name))
+    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
+    , TE.chain((integrationsArena) => wrap((arena) => UserResource.Source.remove(pool)(arena)("nonsense")))
+    , TE.match(
+          (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
+        , () => { throw new Error(`Should not have been able to delete source`); }
+      )
+  )();
+});
+
 it("can create an integration", async () => {
   const institution = `test-institution-${crypto.randomUUID()}`;
 

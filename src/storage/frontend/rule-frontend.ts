@@ -14,17 +14,13 @@ import { Exception } from "../../magic";
 
 export namespace RuleFrontend {
   export const getByAccountId = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Rule.Internal.t[]> => {
-    return pipe(
-        RulesTable.byAccountId(pool)(userId)(accountId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return RulesTable.byAccountId(pool)(userId)(accountId);
   };
 
   export const getById = (pool: Pool) => (userId: string) => (accountId: string) => (id: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
     return pipe(
         id
       , RulesTable.byId(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Rule.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (rule) => TE.of(rule)
@@ -43,7 +39,6 @@ export namespace RuleFrontend {
     return pipe(
         rule
       , RulesTable.create(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
@@ -51,7 +46,6 @@ export namespace RuleFrontend {
     return pipe(
         id
       , RulesTable.deleteById(pool)(userId)(accountId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 }

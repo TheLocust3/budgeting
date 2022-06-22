@@ -17,3 +17,8 @@ export type Unauthorized = { _type: "Unauthorized" }
 export const throwUnauthorized: t = { _type: "Unauthorized" };
 
 export type t = InvalidRule | BadRequest | MalformedJson | NotFound | InternalError | Unauthorized
+
+export const raise = (error: any): t => {
+  console.log(JSON.stringify(error, null, 2))
+  return { _type: "InternalError" };
+}

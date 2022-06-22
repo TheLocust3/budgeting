@@ -11,17 +11,13 @@ import { Exception } from "../../magic";
 
 export namespace TransactionFrontend {
   export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
-    return pipe(
-        TransactionsTable.all(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return TransactionsTable.all(pool)(userId);
   };
 
   export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
     return pipe(
         id
       , TransactionsTable.byId(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Transaction.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (rule) => TE.of(rule)
@@ -40,7 +36,6 @@ export namespace TransactionFrontend {
     return pipe(
         transaction
       , TransactionsTable.create(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
@@ -48,7 +43,6 @@ export namespace TransactionFrontend {
     return pipe(
         id
       , TransactionsTable.deleteById(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 }

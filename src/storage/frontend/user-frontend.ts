@@ -12,17 +12,13 @@ import { Exception } from "../../magic";
 
 export namespace UserFrontend {
   export const all = (pool: Pool) => (): TE.TaskEither<Exception.t, User.Internal.t[]> => {
-    return pipe(
-        UsersTable.all(pool)()
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return UsersTable.all(pool)();
   };
 
   export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, User.Internal.t> => {
     return pipe(
         id
       , UsersTable.byId(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, User.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (user) => TE.of(user)
@@ -34,7 +30,6 @@ export namespace UserFrontend {
     return pipe(
         email
       , UsersTable.byEmail(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, User.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (user) => TE.of(user)
@@ -46,11 +41,10 @@ export namespace UserFrontend {
     return pipe(
         TE.tryCatch(
             () => bcrypt.hash(user.password, 10)
-          , E.toError
+          , Exception.raise
         )
       , TE.map((hashed) => { return { ...user, password: hashed }; })
       , TE.chain(UsersTable.create(pool))
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
@@ -58,7 +52,6 @@ export namespace UserFrontend {
     return pipe(
         id
       , UsersTable.deleteById(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
@@ -81,10 +74,7 @@ export namespace UserFrontend {
   };
 
   export const setRole = (pool: Pool) => (role: string) => (id: string): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return pipe(
-        UsersTable.setRole(pool)(role)(id)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return UsersTable.setRole(pool)(role)(id);
   };
 }
 

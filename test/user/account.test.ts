@@ -91,6 +91,21 @@ it("can delete physical account", async () => {
   )();
 });
 
+it("can't delete unknown physical account", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      wrap((arena) => UserResource.Account.create(pool)(arena)(name))
+    , TE.chain(({ account }) => wrap((arena) => UserResource.Account.remove(pool)(arena)("nonsense")))
+    , TE.match(
+          (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
+        , () => {
+            throw new Error(`Should not have been able to delete account`);
+          }
+      )
+  )();
+});
+
 it("can add virtual bucket", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
@@ -124,6 +139,19 @@ it("can delete virtual bucket", async () => {
             expect(accountArena.account).toEqual(expect.objectContaining({ name: VIRTUAL_ACCOUNT }));
             expect(accountArena.children.length).toEqual(0);
           }
+      )
+  )();
+});
+
+it("can't delete unknown virtual account", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
+    , TE.chain((account) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)("nonsense")))
+    , TE.match(
+          (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
+        , () => { throw new Error(`Should not have been able to delete bucket`); }
       )
   )();
 });

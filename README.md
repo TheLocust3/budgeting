@@ -151,10 +151,7 @@ Sample query:
     element {
       id
     },
-    rules {
-      id,
-      rule
-    }
+    rules
   }
 }
 ```
@@ -241,13 +238,9 @@ mutation {
    - Only allow deletion of _buckets_ not accounts via the remove bucket endpoint
  - Return real errors from graphql
    - createUser not unique
-   - deleteRule: rule not found
-   - deleteTransaction: transaction not found
-   - deleteBucket: bucket not found
    - createTransaction: source not found
    - createSplitByValue: transaction not found
    - createSplitByValue: bucket not found
-   - deleteManualSource: source not found
    - createLinkToken: as much of an error as we can return
    - exchangePublicToken: as much of an error as we can return
  - Logging

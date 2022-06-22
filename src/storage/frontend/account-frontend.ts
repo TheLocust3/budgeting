@@ -13,17 +13,13 @@ import { Exception } from "../../magic";
 
 export namespace AccountFrontend {
   export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Account.Internal.t[]> => {
-    return pipe(
-        AccountsTable.all(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return AccountsTable.all(pool)(userId);
   };
 
   export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
     return pipe(
         id
       , AccountsTable.byId(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Account.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (account) => TE.of(account)
@@ -56,7 +52,6 @@ export namespace AccountFrontend {
     return pipe(
         account.id
       , AccountsTable.childrenOf(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.map((children) => { return { ...account, children: children }; })
     );
   };
@@ -65,7 +60,6 @@ export namespace AccountFrontend {
     return pipe(
         account
       , AccountsTable.create(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
@@ -73,7 +67,6 @@ export namespace AccountFrontend {
     return pipe(
         id
       , AccountsTable.deleteById(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 }

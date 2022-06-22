@@ -8,7 +8,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as iot from "io-ts";
 
 import { Integration } from "../../model";
-import { Db } from "../../magic";
+import { Db, Exception } from "../../magic";
 
 namespace Query {
   export const createTable = `
@@ -90,7 +90,7 @@ export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   }
 };
 
-export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Integration.Internal.t[]> => {
+export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Exception.t, Integration.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
           () => pool.query(Query.all(userId))
@@ -102,10 +102,11 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Error, Integ
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
+    , TE.mapLeft(Exception.raise)
   );
 };
 
-export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option<Integration.Internal.t>> => {
+export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Exception.t, O.Option<Integration.Internal.t>> => {
   return pipe(
       TE.tryCatch(
           () => pool.query(Query.byId(id))
@@ -118,20 +119,28 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Error, O.Option
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
+    , TE.mapLeft(Exception.raise)
   );
 };
 
-export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Error, void> => {
+export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Exception.t, void> => {
   return pipe(
       TE.tryCatch(
           () => pool.query(Query.deleteById(userId, id))
         , E.toError
       )
-    , TE.map(x => { return; })
+    , TE.mapLeft(Exception.raise)
+    , TE.chain(x => {
+        if (x.rowCount <= 0) {
+          return TE.throwError(Exception.throwNotFound);
+        } else {
+          return TE.of(undefined);
+        }
+      })
   );
 };
 
-export const create = (pool: Pool) => (integration: Integration.Frontend.Create.t) : TE.TaskEither<Error, Integration.Internal.t> => {
+export const create = (pool: Pool) => (integration: Integration.Frontend.Create.t) : TE.TaskEither<Exception.t, Integration.Internal.t> => {
   return pipe(
       TE.tryCatch(
           () => pool.query(Query.create(integration.id, integration.userId, integration.name, integration.credentials))
@@ -139,5 +148,6 @@ export const create = (pool: Pool) => (integration: Integration.Frontend.Create.
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Integration.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
+    , TE.mapLeft(Exception.raise)
   );
 };

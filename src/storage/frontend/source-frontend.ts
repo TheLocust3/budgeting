@@ -11,17 +11,13 @@ import { Exception } from "../../magic";
 
 export namespace SourceFrontend {
   export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
-    return pipe(
-        SourcesTable.all(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return SourcesTable.all(pool)(userId);
   };
 
   export const getById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         id
       , SourcesTable.byId(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (source) => TE.of(source)
@@ -30,24 +26,17 @@ export namespace SourceFrontend {
   };
 
   export const allByIntegrationId = (pool: Pool) => (userId: string) => (integrationId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
-    return pipe(
-        SourcesTable.byIntegrationId(pool)(userId)(integrationId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return SourcesTable.byIntegrationId(pool)(userId)(integrationId);
   };
 
   export const allWithoutIntegrationId = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Source.Internal.t[]> => {
-    return pipe(
-        SourcesTable.withoutIntegrationId(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
-    );
+    return SourcesTable.withoutIntegrationId(pool)(userId);
   };
 
   export const create = (pool: Pool) => (source: Source.Frontend.Create.t): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         source
       , SourcesTable.create(pool)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
@@ -55,14 +44,12 @@ export namespace SourceFrontend {
     return pipe(
         id
       , SourcesTable.deleteById(pool)(userId)
-      , TE.mapLeft((_) => Exception.throwInternalError)
     );
   };
 
   export const pull = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         SourcesTable.pull(pool)()
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (source) => TE.of(source)
@@ -73,7 +60,6 @@ export namespace SourceFrontend {
   export const pullForRollup = (pool: Pool) => (): TE.TaskEither<Exception.t, Source.Internal.t> => {
     return pipe(
         SourcesTable.pullForRollup(pool)()
-      , TE.mapLeft((_) => Exception.throwInternalError)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Source.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (source) => TE.of(source)

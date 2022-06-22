@@ -90,3 +90,48 @@ it("can create a split rule 2", async () => {
       )
   )();
 });
+
+it("can delete rule", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const bucketName = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
+    , TE.bind("deleted", ({ rule }) => wrap((arena) => UserResource.Rule.remove(pool)(arena)(rule.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ bucket, materialized }) => {
+            expect(materialized.tagged[bucket.id]).toEqual(expect.objectContaining({
+              transactions: []
+            }));
+            expect(materialized.conflicts).toEqual([]);
+            expect(materialized.untagged).toEqual(
+              expect.arrayContaining([expect.objectContaining({ amount: 100, merchantName: "Test Merchant", description: "A purchase" })])
+            );
+          }
+      )
+  )();
+});
+
+it("can't delete unknown rule", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const bucketName = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
+    , TE.bind("deleted", ({ rule }) => wrap((arena) => UserResource.Rule.remove(pool)(arena)("nonsense")))
+    , TE.match(
+          (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
+        , () => { throw new Error(`Should not have been able to delete rule`); }
+      )
+  )();
+});
