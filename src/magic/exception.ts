@@ -16,7 +16,10 @@ export const throwInternalError: t = { _type: "InternalError" };
 export type Unauthorized = { _type: "Unauthorized" }
 export const throwUnauthorized: t = { _type: "Unauthorized" };
 
-export type t = InvalidRule | BadRequest | MalformedJson | NotFound | InternalError | Unauthorized
+export type ValidationError = { _type: "ValidationError", message: string }
+export const throwValidationError = (message: string): t => ({ _type: "ValidationError", message: message });
+
+export type t = InvalidRule | BadRequest | MalformedJson | NotFound | InternalError | Unauthorized | ValidationError
 
 export const raise = (error: any): t => {
   console.log(JSON.stringify(error, null, 2))

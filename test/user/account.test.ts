@@ -126,31 +126,14 @@ it("can add virtual bucket", async () => {
   )();
 });
 
-it("can delete virtual bucket", async () => {
+it("can't delete virtual account", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
   await pipe(
       wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
-    , TE.chain((account) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)(account.id)))
-    , TE.chain(() => wrap((arena) => UserArena.virtual(pool)(arena)))
+    , TE.chain((account) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
     , TE.match(
-          (error) => { throw new Error(`Failed with ${error}`); }
-        , (accountArena: UserArena.Account.t) => {
-            expect(accountArena.account).toEqual(expect.objectContaining({ name: VIRTUAL_ACCOUNT }));
-            expect(accountArena.children.length).toEqual(0);
-          }
-      )
-  )();
-});
-
-it("can't delete unknown virtual account", async () => {
-  const name = `test-${crypto.randomUUID()}`;
-
-  await pipe(
-      wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
-    , TE.chain((account) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)("nonsense")))
-    , TE.match(
-          (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
+          (error: Exception.t) => { expect(error._type).toEqual("ValidationError") }
         , () => { throw new Error(`Should not have been able to delete bucket`); }
       )
   )();

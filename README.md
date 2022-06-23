@@ -231,11 +231,7 @@ mutation {
 ## todo
 
 ### polish
- - Uniqueness constraints on everything
-   - Especially users
- - Prevent deletion of virtual/physical/global accounts
-   - Only allow deletion of _accounts_ not buckets via the remove account endpoint
-   - Only allow deletion of _buckets_ not accounts via the remove bucket endpoint
+ - No deleting of buckets, only hiding/unhiding buckets
  - Return real errors from graphql
    - createUser not unique
    - createTransaction: source not found
@@ -243,11 +239,13 @@ mutation {
    - createSplitByValue: bucket not found
    - createLinkToken: as much of an error as we can return
    - exchangePublicToken: as much of an error as we can return
- - Logging
  - Move back to separate login/user graphql endpoints
    - means no need to handle unauthorized in endpoints
 
 ### next
+ - On account delete, sources should also be deleted
+   - This might involve a schema update unfortunately
+   - Afterwards, no need to be able to directly delete sources
  - HTTPS infrastructure
    - pull certs from S3 on logic container start
  - Add ability to sort transactions in IR

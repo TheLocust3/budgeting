@@ -131,7 +131,17 @@ export const removeIntegration = (pool: Pool) => (arena: UserArena.t) => (integr
 
 export const removeAccount = (pool: Pool) => (arena: UserArena.t) => (accountId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
-      AccountFrontend.deleteById(pool)(arena.user.id)(accountId)
+      TE.Do
+    , TE.bind("physicalAccount", () => resolveUserAccount(pool)(arena)("physical"))
+    , TE.bind("account", () => AccountFrontend.getByIdAndUserId(pool)(arena.user.id)(accountId))
+    , TE.bind("validate", ({ physicalAccount, account }) => {
+        if (pipe(account.parentId, O.map((parentId) => parentId === physicalAccount.account.id), O.getOrElse(() => false))) {
+          return TE.of(true)
+        } else {
+          return TE.throwError(Exception.throwValidationError(`${accountId} is not a physical account`))
+        }
+      })
+    , TE.bind("delete", () => AccountFrontend.deleteById(pool)(arena.user.id)(accountId))
     , TE.map(() => {})
   );
 }
