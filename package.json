@@ -9,7 +9,9 @@
     "setup": "yarn install && yarn build",
     "deploy": "yarn build && kubectl rollout restart deployment logic",
     "clean": "rm -rf dist",
-    "test": "./test.sh"
+    "test": "./test.sh",
+    "migrate": "yarn build && node dist/job/migrate/index.js",
+    "rollback": "yarn build && node dist/storage/db/rollback.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

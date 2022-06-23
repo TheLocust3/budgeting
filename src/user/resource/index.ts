@@ -187,7 +187,11 @@ export const createTransaction =
   (pool: Pool) =>
   (arena: UserArena.t) =>
   (transaction: Transaction.Arena.Create.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
-  return TransactionFrontend.create(pool)({ ...transaction, id: UserArena.idFor(arena)("transaction"), userId: arena.user.id });
+  return pipe(
+      SourceFrontend.getById(pool)(arena.user.id)(transaction.sourceId)
+    , TE.mapLeft(() => Exception.throwValidationError(`Source '${transaction.sourceId}' not found`))
+    , TE.chain(() => TransactionFrontend.create(pool)({ ...transaction, id: UserArena.idFor(arena)("transaction"), userId: arena.user.id }))
+  );
 }
 
 export const createIntegration =

@@ -54,3 +54,17 @@ it("can't delete unknown transaction", async () => {
       )
   )();
 });
+
+it("can't create transaction with unknown source", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction("nonsense"))))
+    , TE.match(
+          (error: Exception.t) => { expect(error._type).toEqual("ValidationError") }
+        , () => { throw new Error(`Should not have been able to create transaction`); }
+      )
+  )();
+});

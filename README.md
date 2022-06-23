@@ -231,21 +231,20 @@ mutation {
 ## todo
 
 ### polish
- - No deleting of buckets, only hiding/unhiding buckets
  - Return real errors from graphql
    - createUser not unique
-   - createTransaction: source not found
    - createSplitByValue: transaction not found
    - createSplitByValue: bucket not found
    - createLinkToken: as much of an error as we can return
    - exchangePublicToken: as much of an error as we can return
+ - No deleting of buckets, only hiding/unhiding buckets
+ - On account delete, sources should also be deleted
+   - This might involve a schema update unfortunately
+   - Afterwards, no need to be able to directly delete sources
  - Move back to separate login/user graphql endpoints
    - means no need to handle unauthorized in endpoints
 
 ### next
- - On account delete, sources should also be deleted
-   - This might involve a schema update unfortunately
-   - Afterwards, no need to be able to directly delete sources
  - HTTPS infrastructure
    - pull certs from S3 on logic container start
  - Add ability to sort transactions in IR
