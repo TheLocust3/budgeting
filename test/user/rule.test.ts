@@ -135,3 +135,37 @@ it("can't delete unknown rule", async () => {
       )
   )();
 });
+
+it("can't create a split rule against unknown transaction", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const bucketName = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)("nonsense", [], bucket.id)))
+    , TE.match(
+          (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
+        , () => { throw new Error(`Should not have been able to create rule`); }
+      )
+  )();
+});
+
+it("can't create a split rule against unknown bucket", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+  const bucketName = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], "nonsense")))
+    , TE.match(
+          (error: Exception.t) => { expect(error).toEqual(Exception.throwInvalidRule) }
+        , () => { throw new Error(`Should not have been able to create rule`); }
+      )
+  )();
+});

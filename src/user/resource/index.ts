@@ -102,8 +102,10 @@ export const splitTransaction =
   (arena: UserArena.t) =>
   (transactionId: string, splits: { bucket: string, value: number}[], remainder: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
   return pipe(
-      UserArena.virtual(pool)(arena)
-    , TE.chain((virtual) => createRule(pool)(arena)(`rule_${transactionId}`)("virtual")(<Rule.Internal.Split.SplitByValue>{
+      TE.Do
+    , TE.bind("validateTransaction", () => TransactionFrontend.getById(pool)(arena.user.id)(transactionId))
+    , TE.bind("virtual", () => UserArena.virtual(pool)(arena))
+    , TE.chain(({ virtual }) => createRule(pool)(arena)(`rule_${transactionId}`)("virtual")(<Rule.Internal.Split.SplitByValue>{
           _type: "SplitByValue"
         , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
         , splits: A.map(({ bucket, value }: { bucket: string, value: number}) =>
