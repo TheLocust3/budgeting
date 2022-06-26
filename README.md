@@ -231,9 +231,6 @@ mutation {
 ## todo
 
 ### polish
- - Return real errors from graphql
-   - createLinkToken: as much of an error as we can return
-   - exchangePublicToken: as much of an error as we can return
  - No deleting of buckets, only hiding/unhiding buckets
  - On account delete, sources should also be deleted
    - This might involve a schema update unfortunately
@@ -247,6 +244,9 @@ mutation {
  - Add ability to sort transactions in IR
 
 ### miscellaneous
+ - createLinkToken should have actual errors
+ - exchangePublicToken should have actual errors
+ - Validate integration credentials before creating
  - Don't build plan/stages for every transaction
 
 ### future
