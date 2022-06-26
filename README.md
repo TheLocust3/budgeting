@@ -232,7 +232,6 @@ mutation {
 
 ### polish
  - Return real errors from graphql
-   - createUser: not unique
    - createLinkToken: as much of an error as we can return
    - exchangePublicToken: as much of an error as we can return
  - No deleting of buckets, only hiding/unhiding buckets

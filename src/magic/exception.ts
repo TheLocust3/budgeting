@@ -19,9 +19,22 @@ export const throwUnauthorized: t = { _type: "Unauthorized" };
 export type ValidationError = { _type: "ValidationError", message: string }
 export const throwValidationError = (message: string): t => ({ _type: "ValidationError", message: message });
 
-export type t = InvalidRule | BadRequest | MalformedJson | NotFound | InternalError | Unauthorized | ValidationError
+export type NotUnique = { _type: "NotUnique" }
+export const throwNotUnique: t = { _type: "NotUnique" };
+
+export type t = InvalidRule | BadRequest | MalformedJson | NotFound | InternalError | Unauthorized | ValidationError | NotUnique
+
+export const pgRaise = (error: any): t => {
+  console.log(JSON.stringify(error, null, 2))
+  switch (error.code) {
+    case "23505":
+      return throwNotUnique;
+    default:
+      return throwInternalError;
+  }
+}
 
 export const raise = (error: any): t => {
   console.log(JSON.stringify(error, null, 2))
-  return { _type: "InternalError" };
+  return throwInternalError;
 }

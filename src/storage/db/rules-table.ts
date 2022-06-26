@@ -103,7 +103,7 @@ export const byAccountId = (pool: Pool) => (userId: string) => (accountId: strin
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -120,7 +120,7 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Exception.t, O.
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -130,7 +130,7 @@ export const deleteById = (pool: Pool) => (userId: string) => (accountId: string
         () => pool.query(Query.deleteById(id, accountId, userId)),
         E.toError
       )
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
     , TE.chain(x => {
         if (x.rowCount <= 0) {
           return TE.throwError(Exception.throwNotFound);
@@ -152,6 +152,6 @@ export const create = (pool: Pool) => (rule: Rule.Frontend.Create.t) : TE.TaskEi
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Rule.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };

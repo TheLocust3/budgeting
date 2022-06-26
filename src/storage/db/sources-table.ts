@@ -157,7 +157,7 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Exception.t,
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -174,7 +174,7 @@ export const byId = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEi
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -190,7 +190,7 @@ export const byIntegrationId = (pool: Pool) => (userId: string) => (integrationI
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -206,7 +206,7 @@ export const withoutIntegrationId = (pool: Pool) => (userId: string) : TE.TaskEi
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -216,7 +216,7 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
         () => pool.query(Query.deleteById(userId, id)),
         E.toError
       )
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
     , TE.chain(x => {
         if (x.rowCount <= 0) {
           return TE.throwError(Exception.throwNotFound);
@@ -241,7 +241,7 @@ export const create = (pool: Pool) => (source: Source.Frontend.Create.t) : TE.Ta
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Source.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -261,7 +261,7 @@ export const pull = (pool: Pool) => () : TE.TaskEither<Exception.t, O.Option<Sou
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -281,6 +281,6 @@ export const pullForRollup = (pool: Pool) => () : TE.TaskEither<Exception.t, O.O
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };

@@ -20,6 +20,11 @@ namespace Query {
     )
   `;
 
+  export const migrate001 = `
+    ALTER TABLE users
+    ADD CONSTRAINT user_unq UNIQUE(email)
+  `;
+
   export const dropTable = "DROP TABLE users";
 
   export const create = (id: string, email: string, password: string, role: string) => {
@@ -97,6 +102,16 @@ export const migrate = (pool: Pool): T.Task<boolean> => async () => {
   }
 };
 
+export const migrate001 = (pool: Pool): T.Task<boolean> => async () => {
+  try {
+    await pool.query(Query.migrate001);
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
 export const rollback = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.dropTable);
@@ -119,7 +134,7 @@ export const all = (pool: Pool) => () : TE.TaskEither<Exception.t, User.Internal
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -136,7 +151,7 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Exception.t, O.
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -153,7 +168,7 @@ export const byEmail = (pool: Pool) => (email: string) : TE.TaskEither<Exception
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -163,7 +178,7 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Exception
         () => pool.query(Query.deleteById(id)),
         E.toError
       )
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
     , TE.chain(x => {
         if (x.rowCount <= 0) {
           return TE.throwError(Exception.throwNotFound);
@@ -182,7 +197,7 @@ export const create = (pool: Pool) => (user: User.Frontend.Create.t) : TE.TaskEi
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], User.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
 
@@ -194,6 +209,6 @@ export const setRole = (pool: Pool) => (role: string) => (id: string) : TE.TaskE
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], User.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
-    , TE.mapLeft(Exception.raise)
+    , TE.mapLeft(Exception.pgRaise)
   );
 };
