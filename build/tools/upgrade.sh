@@ -11,3 +11,6 @@ kubectl rollout restart deployment/logic
 
 kubectl delete -f /home/ubuntu/cluster/005-puller-job.yaml
 kubectl apply -f /home/ubuntu/cluster/005-puller-job.yaml
+
+kubectl delete -f /home/ubuntu/cluster/003-migrate.yaml
+kubectl apply -f /home/ubuntu/cluster/003-migrate.yaml
