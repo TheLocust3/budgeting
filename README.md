@@ -129,20 +129,23 @@ Sample query:
     name,
     total,
     transactions {
-      id
+      id,
+      amount,
+      merchantName,
+      description
     }
   },
   buckets {
     id,
     name,
     total,
-    rules {
-      id,
-      rule
-    },
     transactions {
       id
     }
+  },
+  rules {
+    id,
+    rule
   },
   untagged {
     id
@@ -231,7 +234,6 @@ mutation {
 ## todo
 
 ### polish
- - Rules are duplicated across buckets
  - On account delete, sources should also be deleted
    - This might involve a schema update unfortunately
    - Afterwards, no need to be able to directly delete sources

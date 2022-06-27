@@ -59,7 +59,6 @@ export namespace Buckets {
         , fields: {
               id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
             , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-            , rules: Rules.Virtual.t
             , transactions: Transactions.Virtual.t
             , total: Transactions.VirtualTotal.t
           }

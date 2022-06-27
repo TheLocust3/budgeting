@@ -8,6 +8,7 @@ import * as graphql from "graphql";
 
 import * as UserResolver from './user-resolver';
 import * as AccountResolver from './account-resolver';
+import * as RuleResolver from './rule-resolver';
 import * as TransactionResolver from './transaction-resolver';
 import * as IntegrationsResolver from './integrations-resolver';
 import * as Mutation from './mutation/index';
@@ -21,6 +22,7 @@ const queryType = new graphql.GraphQLObjectType({
       , total: TransactionResolver.Transactions.Total.t
       , accounts: AccountResolver.Accounts.t
       , buckets: AccountResolver.Buckets.t
+      , rules: RuleResolver.Rules.Virtual.t
       , untagged: TransactionResolver.Untagged.t
       , conflicts: TransactionResolver.Conflicts.t
       , integrations: IntegrationsResolver.t
