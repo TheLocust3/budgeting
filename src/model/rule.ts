@@ -1,4 +1,5 @@
 import { pipe } from "fp-ts/lib/pipeable";
+import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as iot from "io-ts";
@@ -164,6 +165,15 @@ export namespace Internal {
 
     export type t = SplitByPercent | SplitByValue
     export const t = iot.union([SplitByPercent, SplitByValue]);
+
+    export const collectAccounts = (rule: Split.t): string[] => {
+      switch (rule._type) {
+        case "SplitByPercent":
+          return pipe(rule.splits, A.map((split: Percent) => split.account));
+        case "SplitByValue":
+          return pipe(rule.splits, A.map((split: Value) => split.account), A.append(rule.remainder));
+      }
+    };
   }
 
   export namespace Include {

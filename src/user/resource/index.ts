@@ -148,6 +148,46 @@ export const removeAccount = (pool: Pool) => (arena: UserArena.t) => (accountId:
   );
 }
 
+export const removeBucket = (pool: Pool) => (arena: UserArena.t) => (bucketId: string): TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      TE.Do
+    , TE.bind("virtualAccount", () => resolveUserAccount(pool)(arena)("virtual"))
+    , TE.bind("account", () => AccountFrontend.getByIdAndUserId(pool)(arena.user.id)(bucketId))
+    , TE.bind("validate", ({ virtualAccount, account }) => {
+        if (pipe(account.parentId, O.map((parentId) => parentId === virtualAccount.account.id), O.getOrElse(() => false))) {
+          return TE.of(true)
+        } else {
+          return TE.throwError(Exception.throwValidationError(`${bucketId} is not a virtual account`))
+        }
+      })
+    , TE.bind("materialized", () => UserArena.materializeVirtual(pool)(arena))
+    , TE.bind("validateEmpty", ({ materialized }) => {
+        if (materialized.tagged[bucketId].transactions.length == 0) {
+          return TE.of(true);
+        } else {
+          return TE.throwError(Exception.throwBadRequest(`Bucket ${bucketId} is not empty`));
+        }
+      })
+    , TE.bind("virtualRules", () => UserArena.virtualRules(pool)(arena))
+    , TE.bind("validateNoRules", ({ virtualRules }) => {
+        const accounts = pipe(
+            virtualRules
+          , A.map((rule) => rule.rule)
+          , A.filterMap(Rule.Internal.collectSplit)
+          , A.chain(Rule.Internal.Split.collectAccounts)
+        );
+        const references = pipe(accounts, A.filter((account) => account == bucketId));
+        if (references.length == 0) {
+          return TE.of(true);
+        } else {
+          return TE.throwError(Exception.throwBadRequest(`Bucket ${bucketId} is referenced by rules`));
+        }
+      })
+    , TE.bind("delete", () => AccountFrontend.deleteById(pool)(arena.user.id)(bucketId))
+    , TE.map(() => {})
+  );
+}
+
 export const removeSource = (pool: Pool) => (arena: UserArena.t) => (sourceId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       SourceFrontend.deleteById(pool)(arena.user.id)(sourceId)

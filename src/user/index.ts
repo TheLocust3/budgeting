@@ -16,6 +16,7 @@ export namespace UserResource {
 
   export namespace Bucket {
     export const create = Resource.createBucket;
+    export const remove = Resource.removeBucket;
   }
 
   export namespace Rule {

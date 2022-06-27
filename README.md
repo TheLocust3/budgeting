@@ -231,7 +231,7 @@ mutation {
 ## todo
 
 ### polish
- - No deleting of buckets, only hiding/unhiding buckets
+ - Rules are duplicated across buckets
  - On account delete, sources should also be deleted
    - This might involve a schema update unfortunately
    - Afterwards, no need to be able to directly delete sources
@@ -250,6 +250,7 @@ mutation {
  - Don't build plan/stages for every transaction
 
 ### future
+  Hide/unhide bucket
   - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
   - Add comment mutation

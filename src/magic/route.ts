@@ -49,7 +49,7 @@ export const fromQuery = (value: string | string[] | undefined): E.Either<Except
   return pipe(
       value
     , iot.string.decode
-    , E.mapLeft((_) => Exception.throwBadRequest)
+    , E.mapLeft((_) => Exception.throwBadRequest(""))
   );
 };
 

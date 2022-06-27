@@ -9,7 +9,7 @@ import * as TE from "fp-ts/TaskEither";
 import { UserArena, UserResource } from "../../src/user";
 import { PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "../../src/user/util";
 import { UserFrontend } from "../../src/storage";
-import { User } from "../../src/model";
+import { User, Transaction } from "../../src/model";
 import { Exception } from "../../src/magic";
 
 import { pool, wrapperBuilder, Wrapper } from './util';
@@ -27,6 +27,18 @@ beforeEach(async () => {
 
   wrap = wrapperBuilder(user);
 });
+
+const sampleTransaction = (sourceId: string): Transaction.Arena.Create.t => {
+  return {
+      sourceId: sourceId
+    , amount: 100
+    , merchantName: "Test Merchant"
+    , description: "A purchase"
+    , authorizedAt: new Date()
+    , capturedAt: O.none
+    , metadata: {}
+  };
+}
 
 it("can resolve physical accounts", async () => {
   await pipe(
@@ -134,6 +146,56 @@ it("can't delete virtual account", async () => {
     , TE.chain((account) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
     , TE.match(
           (error: Exception.t) => { expect(error._type).toEqual("ValidationError") }
+        , () => { throw new Error(`Should not have been able to delete bucket`); }
+      )
+  )();
+});
+
+it("can't delete unknown virtual account", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
+    , TE.chain((account) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)("nonsense")))
+    , TE.match(
+          (error: Exception.t) => { expect(error._type).toEqual("NotFound") }
+        , () => { throw new Error(`Should not have been able to delete bucket`); }
+      )
+  )();
+});
+
+it("can't delete virtual account with transactions", async () => {
+  const accountName = `test-${crypto.randomUUID()}`;
+  const bucketName = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(accountName)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
+    , TE.bind("removed", ({ bucket }) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)(bucket.id)))
+    , TE.match(
+          (error: Exception.t) => { expect(error._type).toEqual("BadRequest") }
+        , () => { throw new Error(`Should not have been able to delete bucket`); }
+      )
+  )();
+});
+
+it("can't delete virtual account with rules but not transactions", async () => {
+  const accountName = `test-${crypto.randomUUID()}`;
+  const bucketName = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(accountName)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
+    , TE.bind("removedTransaction", ({ transaction }) => wrap((arena) => UserResource.Transaction.remove(pool)(arena)(transaction.id)))
+    , TE.bind("removed", ({ bucket }) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)(bucket.id)))
+    , TE.match(
+          (error: Exception.t) => { expect(error._type).toEqual("BadRequest") }
         , () => { throw new Error(`Should not have been able to delete bucket`); }
       )
   )();

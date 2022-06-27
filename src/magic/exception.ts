@@ -1,8 +1,8 @@
 export type InvalidRule = { _type: "InvalidRule" }
 export const throwInvalidRule: t = { _type: "InvalidRule" };
 
-export type BadRequest = { _type: "BadRequest" }
-export const throwBadRequest: t = { _type: "BadRequest" };
+export type BadRequest = { _type: "BadRequest", message: string }
+export const throwBadRequest = (message: string): t => ({ _type: "BadRequest", message: message });
 
 export type MalformedJson = { _type: "MalformedJson" }
 export const throwMalformedJson: t = { _type: "MalformedJson" };

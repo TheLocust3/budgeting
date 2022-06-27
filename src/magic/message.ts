@@ -52,7 +52,7 @@ export const liftError = (response: any): E.Either<Exception.t, any> => {
       case "Invalid rule":
         return E.left(Exception.throwInvalidRule);
       case "Bad request":
-        return E.left(Exception.throwBadRequest);
+        return E.left(Exception.throwBadRequest(""));
       case "Malformed Json":
         return E.left(Exception.throwMalformedJson);
       case "Not found":
