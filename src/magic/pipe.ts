@@ -24,7 +24,7 @@ export const orElse = <T>(elseOpt: () => O.Option<T>) => (opt: O.Option<T>): O.O
 
 export const toPromise = <T>(task: TE.TaskEither<Exception.t, T>): Promise<T> => {
   return TE.match(
-      (error: Exception.t) => { throw new Error(error._type) }
+      (error: Exception.t) => { throw error }
     , (out: T) => out
   )(task)();
 }

@@ -18,7 +18,7 @@ const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => 
   return pipe(
       SourceFrontend.pullForRollup(pool)()
     , TE.mapLeft((error) => {
-        switch (error._type) {
+        switch (error.name) {
           case "NotFound":
             return <PullerException>"NoWork";
           default:

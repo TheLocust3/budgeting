@@ -21,9 +21,9 @@ export const error = (details: string): ErrorMessage => {
 };
 
 export const respondWithError = (context: Route.Context) => (exception: Exception.t): void => {
-  console.log(`[${context.response.locals.id}] responding with ${exception._type}`)
+  console.log(`[${context.response.locals.id}] responding with ${exception.name}`)
 
-  switch (exception._type) {
+  switch (exception.name) {
     case "InvalidRule":
       context.response.status(400).json(error("Invalid rule"));
       return;
