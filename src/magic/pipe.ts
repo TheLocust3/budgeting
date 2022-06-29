@@ -34,7 +34,7 @@ export const fromPromise = <T>(promise: Promise<T>): TE.TaskEither<Exception.t, 
       () => promise
     , (error) => {
         console.log(error);
-        return Exception.throwInternalError;
+        return Exception.throwInternalError(error);
       }
   );
 }

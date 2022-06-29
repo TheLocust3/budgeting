@@ -45,7 +45,7 @@ const resolve =
         set(O.some(out))(arena);
         return Pipe.fromPromise(out); // a silly jig to make sure this task only evaluates _once_
       }
-    , (value: Promise<T>) => TE.tryCatch(() => value, () => Exception.throwInternalError)
+    , (value: Promise<T>) => TE.tryCatch(() => value, Exception.throwInternalError)
   )(get(arena))
 }
 

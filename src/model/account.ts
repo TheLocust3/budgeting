@@ -42,7 +42,7 @@ export namespace Internal {
       return pipe(
           obj
         , this.TableType.decode
-        , E.mapLeft((_) => Exception.throwInternalError)
+        , E.mapLeft(Exception.throwInternalError)
         , E.map(({ id, parent_id, user_id, name }) => {
             return { id: id, parentId: parent_id, userId: user_id, name: name }
           })

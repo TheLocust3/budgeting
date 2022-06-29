@@ -299,7 +299,7 @@ export const createIntegration =
       , A.map(rollupFor(pool)(plaidClient)(arena.id))
       , A.sequence(TE.ApplicativeSeq)
       , TE.map(() => {})
-      , TE.mapLeft((_) => Exception.throwInternalError)
+      , TE.mapLeft(Exception.throwInternalError)
     );
   }
 

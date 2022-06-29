@@ -234,11 +234,12 @@ mutation {
 ## todo
 
 ### polish
+ - GraphQL doesn't return full errors
+ - Move back to separate login/user graphql endpoints
+   - means no need to handle unauthorized in endpoints
  - On account delete, sources should also be deleted
    - This might involve a schema update unfortunately
    - Afterwards, no need to be able to directly delete sources
- - Move back to separate login/user graphql endpoints
-   - means no need to handle unauthorized in endpoints
 
 ### next
  - HTTPS infrastructure

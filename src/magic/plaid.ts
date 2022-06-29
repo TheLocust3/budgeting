@@ -92,7 +92,7 @@ export const createLinkToken = (plaidClient: PlaidApi) => (userId: string): TE.T
   return pipe(
       TE.tryCatch(
           () => plaidClient.linkTokenCreate(req)
-        , (_) => Exception.throwInternalError
+        , Exception.throwInternalError
       )
     , TE.map((response) => response.data.link_token)
   );
@@ -104,7 +104,7 @@ export const exchangePublicToken =
   return pipe(
       TE.tryCatch(
           () => plaidClient.itemPublicTokenExchange({ public_token: publicToken })
-        , (_) => Exception.throwInternalError
+        , Exception.throwInternalError
       )
     , TE.map((response) => response.data)
   )

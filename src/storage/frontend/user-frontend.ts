@@ -61,7 +61,7 @@ export namespace UserFrontend {
       , TE.bind("user", () => getByEmail(pool)(email))
       , TE.bind("match", ({ user }) => TE.tryCatch(
           () => bcrypt.compare(password, user.password),
-          () => Exception.throwInternalError
+          () => Exception.throwInternalError("bcrypt.compare failed")
         ))
       , TE.chain(({ user, match }) => {
           if (match) {

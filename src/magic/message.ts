@@ -58,11 +58,11 @@ export const liftError = (response: any): E.Either<Exception.t, any> => {
       case "Not found":
         return E.left(Exception.throwNotFound);
       case "Internal error":
-        return E.left(Exception.throwInternalError);
+        return E.left(Exception.throwInternalError("null"));
       case "Unauthorized":
         return E.left(Exception.throwUnauthorized);
       default:
-        return E.left(Exception.throwInternalError);
+        return E.left(Exception.throwInternalError("null"));
     }
   } else {
     return E.right(response);

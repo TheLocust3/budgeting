@@ -10,8 +10,8 @@ export const throwMalformedJson: t = { _type: "MalformedJson" };
 export type NotFound = { _type: "NotFound" }
 export const throwNotFound: t = { _type: "NotFound" };
 
-export type InternalError = { _type: "InternalError" }
-export const throwInternalError: t = { _type: "InternalError" };
+export type InternalError = { _type: "InternalError", message: string }
+export const throwInternalError = (error: any): t => ({ _type: "InternalError", message: `${error}` });
 
 export type Unauthorized = { _type: "Unauthorized" }
 export const throwUnauthorized: t = { _type: "Unauthorized" };
@@ -30,11 +30,11 @@ export const pgRaise = (error: any): t => {
     case "23505":
       return throwNotUnique;
     default:
-      return throwInternalError;
+      return throwInternalError(error);
   }
 }
 
 export const raise = (error: any): t => {
   console.log(JSON.stringify(error, null, 2))
-  return throwInternalError;
+  return throwInternalError(error);
 }

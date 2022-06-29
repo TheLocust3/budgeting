@@ -43,7 +43,7 @@ export const pushWithToken =
           , E.toError
         );
       })
-    , TE.mapLeft((_) => Exception.throwInternalError)
+    , TE.mapLeft(Exception.throwInternalError)
     , TE.chain((response) => pipe(response, Message.liftError, TE.fromEither))
   );
 };
