@@ -39,25 +39,18 @@ export const raise = (error: any): t => {
   return throwInternalError(error);
 }
 
-export const format = (error: any): string => {
+export const format = (error: any) => {
   switch (error.name) {
     case "InvalidRule":
-      return "InvalidRule";
     case "BadRequest":
-      return `BadRequest: ${error.message}`;
     case "MalformedJson":
-      return "MalformedJson";
     case "NotFound":
-      return "NotFound";
     case "InternalError":
-      return `InternalError: ${error.message}`;
     case "Unauthorized":
-      return "Unauthorized";
     case "ValidationError":
-      return `ValidationError: ${error.message}`;
     case "NotUnique":
-      return "NotUnique";
+      return { message: error.name, extensions: { ...error } };
     default:
-      return JSON.stringify(error, null, 2);
+      return { message: "InternalError", extensions: { ...throwInternalError(error) } };
   }
 }

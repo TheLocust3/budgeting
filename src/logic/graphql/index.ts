@@ -16,9 +16,9 @@ const endpoint = graphqlHTTP((request, response) => ({
 
       const thrownValue = (<any>error.originalError).thrownValue
       if (thrownValue === undefined) {
-        return error.toJSON();
+        return { ...error.toJSON(), ...Exception.format(error) };
       } else {
-        return { ...error.toJSON(), message: Exception.format(thrownValue) };
+        return { ...error.toJSON(), ...Exception.format(thrownValue) };
       }
     }
 }))
