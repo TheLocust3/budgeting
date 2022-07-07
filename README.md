@@ -242,9 +242,6 @@ To dump a new schema:
 ## todo
 
 ### polish
- - Move back to separate login/user graphql endpoints
-   - means no need to handle unauthorized in endpoints
-   - publish graphql schema with repo
  - On account delete, sources should also be deleted
    - This might involve a schema update unfortunately
    - Afterwards, no need to be able to directly delete sources

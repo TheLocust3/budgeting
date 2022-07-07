@@ -106,8 +106,8 @@ it("can't delete unknown manual source", async () => {
 it("can create an integration", async () => {
   const institution = `test-institution-${crypto.randomUUID()}`;
 
-  const request = { institutionName: institution, accounts: [{ id: "1jPv69G6mvuQoNlzN1GDcoDb3l3W94sZJRELd", name: "Plaid Checking" }] };
-  const publicToken = { item_id: "aaow6mM69wF5dglVgbXLi9nlBnNre5u7PmBZx", access_token: "access-sandbox-d37975d9-1dbe-40b6-b34c-4073fe131e05" }
+  const request = { institutionName: institution, accounts: [{ id: "g4ae7LlPVJukQLKNAwv1u35GRvZ6xEHLe8jDp", name: "Plaid Checking" }] };
+  const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
       wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
@@ -135,8 +135,8 @@ it("can create an integration", async () => {
 it("can create an integration and create account", async () => {
   const institution = `test-institution-${crypto.randomUUID()}`;
 
-  const request = { institutionName: institution, accounts: [{ id: "1jPv69G6mvuQoNlzN1GDcoDb3l3W94sZJRELd", name: "Plaid Checking" }] };
-  const publicToken = { item_id: "aaow6mM69wF5dglVgbXLi9nlBnNre5u7PmBZx", access_token: "access-sandbox-d37975d9-1dbe-40b6-b34c-4073fe131e05" }
+  const request = { institutionName: institution, accounts: [{ id: "g4ae7LlPVJukQLKNAwv1u35GRvZ6xEHLe8jDp", name: "Plaid Checking" }] };
+  const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
       wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
@@ -155,8 +155,8 @@ it("can create an integration and create account", async () => {
 it("can create an integration and rollup initial balance", async () => {
   const institution = `test-institution-${crypto.randomUUID()}`;
 
-  const request = { institutionName: institution, accounts: [{ id: "1jPv69G6mvuQoNlzN1GDcoDb3l3W94sZJRELd", name: "Plaid Checking" }] };
-  const publicToken = { item_id: "aaow6mM69wF5dglVgbXLi9nlBnNre5u7PmBZx", access_token: "access-sandbox-d37975d9-1dbe-40b6-b34c-4073fe131e05" }
+  const request = { institutionName: institution, accounts: [{ id: "g4ae7LlPVJukQLKNAwv1u35GRvZ6xEHLe8jDp", name: "Plaid Checking" }] };
+  const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
       wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))

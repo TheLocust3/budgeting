@@ -145,7 +145,7 @@ it("can't delete virtual account", async () => {
       wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
     , TE.chain((account) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
     , TE.match(
-          (error: Exception.t) => { expect(error._type).toEqual("ValidationError") }
+          (error: Exception.t) => { expect(error.name).toEqual("ValidationError") }
         , () => { throw new Error(`Should not have been able to delete bucket`); }
       )
   )();
@@ -158,7 +158,7 @@ it("can't delete unknown virtual account", async () => {
       wrap((arena) => UserResource.Bucket.create(pool)(arena)(name))
     , TE.chain((account) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)("nonsense")))
     , TE.match(
-          (error: Exception.t) => { expect(error._type).toEqual("NotFound") }
+          (error: Exception.t) => { expect(error.name).toEqual("NotFound") }
         , () => { throw new Error(`Should not have been able to delete bucket`); }
       )
   )();
@@ -176,7 +176,7 @@ it("can't delete virtual account with transactions", async () => {
     , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
     , TE.bind("removed", ({ bucket }) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)(bucket.id)))
     , TE.match(
-          (error: Exception.t) => { expect(error._type).toEqual("BadRequest") }
+          (error: Exception.t) => { expect(error.name).toEqual("BadRequest") }
         , () => { throw new Error(`Should not have been able to delete bucket`); }
       )
   )();
@@ -195,7 +195,7 @@ it("can't delete virtual account with rules but not transactions", async () => {
     , TE.bind("removedTransaction", ({ transaction }) => wrap((arena) => UserResource.Transaction.remove(pool)(arena)(transaction.id)))
     , TE.bind("removed", ({ bucket }) => wrap((arena) => UserResource.Bucket.remove(pool)(arena)(bucket.id)))
     , TE.match(
-          (error: Exception.t) => { expect(error._type).toEqual("BadRequest") }
+          (error: Exception.t) => { expect(error.name).toEqual("BadRequest") }
         , () => { throw new Error(`Should not have been able to delete bucket`); }
       )
   )();
