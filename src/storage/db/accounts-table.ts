@@ -22,25 +22,30 @@ namespace Query {
     )
   `;
 
+  export const migrate001 = `
+    ALTER TABLE accounts
+    ADD COLUMN metadata JSONB
+  `;
+
   export const dropTable = "DROP TABLE accounts";
 
-  export const create = (id: string, parentId: string | null, userId: string, name: string) => {
+  export const create = (id: string, parentId: string | null, userId: string, name: string, metadata: any) => {
     return {
       text: `
-        INSERT INTO accounts (id, parent_id, user_id, name)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO accounts (id, parent_id, user_id, name, metadata)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (id)
-        DO UPDATE SET parent_id=excluded.parent_id, user_id=excluded.user_id, name=excluded.name
+        DO UPDATE SET parent_id=excluded.parent_id, user_id=excluded.user_id, name=excluded.name, metadata=excluded.metadata
         RETURNING *
       `,
-      values: [id, parentId, userId, name]
+      values: [id, parentId, userId, name, metadata]
     };
   };
 
   export const all = (userId: string) => {
     return {
       text: `
-        SELECT id, parent_id, user_id, name
+        SELECT id, parent_id, user_id, name, metadata
         FROM accounts
         WHERE user_id = $1
       `,
@@ -51,7 +56,7 @@ namespace Query {
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, parent_id, user_id, name
+        SELECT id, parent_id, user_id, name, metadata
         FROM accounts
         WHERE id = $1
         LIMIT 1
@@ -85,6 +90,16 @@ namespace Query {
 export const migrate = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.createTable);
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
+export const migrate001 = (pool: Pool): T.Task<boolean> => async () => {
+  try {
+    await pool.query(Query.migrate001);
     return true;
   } catch (err) {
     console.log(err);
@@ -174,6 +189,7 @@ export const create = (pool: Pool) => (account: Account.Frontend.Create.t) : TE.
           , pipe(account.parentId, O.match(() => null, (parentId) => parentId))
           , account.userId
           , account.name
+          , account.metadata
         )),
         (error) => {
           console.log(error)

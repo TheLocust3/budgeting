@@ -10,10 +10,6 @@ export namespace UserResource {
     export const remove = Resource.removeAccount;
   }
 
-  export namespace Source {
-    export const remove = Resource.removeSource
-  }
-
   export namespace Bucket {
     export const create = Resource.createBucket;
     export const remove = Resource.removeBucket;

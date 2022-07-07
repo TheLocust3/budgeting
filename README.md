@@ -242,9 +242,7 @@ To dump a new schema:
 ## todo
 
 ### polish
- - On account delete, sources should also be deleted
-   - This might involve a schema update unfortunately
-   - Afterwards, no need to be able to directly delete sources
+ - tie integrations directly to accounts in graphql schema
  - Add ability to sort transactions in IR
 
 ### next

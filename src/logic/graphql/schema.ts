@@ -38,7 +38,6 @@ const mutationType = new graphql.GraphQLObjectType({
       , deleteRule: Mutation.DeleteRule.t
       , deleteIntegration: Mutation.DeleteIntegration.t
       , deleteAccount: Mutation.DeleteAccount.t
-      , deleteSource: Mutation.DeleteSource.t
       , deleteBucket: Mutation.DeleteBucket.t
       , deleteTransaction: Mutation.DeleteTransaction.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t

@@ -17,4 +17,6 @@ export const migrate = async (pool: Pool) => {
   await RulesTable.migrate(pool)();
 
   await UsersTable.migrate001(pool)();
+  await AccountsTable.migrate001(pool)();
+  await TransactionsTable.migrate001(pool)();
 };

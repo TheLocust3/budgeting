@@ -72,8 +72,7 @@ it("can delete manual source", async () => {
 
   await pipe(
       wrap((arena) => UserResource.Account.create(pool)(arena)(name))
-    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
-    , TE.chain((integrationsArena) => wrap((arena) => UserResource.Source.remove(pool)(arena)(integrationsArena[0].sources[0].id)))
+    , TE.chain(({ account }) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
     , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -85,20 +84,6 @@ it("can delete manual source", async () => {
               })
             ]));
           }
-      )
-  )();
-});
-
-it("can't delete unknown manual source", async () => {
-  const name = `test-${crypto.randomUUID()}`;
-
-  await pipe(
-      wrap((arena) => UserResource.Account.create(pool)(arena)(name))
-    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
-    , TE.chain((integrationsArena) => wrap((arena) => UserResource.Source.remove(pool)(arena)("nonsense")))
-    , TE.match(
-          (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
-        , () => { throw new Error(`Should not have been able to delete source`); }
       )
   )();
 });
@@ -167,6 +152,63 @@ it("can create an integration and rollup initial balance", async () => {
             expect(transactionArena.tagged[Object.keys(transactionArena.tagged)[0]]).toEqual(expect.objectContaining({
               transactions: expect.arrayContaining([expect.objectContaining({ amount: 110, "description": "Starting balance" })])
             }));
+          }
+      )
+  )();
+});
+
+it("can delete an integration via account", async () => {
+  const institution = `test-institution-${crypto.randomUUID()}`;
+
+  const request = { institutionName: institution, accounts: [{ id: "g4ae7LlPVJukQLKNAwv1u35GRvZ6xEHLe8jDp", name: "Plaid Checking" }] };
+  const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
+
+  await pipe(
+      wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
+    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(arena)))
+    , TE.chain((accountArena) => {
+        const accountId = accountArena.children[0].account.id;
+        return wrap((arena) => UserResource.Account.remove(pool)(arena)(accountId));
+      })
+    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (integrationArena: UserArena.Integrations.t) => {
+            expect(integrationArena).not.toEqual(expect.arrayContaining([
+              expect.objectContaining({
+                integration: expect.objectContaining({ name: institution }),
+                sources: expect.arrayContaining([
+                  expect.objectContaining({ name: "Plaid Checking" })
+                ])
+              }),
+              expect.objectContaining({
+                integration: expect.objectContaining({ name: "Manual Sources" }),
+                sources: []
+              })
+            ]));
+          }
+      )
+  )();
+});
+
+it("can delete an integration via account with transactions", async () => {
+  const institution = `test-institution-${crypto.randomUUID()}`;
+
+  const request = { institutionName: institution, accounts: [{ id: "g4ae7LlPVJukQLKNAwv1u35GRvZ6xEHLe8jDp", name: "Plaid Checking" }] };
+  const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
+
+  await pipe(
+      wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
+    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(arena)))
+    , TE.chain((accountArena) => {
+        const accountId = accountArena.children[0].account.id;
+        return wrap((arena) => UserResource.Account.remove(pool)(arena)(accountId));
+      })
+    , TE.chain(() => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , (transactionArena: UserArena.Transaction.t) => {
+            expect(transactionArena.tagged).toEqual({});
           }
       )
   )();

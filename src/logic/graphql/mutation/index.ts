@@ -214,25 +214,6 @@ export namespace DeleteBucket {
   };
 }
 
-export namespace DeleteSource {
-  type Args = { id: string; };
-  const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
-
-  const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
-    return pipe(
-        UserResource.Source.remove(context.pool)(context.arena)(id)
-      , TE.map(() => true)
-      , Pipe.toPromise
-    );
-  }
-
-  export const t = {
-      type: new graphql.GraphQLNonNull(Types.Void.t)
-    , args: Args
-    , resolve: resolve
-  };
-}
-
 export namespace DeleteTransaction {
   type Args = { id: string; };
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };

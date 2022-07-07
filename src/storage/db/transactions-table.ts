@@ -27,6 +27,12 @@ namespace Query {
     )
   `;
 
+  export const migrate001 = `
+    ALTER TABLE transactions
+    DROP CONSTRAINT "transactions_source_id_fkey",
+    ADD CONSTRAINT "transactions_source_id_fkey" FOREIGN KEY ("source_id") REFERENCES sources(id) ON DELETE CASCADE;
+  `;
+
   export const dropTable = "DROP TABLE transactions";
 
   export const create = (
@@ -91,6 +97,16 @@ export const migrate = (pool: Pool): T.Task<boolean> => async () => {
     await pool.query(Query.createTable);
     return true;
   } catch(err) {
+    console.log(err);
+    return false;
+  }
+};
+
+export const migrate001 = (pool: Pool): T.Task<boolean> => async () => {
+  try {
+    await pool.query(Query.migrate001);
+    return true;
+  } catch (err) {
     console.log(err);
     return false;
   }

@@ -9,11 +9,17 @@ import * as Rule from "./rule";
 import { Exception, Format } from "../magic";
 
 export namespace Internal {
+  export const Metadata = iot.type({
+    sourceId: types.option(iot.string)
+  });
+  export type Metadata = iot.TypeOf<typeof Metadata>;
+
   export const t = iot.type({
       id: iot.string
     , parentId: types.option(iot.string)
     , userId: iot.string
     , name: iot.string
+    , metadata: Metadata
   });
   export type t = iot.TypeOf<typeof t>;
 
@@ -36,6 +42,7 @@ export namespace Internal {
       , parent_id: types.optionFromNullable(iot.string)
       , user_id: iot.string
       , name: iot.string
+      , metadata: types.optionFromNullable(Metadata)
     });
 
     public from = (obj: any): E.Either<Exception.t, t> => {
@@ -43,8 +50,9 @@ export namespace Internal {
           obj
         , this.TableType.decode
         , E.mapLeft(Exception.throwInternalError)
-        , E.map(({ id, parent_id, user_id, name }) => {
-            return { id: id, parentId: parent_id, userId: user_id, name: name }
+        , E.map(({ id, parent_id, user_id, name, metadata }) => {
+            const resolvedMetadata = pipe(metadata, O.getOrElse(() => <Metadata>{ sourceId: O.none }));
+            return { id: id, parentId: parent_id, userId: user_id, name: name, metadata: resolvedMetadata };
           })
       );
     }
@@ -55,6 +63,7 @@ export namespace Internal {
         , parent_id: obj.parentId
         , user_id: obj.userId
         , name: obj.name
+        , metadata: obj.metadata
       }
     }
   };
@@ -67,6 +76,7 @@ export namespace Frontend {
       , parentId: types.option(iot.string)
       , userId: iot.string
       , name: iot.string
+      , metadata: Internal.Metadata
     });
 
     export type t = iot.TypeOf<typeof t>;
