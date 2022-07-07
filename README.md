@@ -91,7 +91,7 @@ Deploy the cluster:
 
 ## graphql api
 ### External API
-Open `localhost:8080/graphql`.
+Open `localhost:8080/external/graphql`.
 
 Login:
 ```
@@ -179,6 +179,14 @@ mutation {
 }
 ```
 
+### schema
+
+Schemas for each endpoint are located in `schema/`.  
+
+To dump a new schema:
+`yarn global add get-graphql-schema`
+`./schema/dump.sh "${ADMIN_TOKEN}"`
+
 ## notes
 
 ### code structure
@@ -236,14 +244,21 @@ mutation {
 ### polish
  - Move back to separate login/user graphql endpoints
    - means no need to handle unauthorized in endpoints
+   - publish graphql schema with repo
  - On account delete, sources should also be deleted
    - This might involve a schema update unfortunately
    - Afterwards, no need to be able to directly delete sources
+ - Add ability to sort transactions in IR
 
 ### next
+ - Puller improvements
+  - Handle Plaid pageination
+  - Don't re-pull everything
+  - Some way to alert users of failures
  - HTTPS infrastructure
    - pull certs from S3 on logic container start
- - Add ability to sort transactions in IR
+ - Move control plane to separate instance + use ASGs for nodes
+   - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
 
 ### miscellaneous
  - createLinkToken should have actual errors
@@ -256,11 +271,5 @@ mutation {
   - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
   - Add comment mutation
-  - Move control plane to separate instance + use ASGs for nodes
-    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
-  - Puller improvements
-    - Handle Plaid pageination
-    - Don't re-pull everything
-    - Some way to alert users of failures
  - basic rule pushdowns
    - all include rules are up for grabs

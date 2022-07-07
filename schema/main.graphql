@@ -1,0 +1,111 @@
+"""Exposes a URL that specifies the behavior of this scalar."""
+directive @specifiedBy(
+  """The URL that specifies the behavior of this scalar."""
+  url: String!
+) on SCALAR
+
+type Account {
+  id: String!
+  name: String!
+  transactions: [Transaction]!
+  total: Float!
+}
+
+type Bucket {
+  id: String!
+  name: String!
+  transactions: [Transaction]!
+  total: Float!
+}
+
+type Conflict {
+  element: Transaction!
+  rules: [JSONObject!]!
+}
+
+type CreateLinkToken {
+  token: String!
+}
+
+type Integration {
+  id: String!
+  name: String!
+  sources: [Source]!
+}
+
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+type JustAccount {
+  id: String!
+  name: String!
+}
+
+type JustBucket {
+  id: String!
+  name: String!
+}
+
+type Mutation {
+  createBucket(name: String!): JustBucket!
+  createManualAccount(name: String!): JustAccount!
+  createSplitByValue(transactionId: String!, splits: [Value]!, remainder: String!): Rule!
+  createTransaction(sourceId: String!, amount: Float!, merchantName: String!, description: String!, authorizedAt: Float!, capturedAt: Float, metadata: JSONObject!): Transaction!
+  deleteRule(id: String!): Boolean!
+  deleteIntegration(id: String!): Boolean!
+  deleteAccount(id: String!): Boolean!
+  deleteSource(id: String!): Boolean!
+  deleteBucket(id: String!): Boolean!
+  deleteTransaction(id: String!): Boolean!
+  createLinkToken: CreateLinkToken!
+  exchangePublicToken(publicToken: String!, accounts: [PlaidAccount]!, institutionName: String!): Boolean!
+}
+
+input PlaidAccount {
+  id: String!
+  name: String!
+}
+
+type Query {
+  user: User!
+  total: Float!
+  accounts: [Account]!
+  buckets: [Bucket]!
+  rules: [Rule]!
+  untagged: [Transaction]!
+  conflicts: [Conflict]!
+  integrations: [Integration]!
+}
+
+type Rule {
+  id: String!
+  rule: JSONObject!
+}
+
+type Source {
+  id: String!
+  name: String!
+}
+
+type Transaction {
+  id: String!
+  sourceId: String!
+  amount: Float!
+  merchantName: String!
+  description: String!
+  authorizedAt: Float!
+  capturedAt: Float
+}
+
+type User {
+  id: String!
+  email: String!
+}
+
+input Value {
+  bucket: String!
+  value: Float!
+}
+

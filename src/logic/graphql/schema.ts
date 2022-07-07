@@ -13,7 +13,6 @@ import * as TransactionResolver from './transaction-resolver';
 import * as IntegrationsResolver from './integrations-resolver';
 import * as Mutation from './mutation/index';
 import * as PlaidMutation from "./mutation/plaid-mutation";
-import * as ExternalMutation from "./external";
 
 const queryType = new graphql.GraphQLObjectType({
     name: 'Query'
@@ -32,9 +31,7 @@ const queryType = new graphql.GraphQLObjectType({
 const mutationType = new graphql.GraphQLObjectType({
     name: 'Mutation'
   , fields: {
-        login: ExternalMutation.Login.t
-      , createUser: ExternalMutation.CreateUser.t
-      , createBucket: Mutation.CreateBucket.t
+        createBucket: Mutation.CreateBucket.t
       , createManualAccount: Mutation.CreateAccount.t
       , createSplitByValue: Mutation.CreateSplitByValue.t
       , createTransaction: Mutation.CreateTransaction.t

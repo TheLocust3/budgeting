@@ -5,14 +5,14 @@ import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
 
-import { UserResource } from "../../../user";
-import * as Context from '../context';
-import * as Types from "../../graphql/types";
-import { JWT } from "../../util";
+import { UserResource } from "../../user";
+import * as Context from './context';
+import * as Types from "../graphql/types";
+import { JWT } from "../util";
 
-import { User } from "../../../model";
-import { Pipe } from "../../../magic";
-import { UserFrontend } from "../../../storage";
+import { User } from "../../model";
+import { Pipe } from "../../magic";
+import { UserFrontend } from "../../storage";
 
 export namespace Login {
   type Token = { token: string; };
@@ -65,3 +65,22 @@ export namespace CreateUser {
     , resolve: resolve
   };
 }
+
+const query = new graphql.GraphQLObjectType({
+    name: 'Query'
+  , fields: {
+      _ignore: { type: graphql.GraphQLString } // JK: a single field is required
+    }
+});
+
+const mutation = new graphql.GraphQLObjectType({
+    name: 'Mutation'
+  , fields: {
+        login: Login.t
+      , createUser: CreateUser.t
+    }
+});
+
+const schema = new graphql.GraphQLSchema({ query: query, mutation: mutation });
+
+export default schema;

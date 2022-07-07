@@ -1,0 +1,27 @@
+"""Exposes a URL that specifies the behavior of this scalar."""
+directive @specifiedBy(
+  """The URL that specifies the behavior of this scalar."""
+  url: String!
+) on SCALAR
+
+type Mutation {
+  deleteUser(id: String!): Boolean!
+  makeSuperuser(id: String!): User!
+  createPlaidIntegraton(userId: String!, itemId: String!, accessToken: String!, accounts: [PlaidAccount], institutionName: String!): Boolean!
+}
+
+input PlaidAccount {
+  id: String!
+  name: String!
+}
+
+type Query {
+  users: [User]!
+  user(id: String!): User!
+}
+
+type User {
+  id: String!
+  email: String!
+}
+
