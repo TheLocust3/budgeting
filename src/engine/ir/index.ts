@@ -23,7 +23,34 @@ export namespace Plan {
   }
 
   export namespace Materialize {
-    export type t = MaterializePlan.t;
+    export namespace SortBy {
+      export type Order = "Ascending" | "Descending";
+
+      export type t = {
+        field: Transaction.Internal.Field.t;
+        order: Order;
+      }
+
+      export const compare = (sortBy: t) => (left: Transaction.Internal.t, right: Transaction.Internal.t): number => {
+        const order = sortBy.order == "Ascending" ? 1 : -1;
+
+        const leftValue = left[sortBy.field];
+        const rightValue = right[sortBy.field];
+
+        if (leftValue > rightValue) {
+          return 1 * order;
+        } else if (leftValue < rightValue) {
+          return -1 * order;
+        } else {
+          return 0;
+        }
+      }
+    }
+
+    export type t = {
+      plan: MaterializePlan.t;
+      sortBy: O.Option<SortBy.t>;
+    }
   }
 
   export namespace GroupByAndReduce {
@@ -92,20 +119,36 @@ export namespace Frontend {
   }
 
   const build = (plan: Plan.t): ExecutablePlan => {
+    const sortBy = (transactions: Transaction.Internal.t[]): Transaction.Internal.t[] => {
+      return pipe(
+          plan.materialize.sortBy
+        , O.match(
+              () => transactions
+            , (sortBy) => transactions.sort(Plan.Materialize.SortBy.compare(sortBy))
+          )
+      );
+    }
+
     return (transactions: Transaction.Internal.t[]): Result.t => {
-      const materialized = Materializer.executePlan(plan.materialize)(transactions);
+      const materialized = Materializer.executePlan(plan.materialize.plan)(transactions);
+      const sorted: MaterializeModel.Internal.t = {
+          conflicts: materialized.conflicts
+        , tagged: pipe(materialized.tagged, MaterializeModel.Internal.Tagged.map(sortBy))
+        , untagged: sortBy(materialized.untagged)
+      }
+
       const reduced = pipe(
           Object.keys(plan.reductions)
         , A.map((key) => ({ key: key, reduction: plan.reductions[key] }))
         , A.map(({ key, reduction }) => ({ key: key, run: buildReducation(reduction) }))
-        , A.map(({ key, run }) => ({ key: key, out: run(materialized) }))
+        , A.map(({ key, run }) => ({ key: key, out: run(sorted) }))
         , A.reduce(<Result.Reductions>{}, (acc, { key, out }) => {
             return { ...acc, [key]: out };
           })
       );
       
       return {
-          materialized: materialized
+          materialized: sorted
         , reductions: reduced
       }
     }
@@ -139,6 +182,12 @@ export namespace Frontend {
 }
 
 export namespace Builder {
+  export namespace Materialize {
+    export type t = {
+      sortBy: O.Option<Plan.Materialize.SortBy.t>;
+    }
+  }
+
   export namespace GroupAndAggregate {
     export namespace Group {
       export type Empty = { _type: "Empty" };
@@ -198,6 +247,7 @@ export namespace Builder {
       queryId: string;
       userId: string;
       accountId: string;
+      materialize: Materialize.t;
       aggregations: GroupAndAggregate.t;
     };
 
@@ -221,7 +271,10 @@ export namespace Builder {
             const plan = <Plan.t> {
                 queryId: builder.queryId
               , source: { _type: "TransactionsForUser", userId: builder.userId }
-              , materialize: materializePlan
+              , materialize: {
+                  plan: materializePlan,
+                  sortBy: builder.materialize.sortBy
+                }
               , reductions: GroupAndAggregate.build(builder.aggregations)
             };
 

@@ -11,4 +11,4 @@ export PLAID_CLIENT_ID=***REMOVED***
 export PLAID_SECRET=***REMOVED***
 export ENVIRONMENT=test
 
-jest --forceExit --verbose
+jest --forceExit --verbose $1

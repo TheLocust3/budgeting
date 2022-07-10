@@ -279,3 +279,27 @@ it("can round totals", async () => {
       )
   )();
 });
+
+it("can order", async () => {
+  const name = `test-${crypto.randomUUID()}`;
+
+  await pipe(
+      TE.Do
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
+    , TE.bind("transaction1", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)({ ...sampleTransaction(account.source.id), authorizedAt: new Date(2012, 9, 23, 0, 0, 0, 0) })))
+    , TE.bind("transaction2", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)({ ...sampleTransaction(account.source.id), authorizedAt: new Date(2011, 9, 23, 0, 0, 0, 0) })))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.match(
+          (error) => { throw new Error(`Failed with ${error}`); }
+        , ({ account, materialized }) => {
+            expect(materialized.tagged[account.account.id]).toEqual(expect.objectContaining({
+                transactions: [
+                    expect.objectContaining({ authorizedAt: new Date(2011, 9, 23, 0, 0, 0, 0) })
+                  , expect.objectContaining({ authorizedAt: new Date(2012, 9, 23, 0, 0, 0, 0) })
+                ]
+            }));
+            expect(materialized.conflicts).toEqual([]);
+          }
+      )
+  )();
+});

@@ -241,9 +241,6 @@ To dump a new schema:
 
 ## todo
 
-### polish
- - Add ability to sort transactions in IR
-
 ### next
  - Puller improvements
   - Handle Plaid pageination
@@ -259,6 +256,7 @@ To dump a new schema:
  - exchangePublicToken should have actual errors
  - Validate integration credentials before creating
  - Don't build plan/stages for every transaction
+ - Clean up integrations when no sources remain
 
 ### future
   Hide/unhide bucket

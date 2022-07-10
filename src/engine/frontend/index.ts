@@ -31,6 +31,12 @@ export namespace ForAccount {
         queryId: queryId
       , userId: userId
       , accountId: accountId
+      , materialize: {
+          sortBy: O.some({
+              field: "authorizedAt"
+            , order: "Ascending"
+          })
+        }
       , aggregations: {
             total: { group: { _type: "Empty" }, aggregate: { _type: "Sum" } }
           , totalPerAccount: { group: { _type: "Account" }, aggregate: { _type: "Sum" } }
