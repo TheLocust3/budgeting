@@ -242,7 +242,6 @@ To dump a new schema:
 ## todo
 
 ### polish
- - tie integrations directly to accounts in graphql schema
  - Add ability to sort transactions in IR
 
 ### next

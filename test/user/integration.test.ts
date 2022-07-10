@@ -157,7 +157,7 @@ it("can create an integration and rollup initial balance", async () => {
   )();
 });
 
-it("can delete an integration via account", async () => {
+it("can delete a source via account", async () => {
   const institution = `test-institution-${crypto.randomUUID()}`;
 
   const request = { institutionName: institution, accounts: [{ id: "g4ae7LlPVJukQLKNAwv1u35GRvZ6xEHLe8jDp", name: "Plaid Checking" }] };
@@ -174,12 +174,10 @@ it("can delete an integration via account", async () => {
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (integrationArena: UserArena.Integrations.t) => {
-            expect(integrationArena).not.toEqual(expect.arrayContaining([
+            expect(integrationArena).toEqual(expect.arrayContaining([
               expect.objectContaining({
                 integration: expect.objectContaining({ name: institution }),
-                sources: expect.arrayContaining([
-                  expect.objectContaining({ name: "Plaid Checking" })
-                ])
+                sources: []
               }),
               expect.objectContaining({
                 integration: expect.objectContaining({ name: "Manual Sources" }),
@@ -191,7 +189,7 @@ it("can delete an integration via account", async () => {
   )();
 });
 
-it("can delete an integration via account with transactions", async () => {
+it("can delete a source via account with transactions", async () => {
   const institution = `test-institution-${crypto.randomUUID()}`;
 
   const request = { institutionName: institution, accounts: [{ id: "g4ae7LlPVJukQLKNAwv1u35GRvZ6xEHLe8jDp", name: "Plaid Checking" }] };

@@ -197,26 +197,7 @@ export const removeBucket = (pool: Pool) => (arena: UserArena.t) => (bucketId: s
 
 export const removeSource = (pool: Pool) => (arena: UserArena.t) => (sourceId: string): TE.TaskEither<Exception.t, any> => {
   return pipe(
-      TE.Do
-    , TE.bind("source", () => SourceFrontend.getById(pool)(arena.user.id)(sourceId))
-    , TE.bind("integration", ({ source }) => {
-        return <TE.TaskEither<Exception.t, O.Option<Integration.Internal.t>>> pipe(
-            source.integrationId
-          , O.match(
-                () => TE.of(O.none)
-              , (integrationId) => pipe(IntegrationFrontend.getByIdAndUserId(pool)(arena.user.id)(integrationId), TE.map(integration => O.some(integration)))
-            )
-        );
-      })
-    , TE.bind("delete", ({ integration }) => {
-        return pipe(
-            integration
-          , O.match(
-                () => SourceFrontend.deleteById(pool)(arena.user.id)(sourceId)
-              , (integration) => IntegrationFrontend.deleteById(pool)(arena.user.id)(integration.id)
-            )
-        )
-      })
+      SourceFrontend.deleteById(pool)(arena.user.id)(sourceId)
     , TE.map(() => {})
   );
 }
