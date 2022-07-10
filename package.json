@@ -7,7 +7,7 @@
     "lint": "eslint \"**/*.{js,ts}\" --quiet",
     "build": "npx tsc --incremental",
     "setup": "yarn install && yarn build",
-    "deploy": "yarn build && kubectl rollout restart deployment logic",
+    "deploy": "yarn build && kubectl rollout restart deployment/logic",
     "clean": "rm -rf dist",
     "test": "./test.sh",
     "migrate": "yarn build && node dist/job/migrate/index.js",

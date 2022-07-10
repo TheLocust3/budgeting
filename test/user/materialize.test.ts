@@ -294,8 +294,8 @@ it("can order", async () => {
         , ({ account, materialized }) => {
             expect(materialized.tagged[account.account.id]).toEqual(expect.objectContaining({
                 transactions: [
-                    expect.objectContaining({ authorizedAt: new Date(2011, 9, 23, 0, 0, 0, 0) })
-                  , expect.objectContaining({ authorizedAt: new Date(2012, 9, 23, 0, 0, 0, 0) })
+                    expect.objectContaining({ authorizedAt: new Date(2012, 9, 23, 0, 0, 0, 0) })
+                  , expect.objectContaining({ authorizedAt: new Date(2011, 9, 23, 0, 0, 0, 0) })
                 ]
             }));
             expect(materialized.conflicts).toEqual([]);

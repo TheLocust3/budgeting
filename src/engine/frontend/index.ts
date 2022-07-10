@@ -34,7 +34,7 @@ export namespace ForAccount {
       , materialize: {
           sortBy: O.some({
               field: "authorizedAt"
-            , order: "Ascending"
+            , order: "Descending"
           })
         }
       , aggregations: {
