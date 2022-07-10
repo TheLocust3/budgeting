@@ -243,9 +243,12 @@ To dump a new schema:
 
 ### next
  - Puller improvements
+  - Notifications table
+    - When pulling fails, send notification to user
+  - Pull only the latest month
   - Handle Plaid pageination
-  - Don't re-pull everything
-  - Some way to alert users of failures
+    - count: 500
+    - if 500 transactions, resend with offset 500 and recurse
  - HTTPS infrastructure
    - pull certs from S3 on logic container start
  - Move control plane to separate instance + use ASGs for nodes

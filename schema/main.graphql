@@ -56,7 +56,6 @@ type Mutation {
   deleteRule(id: String!): Boolean!
   deleteIntegration(id: String!): Boolean!
   deleteAccount(id: String!): Boolean!
-  deleteSource(id: String!): Boolean!
   deleteBucket(id: String!): Boolean!
   deleteTransaction(id: String!): Boolean!
   createLinkToken: CreateLinkToken!
