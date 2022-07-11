@@ -251,6 +251,7 @@ To dump a new schema:
     - if 500 transactions, resend with offset 500 and recurse
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
+   - RDS for Postgres
 
 ### miscellaneous
  - createLinkToken should have actual errors
@@ -260,7 +261,7 @@ To dump a new schema:
  - Clean up integrations when no sources remain
 
 ### future
-  Hide/unhide bucket
+ - Hide/unhide bucket
   - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
   - Add comment mutation

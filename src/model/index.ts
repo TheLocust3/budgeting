@@ -7,3 +7,4 @@ export * as Integration from "./integration";
 export * as Plaid from "./plaid";
 export * as Materialize from "./materialize";
 export * as Generic from "./generic";
+export * as Notification from "./notification";
