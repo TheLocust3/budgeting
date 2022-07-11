@@ -29,6 +29,13 @@ export namespace NotificationFrontend {
       , NotificationsTable.deleteById(pool)(userId)
     );
   };
+
+  export const ack = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+    return pipe(
+        id
+      , NotificationsTable.ackById(pool)(userId)
+    );
+  };
 }
 
 export default NotificationFrontend;

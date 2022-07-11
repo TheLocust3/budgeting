@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -10,10 +11,15 @@ export namespace Internal {
   const PullerFailure = iot.type({
     _type: iot.literal("PullerFailure")
   });
-  type PullerFailure = iot.TypeOf<typeof Metadata>;
+  type PullerFailure = iot.TypeOf<typeof PullerFailure>;
 
-  export const Metadata = PullerFailure;
-  export type Metadata = PullerFailure;
+  const NewTransactions = iot.type({
+    _type: iot.literal("NewTransactions")
+  });
+  type NewTransactions = iot.TypeOf<typeof NewTransactions>;
+
+  export const Metadata = iot.union([PullerFailure, NewTransactions]);;
+  export type Metadata = iot.TypeOf<typeof Metadata>;
 
   export const t = iot.type({
       id: iot.string
@@ -72,5 +78,21 @@ export namespace Frontend {
 
     export type t = iot.TypeOf<typeof t>;
     export const Json = new Format.JsonFormatter(t);
+
+    const pullerFailure = (userId: string): t => ({
+        id: crypto.randomUUID()
+      , userId: userId
+      , title: "Failed to pull transactions"
+      , body: "" // TODO: JK
+      , metadata: { _type: "PullerFailure" }
+    })
+
+    const newTransactions = (userId: string): t => ({
+        id: crypto.randomUUID()
+      , userId: userId
+      , title: "You have new uncategorized transactions"
+      , body: "" // TODO: JK
+      , metadata: { _type: "NewTransactions" }
+    })
   }
 }

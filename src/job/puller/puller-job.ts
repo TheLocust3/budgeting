@@ -9,7 +9,7 @@ import { pipe } from "fp-ts/lib/pipeable";
 
 import { Context, PullerException, withIntegration, pushTransactions, accessToken } from "../util";
 
-import { Plaid, Pipe } from "../../magic";
+import { Plaid, Pipe, Exception } from "../../magic";
 import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../../storage";
 import { Source, Integration, Transaction } from "../../model";
 
@@ -27,7 +27,7 @@ const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => 
             return <PullerException>"NoWork";
           default:
             console.log(error);
-            return <PullerException>"Exception"
+            return error;
         }
       })
   );
@@ -40,10 +40,7 @@ const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Co
 
   return pipe(
       Plaid.getTransactions(plaidClient)(accessToken(context.integration), createdAt, new Date())
-    , TE.mapLeft((error) => {
-        console.log(error);
-        return <PullerException>"Exception";
-      })
+    , TE.mapLeft(Exception.throwInternalError)
     , TE.map(A.filter((transaction) => transaction.account_id === accountId))
     , TE.map(A.map((transaction) => {
         const authorizedAt = pipe(
@@ -82,16 +79,17 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Ta
           (error) => {
             switch (error) {
               case "NoWork":
-                return true;
-              case "Exception":
+                return T.of(true);
+              default:
                 console.log(`Scheduler.puller[${id}] - failed - ${error}`);
-                return true;
+                return T.of(true);
             }
           }
         , () => {
             console.log(`Scheduler.puller[${id}] - completed`);
-            return true;
+            return T.of(true);
           }
       )
+    , T.map(() => true)
   );
 }

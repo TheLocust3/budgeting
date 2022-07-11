@@ -41,7 +41,7 @@ namespace Query {
   export const all = (userId: string) => {
     return {
       text: `
-        SELECT id, user_id, title, body, metadata
+        SELECT id, user_id, title, body, acked, metadata
         FROM notifications
         WHERE user_id = $1
       `,
@@ -54,6 +54,18 @@ namespace Query {
       text: `
         DELETE FROM notifications
         WHERE id = $1 AND user_id = $2
+      `,
+      values: [id, userId]
+    };
+  };
+
+  export const ackById = (id: string, userId: string) => {
+    return {
+      text: `
+        UPDATE notifications
+        SET acked = true
+        WHERE id = $1 AND user_id = $2
+        RETURNING id, user_id, title, body, acked, metadata
       `,
       values: [id, userId]
     };
@@ -100,6 +112,23 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.deleteById(id, userId)),
+        E.toError
+      )
+    , TE.mapLeft(Exception.pgRaise)
+    , TE.chain(x => {
+        if (x.rowCount <= 0) {
+          return TE.throwError(Exception.throwNotFound);
+        } else {
+          return TE.of(undefined);
+        }
+      })
+  );
+};
+
+export const ackById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.ackById(id, userId)),
         E.toError
       )
     , TE.mapLeft(Exception.pgRaise)

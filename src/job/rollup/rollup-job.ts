@@ -23,7 +23,7 @@ const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => 
             return <PullerException>"NoWork";
           default:
             console.log(error);
-            return <PullerException>"Exception"
+            return error;
         }
       })
   );
@@ -40,10 +40,7 @@ const rollup = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE
         console.log(JSON.stringify(accounts))
         return accounts;
       })
-    , TE.mapLeft((error) => {
-        console.log(error);
-        return <PullerException>"Exception";
-      })
+    , TE.mapLeft(Exception.throwInternalError)
     , TE.map(A.filter((account: AccountBase) => account.account_id === accountId))
     , TE.chain((accounts) => {
         if (accounts.length !== 1) {
@@ -91,16 +88,17 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Ta
           (error) => {
             switch (error) {
               case "NoWork":
-                return true;
-              case "Exception":
+                return T.of(true);
+              default:
                 console.log(`Scheduler.rollup[${id}] - failed - ${error}`);
-                return true;
+                return T.of(true);
             }
           }
         , () => {
             console.log(`Scheduler.rollup[${id}] - completed`);
-            return true;
+            return T.of(true);
           }
       )
+    , T.map(() => true)
   );
 }

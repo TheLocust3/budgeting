@@ -6,7 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { Plaid, Pipe } from "../magic";
+import { Plaid, Pipe, Exception } from "../magic";
 import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../storage";
 import { Source, Integration, Transaction } from "../model";
 
@@ -15,7 +15,7 @@ export type Context = {
   integration: Integration.Internal.t;
 };
 
-export type PullerException = "NoWork" | "Exception";
+export type PullerException = "NoWork" | Exception.t;
 
 export const accessToken = (integration: Integration.Internal.t) => {
   switch (integration.credentials._type) {
