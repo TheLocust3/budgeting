@@ -11,6 +11,7 @@ import * as AccountArena from "./account-arena";
 import * as RuleArena from "./rule-arena";
 import * as TransactionArena from "./transaction-arena";
 import * as IntegrationArena from "./integration-arena";
+import * as NotificationArena from "./notification-arena";
 
 import { User } from "../../model";
 import { UserFrontend } from "../../storage";
@@ -32,6 +33,7 @@ export type t = {
   physical: Layer.t;
   virtual: Layer.t;
   integrations: Resolvable<IntegrationArena.t>;
+  notifications: Resolvable<NotificationArena.t>;
 }
 
 const resolve =
@@ -100,6 +102,13 @@ export const integrations = (pool: Pool) => (arena: t): TE.TaskEither<Exception.
   return resolve(arena)(get)(set)(IntegrationArena.resolve(pool))
 }
 
+export const notifications = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, NotificationArena.t> => {
+  const get = (arena: t) => { return arena.notifications };
+  const set = (value: Resolvable<NotificationArena.t>) => (arena: t) => { arena.notifications = value };
+
+  return resolve(arena)(get)(set)(NotificationArena.resolve(pool))
+}
+
 export const idFor = (arena: t) => (tag: string) => {
   return uuid(`${arena.id}_${tag}`, uuid.URL);
 }
@@ -111,6 +120,7 @@ export const empty = (id: string) => (user: User.Internal.t): t => {
     , physical: { account: O.none, rules: O.none, transactions: O.none }
     , virtual: { account: O.none, rules: O.none, transactions: O.none }
     , integrations: O.none
+    , notifications: O.none
   }
 }
 

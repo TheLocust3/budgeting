@@ -14,7 +14,7 @@ import { Validate } from "../../engine";
 import { Context } from "../../job/util"
 import { rollupFor } from "../../job/rollup/rollup-job";
 import { User, Account, Rule, Source, Integration, Plaid, Transaction } from "../../model";
-import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, TransactionFrontend, UserFrontend } from "../../storage";
+import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, TransactionFrontend, UserFrontend, NotificationFrontend } from "../../storage";
 import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../magic";
 
 export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
@@ -205,6 +205,20 @@ export const removeSource = (pool: Pool) => (arena: UserArena.t) => (sourceId: s
 export const removeTransaction = (pool: Pool) => (arena: UserArena.t) => (transactionId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       TransactionFrontend.deleteById(pool)(arena.user.id)(transactionId)
+    , TE.map(() => {})
+  );
+}
+
+export const ackNotification = (pool: Pool) => (arena: UserArena.t) => (notificationId: string): TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      NotificationFrontend.ack(pool)(arena.user.id)(notificationId)
+    , TE.map(() => {})
+  );
+}
+
+export const removeNotification = (pool: Pool) => (arena: UserArena.t) => (notificationId: string): TE.TaskEither<Exception.t, void> => {
+  return pipe(
+      NotificationFrontend.deleteById(pool)(arena.user.id)(notificationId)
     , TE.map(() => {})
   );
 }

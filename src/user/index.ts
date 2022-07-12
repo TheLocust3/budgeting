@@ -27,6 +27,11 @@ export namespace UserResource {
 
   export namespace Transaction {
     export const create = Resource.createTransaction;
-    export const remove = Resource.removeTransaction
+    export const remove = Resource.removeTransaction;
+  }
+
+  export namespace Notification {
+    export const ack = Resource.ackNotification;
+    export const remove = Resource.removeNotification;
   }
 }
