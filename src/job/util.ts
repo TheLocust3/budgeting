@@ -7,8 +7,8 @@ import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
 import { Plaid, Pipe, Exception } from "../magic";
-import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../storage";
-import { Source, Integration, Transaction } from "../model";
+import { SourceFrontend, IntegrationFrontend, TransactionFrontend, NotificationFrontend } from "../storage";
+import { Source, Integration, Transaction, Notification } from "../model";
 
 export type Context = {
   source: Source.Internal.t;
@@ -24,6 +24,27 @@ export const accessToken = (integration: Integration.Internal.t) => {
     case "Null":
       return "";
   }
+}
+
+export const notifyFailure = (pool: Pool) => (userId: string) => (exception: PullerException): TE.TaskEither<PullerException, Boolean> => {
+  switch (exception) {
+    case "NoWork":
+      return TE.of(true);
+    default:
+      return pipe(
+          Notification.Frontend.Create.pullerFailure(userId)(<Exception.t>exception)
+        , NotificationFrontend.create(pool)
+        , TE.map(() => true)
+      );
+  }
+}
+
+export const notifySuccess = (pool: Pool) => (userId: string): TE.TaskEither<PullerException, Boolean> => {
+  return pipe(
+      Notification.Frontend.Create.newTransactions(userId)
+    , NotificationFrontend.create(pool)
+    , TE.map(() => true)
+  );
 }
 
 export const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<PullerException, Context> => {

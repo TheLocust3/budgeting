@@ -7,7 +7,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-import { Context, PullerException, withIntegration, pushTransactions, accessToken } from "../util";
+import { Context, PullerException, withIntegration, pushTransactions, accessToken, notifyFailure, notifySuccess } from "../util";
 
 import { Plaid, Pipe, Exception } from "../../magic";
 import { SourceFrontend, IntegrationFrontend, TransactionFrontend } from "../../storage";
@@ -68,26 +68,28 @@ const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Co
 export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Task<boolean> => {
   return pipe(
       pull(pool)
-    , TE.chain(withIntegration(pool))
-    , TE.map((context) => {
-        console.log(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
-        return context;
+    , TE.chain((source) => {
+        return pipe(
+            source
+          , withIntegration(pool)
+          , TE.map((context) => {
+              console.log(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
+              return context;
+            })
+          , TE.chain(pullTransactions(plaidClient)(id))
+          , TE.chain(pushTransactions(pool)(id))
+          , TE.chain(() => notifySuccess(pool)(source.userId))
+          , TE.orElse(notifyFailure(pool)(source.userId))
+        );
       })
-    , TE.chain(pullTransactions(plaidClient)(id))
-    , TE.chain(pushTransactions(pool)(id))
     , TE.match(
           (error) => {
-            switch (error) {
-              case "NoWork":
-                return T.of(true);
-              default:
-                console.log(`Scheduler.puller[${id}] - failed - ${error}`);
-                return T.of(true);
-            }
+            console.log(`Scheduler.rollup[${id}] - failed - ${error}`);
+            return true;
           }
         , () => {
-            console.log(`Scheduler.puller[${id}] - completed`);
-            return T.of(true);
+            console.log(`Scheduler.rollup[${id}] - completed`);
+            return true;
           }
       )
     , T.map(() => true)

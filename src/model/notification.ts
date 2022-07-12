@@ -79,19 +79,19 @@ export namespace Frontend {
     export type t = iot.TypeOf<typeof t>;
     export const Json = new Format.JsonFormatter(t);
 
-    const pullerFailure = (userId: string): t => ({
+    export const pullerFailure = (userId: string) => (exception: Exception.t): t => ({
         id: crypto.randomUUID()
       , userId: userId
       , title: "Failed to pull transactions"
-      , body: "" // TODO: JK
+      , body: `Error: ${exception.name}`
       , metadata: { _type: "PullerFailure" }
     })
 
-    const newTransactions = (userId: string): t => ({
+    export const newTransactions = (userId: string): t => ({
         id: crypto.randomUUID()
       , userId: userId
       , title: "You have new uncategorized transactions"
-      , body: "" // TODO: JK
+      , body: ""
       , metadata: { _type: "NewTransactions" }
     })
   }
