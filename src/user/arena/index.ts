@@ -135,3 +135,4 @@ export * as Account from "./account-arena";
 export * as Rule from "./rule-arena";
 export * as Transaction from "./transaction-arena";
 export * as Integrations from "./integration-arena";
+export * as Notifications from "./notification-arena";

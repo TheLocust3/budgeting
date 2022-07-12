@@ -6,6 +6,7 @@ import * as IntegrationsTable from "./integrations-table";
 import * as TransactionsTable from "./transactions-table";
 import * as AccountsTable from "./accounts-table";
 import * as RulesTable from "./rules-table";
+import * as NotificationsTable from "./notifications-table";
 
 export const migrate = async (pool: Pool) => {
   await UsersTable.migrate(pool)();
@@ -19,4 +20,6 @@ export const migrate = async (pool: Pool) => {
   await UsersTable.migrate001(pool)();
   await AccountsTable.migrate001(pool)();
   await TransactionsTable.migrate001(pool)();
+
+  await NotificationsTable.migrate(pool)();
 };
