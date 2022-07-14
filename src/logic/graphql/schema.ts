@@ -11,6 +11,7 @@ import * as AccountResolver from './account-resolver';
 import * as RuleResolver from './rule-resolver';
 import * as TransactionResolver from './transaction-resolver';
 import * as IntegrationsResolver from './integrations-resolver';
+import * as NotificationsResolver from './notifications-resolver';
 import * as Mutation from './mutation/index';
 import * as PlaidMutation from "./mutation/plaid-mutation";
 
@@ -25,6 +26,7 @@ const queryType = new graphql.GraphQLObjectType({
       , untagged: TransactionResolver.Untagged.t
       , conflicts: TransactionResolver.Conflicts.t
       , integrations: IntegrationsResolver.t
+      , notifications: NotificationsResolver.t
     }
 });
 
@@ -40,6 +42,8 @@ const mutationType = new graphql.GraphQLObjectType({
       , deleteAccount: Mutation.DeleteAccount.t
       , deleteBucket: Mutation.DeleteBucket.t
       , deleteTransaction: Mutation.DeleteTransaction.t
+      , ackNotification: Mutation.AckNotification.t
+      , deleteNotification: Mutation.DeleteNotification.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t
       , exchangePublicToken: PlaidMutation.ExchangePublicToken.t
     }

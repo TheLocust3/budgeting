@@ -36,6 +36,25 @@ export namespace Integration {
   })
 }
 
+export namespace Notification {
+  export type t = {
+    id: string;
+    title: string;
+    body: string;
+    acked: boolean;
+  }
+
+  export const t = new graphql.GraphQLObjectType({
+      name: 'Notification'
+    , fields: {
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , title: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , body: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , acked: { type: new graphql.GraphQLNonNull(graphql.GraphQLBoolean) }
+      }
+  })
+}
+
 export namespace Rule {
   export const t = new graphql.GraphQLObjectType({
       name: 'Rule'

@@ -232,3 +232,41 @@ export namespace DeleteTransaction {
     , resolve: resolve
   };
 }
+
+export namespace AckNotification {
+  type Args = { id: string; };
+  const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
+
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    return pipe(
+        UserResource.Notification.ack(context.pool)(context.arena)(id)
+      , TE.map(() => true)
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: new graphql.GraphQLNonNull(Types.Void.t)
+    , args: Args
+    , resolve: resolve
+  };
+}
+
+export namespace DeleteNotification {
+  type Args = { id: string; };
+  const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
+
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    return pipe(
+        UserResource.Notification.remove(context.pool)(context.arena)(id)
+      , TE.map(() => true)
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: new graphql.GraphQLNonNull(Types.Void.t)
+    , args: Args
+    , resolve: resolve
+  };
+}

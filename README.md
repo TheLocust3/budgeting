@@ -242,8 +242,9 @@ To dump a new schema:
 ## todo
 
 ### next
- - Add notifications table to GraphQL
  - Puller improvements
+  - Only notity on _new_ transactions
+  - creation timestamp on notifications
   - Pull only the latest month
   - Handle Plaid pageination
     - count: 500
