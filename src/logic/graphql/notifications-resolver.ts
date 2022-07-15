@@ -10,11 +10,17 @@ import * as Types from './types';
 
 import { UserArena } from "../../user";
 
+import { Notification } from "../../model";
 import { Exception, Pipe } from "../../magic";
+
+const transform = (notification : Notification.Internal.t): Types.Notification.t => {
+  return { ...notification, createdAt: notification.createdAt.getTime() }
+}
 
 const resolve = (source: any, args: any, context: Context.t): Promise<Types.Notification.t[]> => {
   return pipe(
       UserArena.notifications(context.pool)(context.arena)
+    , TE.map(A.map(transform))
     , Pipe.toPromise
   );
 }

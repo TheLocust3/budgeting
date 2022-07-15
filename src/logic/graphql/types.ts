@@ -39,6 +39,7 @@ export namespace Integration {
 export namespace Notification {
   export type t = {
     id: string;
+    createdAt: number;
     title: string;
     body: string;
     acked: boolean;
@@ -48,6 +49,7 @@ export namespace Notification {
       name: 'Notification'
     , fields: {
           id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , createdAt: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
         , title: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
         , body: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
         , acked: { type: new graphql.GraphQLNonNull(graphql.GraphQLBoolean) }

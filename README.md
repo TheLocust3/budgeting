@@ -115,6 +115,13 @@ Sample query:
     id,
     email
   },
+  notifications {
+    id,
+    createdAt,
+    title,
+    body,
+    acked
+  },
   integrations {
     id,
     name,
@@ -244,7 +251,6 @@ To dump a new schema:
 ### next
  - Puller improvements
   - Only notity on _new_ transactions
-  - creation timestamp on notifications
   - Pull only the latest month
   - Handle Plaid pageination
     - count: 500

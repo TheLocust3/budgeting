@@ -24,6 +24,7 @@ export namespace Internal {
   export const t = iot.type({
       id: iot.string
     , userId: iot.string
+    , createdAt: types.DateFromISOString
     , title: iot.string
     , body: iot.string
     , acked: iot.boolean
@@ -36,6 +37,7 @@ export namespace Internal {
     TableType = iot.type({
         id: iot.string
       , user_id: iot.string
+      , created_at: types.date
       , title: iot.string
       , body: iot.string
       , acked: iot.boolean
@@ -47,8 +49,8 @@ export namespace Internal {
           obj
         , this.TableType.decode
         , E.mapLeft(Exception.throwInternalError)
-        , E.map(({ id, user_id, title, body, acked, metadata }) => {
-            return { id: id, userId: user_id, title: title, body: body, acked: acked, metadata: metadata };
+        , E.map(({ id, user_id, created_at, title, body, acked, metadata }) => {
+            return { id: id, userId: user_id, createdAt: created_at, title: title, body: body, acked: acked, metadata: metadata };
           })
       );
     }
@@ -57,6 +59,7 @@ export namespace Internal {
       return {
           id: obj.id
         , user_id: obj.userId
+        , created_at: obj.createdAt
         , title: obj.title
         , body: obj.body
         , acked: obj.acked

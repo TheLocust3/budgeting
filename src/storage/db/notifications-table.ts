@@ -25,6 +25,11 @@ namespace Query {
 
   export const dropTable = "DROP TABLE notifications";
 
+  export const migrate001 = `
+    ALTER TABLE notifications
+    ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT now()
+  `;
+
   export const create = (id: string, userId: string, title: string, body: string, metadata: any) => {
     return {
       text: `
@@ -41,7 +46,7 @@ namespace Query {
   export const all = (userId: string) => {
     return {
       text: `
-        SELECT id, user_id, title, body, acked, metadata
+        SELECT id, user_id, created_at, title, body, acked, metadata
         FROM notifications
         WHERE user_id = $1
       `,
@@ -65,7 +70,7 @@ namespace Query {
         UPDATE notifications
         SET acked = true
         WHERE id = $1 AND user_id = $2
-        RETURNING id, user_id, title, body, acked, metadata
+        RETURNING id, user_id, created_at, title, body, acked, metadata
       `,
       values: [id, userId]
     };
@@ -75,6 +80,16 @@ namespace Query {
 export const migrate = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.createTable);
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
+export const migrate001 = (pool: Pool): T.Task<boolean> => async () => {
+  try {
+    await pool.query(Query.migrate001);
     return true;
   } catch (err) {
     console.log(err);
