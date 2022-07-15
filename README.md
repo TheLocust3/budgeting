@@ -250,11 +250,10 @@ To dump a new schema:
 
 ### next
  - Puller improvements
-  - Only notity on _new_ transactions
-  - Pull only the latest month
   - Handle Plaid pageination
     - count: 500
     - if 500 transactions, resend with offset 500 and recurse
+  - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
    - RDS for Postgres

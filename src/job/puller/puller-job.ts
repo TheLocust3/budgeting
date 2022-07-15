@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { PlaidApi, TransactionsGetResponse } from "plaid";
+import moment from "moment";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -36,10 +37,14 @@ const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => 
 const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
   console.log(`Scheduler.puller[${id}] - pulling transactions`)
   const accountId = context.source.tag;
-  const createdAt = context.source.createdAt;
+
+  const lastMonth = moment().subtract(1, "month");
+  const createdAt = moment(context.source.createdAt);
+
+  const startAfter = moment.max(lastMonth, createdAt).toDate();
 
   return pipe(
-      Plaid.getTransactions(plaidClient)(accessToken(context.integration), createdAt, new Date())
+      Plaid.getTransactions(plaidClient)(accessToken(context.integration), startAfter, new Date())
     , TE.mapLeft(Exception.throwInternalError)
     , TE.map(A.filter((transaction) => transaction.account_id === accountId))
     , TE.map(A.map((transaction) => {
@@ -78,7 +83,9 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Ta
             })
           , TE.chain(pullTransactions(plaidClient)(id))
           , TE.chain(pushTransactions(pool)(id))
-          , TE.chain(() => notifySuccess(pool)(source.userId))
+          // TODO: JK need some way to determine the transactions are actually new
+          // , TE.chain(() => notifySuccess(pool)(source.userId))
+          , TE.map(() => true)
           , TE.orElse(notifyFailure(pool)(source.userId))
         );
       })
