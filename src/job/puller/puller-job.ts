@@ -70,22 +70,36 @@ const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Co
   );
 }
 
+export const countNewTransactions = (pool: Pool) => (context: Context) => (transactions: Transaction.Internal.t[]): TE.TaskEither<PullerException, number> => {
+  return pipe(
+      TransactionFrontend.all(pool)(context.source.userId)
+    , TE.map(A.map((transaction) => transaction.id))
+    , TE.map((stored) => new Set(stored))
+    , TE.map((stored) => pipe(transactions, A.filter((transaction) => stored.has(transaction.id))))
+    , TE.map(A.size)
+  );
+}
+
 export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Task<boolean> => {
   return pipe(
       pull(pool)
     , TE.chain((source) => {
         return pipe(
-            source
-          , withIntegration(pool)
-          , TE.map((context) => {
+            TE.Do
+          , TE.bind("context", () => withIntegration(pool)(source))
+          , TE.bind("transactions", ({ context }) => {
               console.log(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
-              return context;
+              return pullTransactions(plaidClient)(id)(context);
             })
-          , TE.chain(pullTransactions(plaidClient)(id))
-          , TE.chain(pushTransactions(pool)(id))
-          // TODO: JK need some way to determine the transactions are actually new
-          // , TE.chain(() => notifySuccess(pool)(source.userId))
-          , TE.map(() => true)
+          , TE.bind("count", ({ context, transactions }) => countNewTransactions(pool)(context)(transactions))
+          , TE.bind("_", ({ transactions }) => pushTransactions(pool)(id)(transactions))
+          , TE.chain(({ count }) => {
+              if (count > 0) {
+                return notifySuccess(pool)(source.userId)(count);
+              } else {
+                return TE.of(true);
+              }
+            })
           , TE.orElse(notifyFailure(pool)(source.userId))
         );
       })

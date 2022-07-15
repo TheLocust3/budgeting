@@ -39,9 +39,9 @@ export const notifyFailure = (pool: Pool) => (userId: string) => (exception: Pul
   }
 }
 
-export const notifySuccess = (pool: Pool) => (userId: string): TE.TaskEither<PullerException, Boolean> => {
+export const notifySuccess = (pool: Pool) => (userId: string) => (count: number): TE.TaskEither<PullerException, Boolean> => {
   return pipe(
-      Notification.Frontend.Create.newTransactions(userId)
+      Notification.Frontend.Create.newTransactions(userId)(count)
     , NotificationFrontend.create(pool)
     , TE.map(() => true)
   );

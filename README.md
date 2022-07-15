@@ -249,26 +249,21 @@ To dump a new schema:
 ## todo
 
 ### next
- - Puller improvements
-  - Handle Plaid pageination
-    - count: 500
-    - if 500 transactions, resend with offset 500 and recurse
-  - Run more pullers
+ - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
    - RDS for Postgres
 
 ### miscellaneous
- - createLinkToken should have actual errors
- - exchangePublicToken should have actual errors
- - Validate integration credentials before creating
+ - [createIntegration] createLinkToken should have actual errors
+ - [createIntegration] exchangePublicToken should have actual errors
+ - [createIntegration] Validate integration credentials before creating
  - Don't build plan/stages for every transaction
- - Clean up integrations when no sources remain
+ - [puller] Handle Plaid pageination
 
 ### future
- - Hide/unhide bucket
-  - Optional remainder in SplitByValue
+ - Optional remainder in SplitByValue
    - need way of raising a conflict inside of a single split rule
-  - Add comment mutation
+ - Add comment mutation
  - basic rule pushdowns
    - all include rules are up for grabs

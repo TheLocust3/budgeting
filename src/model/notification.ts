@@ -90,10 +90,10 @@ export namespace Frontend {
       , metadata: { _type: "PullerFailure" }
     })
 
-    export const newTransactions = (userId: string): t => ({
+    export const newTransactions = (userId: string) => (count: number): t => ({
         id: crypto.randomUUID()
       , userId: userId
-      , title: "You have new uncategorized transactions"
+      , title: `You have ${count} new uncategorized transactions`
       , body: ""
       , metadata: { _type: "NewTransactions" }
     })
