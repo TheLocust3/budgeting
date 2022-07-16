@@ -58,8 +58,18 @@ type Mutation {
   deleteAccount(id: String!): Boolean!
   deleteBucket(id: String!): Boolean!
   deleteTransaction(id: String!): Boolean!
+  ackNotification(id: String!): Boolean!
+  deleteNotification(id: String!): Boolean!
   createLinkToken: CreateLinkToken!
   exchangePublicToken(publicToken: String!, accounts: [PlaidAccount]!, institutionName: String!): Boolean!
+}
+
+type Notification {
+  id: String!
+  createdAt: Float!
+  title: String!
+  body: String!
+  acked: Boolean!
 }
 
 input PlaidAccount {
@@ -76,6 +86,7 @@ type Query {
   untagged: [Transaction]!
   conflicts: [Conflict]!
   integrations: [Integration]!
+  notifications: [Notification]!
 }
 
 type Rule {
