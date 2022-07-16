@@ -75,7 +75,7 @@ export const countNewTransactions = (pool: Pool) => (context: Context) => (trans
       TransactionFrontend.all(pool)(context.source.userId)
     , TE.map(A.map((transaction) => transaction.id))
     , TE.map((stored) => new Set(stored))
-    , TE.map((stored) => pipe(transactions, A.filter((transaction) => stored.has(transaction.id))))
+    , TE.map((stored) => pipe(transactions, A.filter((transaction) => !stored.has(transaction.id))))
     , TE.map(A.size)
   );
 }
