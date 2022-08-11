@@ -37,6 +37,7 @@ const mutationType = new graphql.GraphQLObjectType({
       , createManualAccount: Mutation.CreateAccount.t
       , createSplitByValue: Mutation.CreateSplitByValue.t
       , createTransaction: Mutation.CreateTransaction.t
+      , createTransactions: Mutation.CreateTransactions.t
       , deleteRule: Mutation.DeleteRule.t
       , deleteIntegration: Mutation.DeleteIntegration.t
       , deleteAccount: Mutation.DeleteAccount.t

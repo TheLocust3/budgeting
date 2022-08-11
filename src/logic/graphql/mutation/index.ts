@@ -68,24 +68,8 @@ export namespace CreateAccount {
 }
 
 export namespace CreateTransaction {
-  type Args = {
-    sourceId: string;
-    amount: number;
-    merchantName: string;
-    description: string;
-    authorizedAt: number;
-    capturedAt?: number;
-    metadata: object;
-  };
-  const Args = {
-      sourceId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , amount: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
-    , merchantName: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , description: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
-    , authorizedAt: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
-    , capturedAt: { type: graphql.GraphQLFloat }
-    , metadata: { type: new graphql.GraphQLNonNull(GraphQLJSONObject) }
-  };
+  type Args = Types.Transaction.Input.t;
+  const Args = Types.Transaction.Input.t;
 
   const resolve = (source: any, args: Args, context: Context.t): Promise<Transaction.Internal.t> => {
     const authorizedAt: Date = new Date(args.authorizedAt);
@@ -102,6 +86,43 @@ export namespace CreateTransaction {
 
   export const t = {
       type: new graphql.GraphQLNonNull(Types.Transaction.t)
+    , args: Args
+    , resolve: resolve
+  };
+}
+
+export namespace CreateTransactions {
+  type Args = {
+    transactions: Types.Transaction.Input.t[]
+  };
+  const Args = {
+    transactions: {
+      type: new graphql.GraphQLNonNull(new graphql.GraphQLList(new graphql.GraphQLInputObjectType({
+          name: "TransactionInput"
+        , fields: Types.Transaction.Input.t
+      })))
+    }
+  };
+
+  const resolve = (source: any, args: Args, context: Context.t): Promise<Transaction.Internal.t[]> => {
+    return pipe(
+        args.transactions
+      , A.map(transaction => {
+          const authorizedAt: Date = new Date(transaction.authorizedAt);
+          const capturedAt: O.Option<Date> = pipe(
+              O.fromNullable(transaction.capturedAt)
+            , O.map((capturedAt) => new Date(capturedAt))
+          );
+
+          return UserResource.Transaction.create(context.pool)(context.arena)({ ...transaction, authorizedAt: authorizedAt, capturedAt: capturedAt })
+        })
+      , A.sequence(TE.ApplicativeSeq)
+      , Pipe.toPromise
+    )
+  }
+
+  export const t = {
+      type: new graphql.GraphQLList(Types.Transaction.t)
     , args: Args
     , resolve: resolve
   };

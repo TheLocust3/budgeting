@@ -53,6 +53,7 @@ type Mutation {
   createManualAccount(name: String!): JustAccount!
   createSplitByValue(transactionId: String!, splits: [Value]!, remainder: String!): Rule!
   createTransaction(sourceId: String!, amount: Float!, merchantName: String!, description: String!, authorizedAt: Float!, capturedAt: Float, metadata: JSONObject!): Transaction!
+  createTransactions(transactions: [TransactionInput]!): [Transaction]
   deleteRule(id: String!): Boolean!
   deleteIntegration(id: String!): Boolean!
   deleteAccount(id: String!): Boolean!
@@ -107,6 +108,16 @@ type Transaction {
   description: String!
   authorizedAt: Float!
   capturedAt: Float
+}
+
+input TransactionInput {
+  sourceId: String!
+  amount: Float!
+  merchantName: String!
+  description: String!
+  authorizedAt: Float!
+  capturedAt: Float
+  metadata: JSONObject!
 }
 
 type User {
