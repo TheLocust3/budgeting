@@ -7,8 +7,10 @@ import * as TransactionsTable from "./transactions-table";
 import * as AccountsTable from "./accounts-table";
 import * as RulesTable from "./rules-table";
 import * as NotificationsTable from "./notifications-table";
+import * as TemplatesTable from "./templates-table";
 
 const rollback = async (pool: Pool) => {
+  await TemplatesTable.rollback(pool)();
   await NotificationsTable.rollback(pool)();
 
   await SourcesTable.rollback(pool)();

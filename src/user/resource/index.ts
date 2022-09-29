@@ -13,8 +13,8 @@ import { UserArena } from "../index";
 import { Validate } from "../../engine";
 import { Context } from "../../job/util"
 import { rollupFor } from "../../job/rollup/rollup-job";
-import { User, Account, Rule, Source, Integration, Plaid, Transaction } from "../../model";
-import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, TransactionFrontend, UserFrontend, NotificationFrontend } from "../../storage";
+import { User, Account, Rule, Source, Integration, Plaid, Transaction, Template } from "../../model";
+import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, TransactionFrontend, UserFrontend, NotificationFrontend, TemplateFrontend } from "../../storage";
 import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../magic";
 
 export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
@@ -68,6 +68,26 @@ export const createBucket = (pool: Pool) => (arena: UserArena.t) => (name: strin
     , TE.chain(AccountFrontend.create(pool))
   );
 }
+
+export const createTemplate = (pool: Pool) => (arena: UserArena.t) => (accountId: string, template: object): TE.TaskEither<Exception.t, Template.Internal.t> => {
+  return pipe(
+      TE.Do
+    , TE.bind("physicalAccount", () => resolveUserAccount(pool)(arena)("physical"))
+    , TE.bind("account", () => AccountFrontend.getByIdAndUserId(pool)(arena.user.id)(accountId))
+    , TE.bind("validate", ({ physicalAccount, account }) => {
+        if (pipe(account.parentId, O.map((parentId) => parentId === physicalAccount.account.id), O.getOrElse(() => false))) {
+          return TE.of(true)
+        } else {
+          return TE.throwError(Exception.throwValidationError(`${accountId} is not a physical account`))
+        }
+      })
+    , TE.bind("created", () => {
+        return TemplateFrontend.create(pool)({ id: UserArena.idFor(arena)(`template_${name}`), accountId: accountId, userId: arena.user.id, template: template });
+      })
+    , TE.map(({ created }) => created)
+  );
+}
+
 
 type UserAccount = "physical" | "virtual";
 const resolveUserAccount = (pool: Pool) => (arena: UserArena.t) => (key: UserAccount): TE.TaskEither<Exception.t, UserArena.Account.t> => {
@@ -191,6 +211,13 @@ export const removeBucket = (pool: Pool) => (arena: UserArena.t) => (bucketId: s
         }
       })
     , TE.bind("delete", () => AccountFrontend.deleteById(pool)(arena.user.id)(bucketId))
+    , TE.map(() => {})
+  );
+}
+
+export const removeTemplate = (pool: Pool) => (arena: UserArena.t) => (templateId: string): TE.TaskEither<Exception.t, any> => {
+  return pipe(
+      TemplateFrontend.deleteById(pool)(arena.user.id)(templateId)
     , TE.map(() => {})
   );
 }
