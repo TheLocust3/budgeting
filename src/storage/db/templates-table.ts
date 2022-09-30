@@ -48,6 +48,17 @@ namespace Query {
     };
   };
 
+  export const byAccountId = (userId: string, accountId: string) => {
+    return {
+      text: `
+        SELECT id, account_id, user_id, template
+        FROM templates
+        WHERE user_id = $1 AND account_id = $2
+      `,
+      values: [userId, accountId]
+    };
+  };
+
   export const byId = (id: string) => {
     return {
       text: `
@@ -95,6 +106,22 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Exception.t,
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.all(userId)),
+        E.toError
+      )
+    , TE.chain(res => TE.fromEither(pipe(
+          res.rows
+        , A.map(Template.Internal.Database.from)
+        , A.map(E.mapLeft(E.toError))
+        , A.sequence(E.Applicative)
+      )))
+    , TE.mapLeft(Exception.pgRaise)
+  );
+};
+
+export const byAccountId = (pool: Pool) => (userId: string) => (accountId: string) : TE.TaskEither<Exception.t, Template.Internal.t[]> => {
+  return pipe(
+      TE.tryCatch(
+        () => pool.query(Query.byAccountId(userId, accountId)),
         E.toError
       )
     , TE.chain(res => TE.fromEither(pipe(

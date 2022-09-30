@@ -141,3 +141,15 @@ export namespace PlaidAccount {
       }
   });
 }
+
+export namespace Template {
+  export const t = new graphql.GraphQLObjectType({
+      name: "Template"
+    , fields: {
+          id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , accountId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , userId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+        , template: { type: new graphql.GraphQLNonNull(GraphQLJSONObject) }
+      }
+  });
+}

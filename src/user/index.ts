@@ -34,4 +34,9 @@ export namespace UserResource {
     export const ack = Resource.ackNotification;
     export const remove = Resource.removeNotification;
   }
+
+  export namespace Template {
+    export const create = Resource.createTemplate;
+    export const remove = Resource.removeTemplate;
+  }
 }

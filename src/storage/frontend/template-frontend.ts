@@ -14,6 +14,10 @@ export namespace TemplateFrontend {
     return TemplatesTable.all(pool)(userId);
   };
 
+  export const getByAccountId = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Template.Internal.t[]> => {
+    return TemplatesTable.byAccountId(pool)(userId)(accountId);
+  };
+
   export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Template.Internal.t> => {
     return pipe(
         id

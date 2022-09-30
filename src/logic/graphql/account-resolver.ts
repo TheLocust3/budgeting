@@ -10,6 +10,7 @@ import * as graphql from "graphql";
 import { UserArena } from "../../user";
 import * as Context from "./context";
 import { Transactions } from "./transaction-resolver";
+import { Templates } from "./template-resolver";
 import { Rules } from "./rule-resolver";
 
 import { Account } from "../../model";
@@ -46,6 +47,7 @@ export namespace Accounts {
             , name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
             , transactions: Transactions.Physical.t
             , total: Transactions.PhysicalTotal.t
+            , templates: Templates.t
           }
       })))
     , resolve: resolveChildrenFor("physical")

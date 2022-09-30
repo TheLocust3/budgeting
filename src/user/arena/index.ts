@@ -12,6 +12,7 @@ import * as RuleArena from "./rule-arena";
 import * as TransactionArena from "./transaction-arena";
 import * as IntegrationArena from "./integration-arena";
 import * as NotificationArena from "./notification-arena";
+import * as TemplateArena from "./template-arena";
 
 import { User } from "../../model";
 import { UserFrontend } from "../../storage";
@@ -34,6 +35,7 @@ export type t = {
   virtual: Layer.t;
   integrations: Resolvable<IntegrationArena.t>;
   notifications: Resolvable<NotificationArena.t>;
+  templates: Record<string, Resolvable<TemplateArena.t>>;
 }
 
 const resolve =
@@ -109,6 +111,20 @@ export const notifications = (pool: Pool) => (arena: t): TE.TaskEither<Exception
   return resolve(arena)(get)(set)(NotificationArena.resolve(pool))
 }
 
+export const templatesFor = (pool: Pool) => (arena: t) => (accountId: string): TE.TaskEither<Exception.t, TemplateArena.t> => {
+  const get = (arena: t) => {
+    const maybe = arena.templates[accountId]
+    if (maybe === undefined) {
+      return O.none;
+    } else {
+      return maybe;
+    }
+  };
+  const set = (value: Resolvable<TemplateArena.t>) => (arena: t) => { arena.templates[accountId] = value };
+
+  return resolve(arena)(get)(set)(TemplateArena.resolve(pool)(accountId))
+}
+
 export const idFor = (arena: t) => (tag: string) => {
   return uuid(`${arena.id}_${tag}`, uuid.URL);
 }
@@ -121,6 +137,7 @@ export const empty = (id: string) => (user: User.Internal.t): t => {
     , virtual: { account: O.none, rules: O.none, transactions: O.none }
     , integrations: O.none
     , notifications: O.none
+    , templates: {}
   }
 }
 

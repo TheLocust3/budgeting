@@ -11,7 +11,7 @@ import { UserArena, UserResource } from "../../../user";
 import * as Context from "../context";
 import * as Types from "../types";
 
-import { Account, Rule, Transaction } from "../../../model";
+import { Account, Rule, Transaction, Template } from "../../../model";
 import { Exception, Pipe } from "../../../magic";
 
 export namespace CreateBucket {
@@ -62,6 +62,27 @@ export namespace CreateAccount {
 
   export const t = {
       type: new graphql.GraphQLNonNull(JustAccount)
+    , args: Args
+    , resolve: resolve
+  };
+}
+
+export namespace CreateTemplate {
+  type Args = { accountId: string; template: object };
+  const Args = {
+    accountId: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
+    template: { type: new graphql.GraphQLNonNull(GraphQLJSONObject) }
+  };
+
+  const resolve = (source: any, { accountId, template }: Args, context: Context.t): Promise<Template.Internal.t> => {
+    return pipe(
+        UserResource.Template.create(context.pool)(context.arena)(accountId, template)
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: new graphql.GraphQLNonNull(Types.Template.t)
     , args: Args
     , resolve: resolve
   };
@@ -223,6 +244,25 @@ export namespace DeleteBucket {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
         UserResource.Bucket.remove(context.pool)(context.arena)(id)
+      , TE.map(() => true)
+      , Pipe.toPromise
+    );
+  }
+
+  export const t = {
+      type: new graphql.GraphQLNonNull(Types.Void.t)
+    , args: Args
+    , resolve: resolve
+  };
+}
+
+export namespace DeleteTemplate {
+  type Args = { id: string; };
+  const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
+
+  const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    return pipe(
+        UserResource.Template.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
