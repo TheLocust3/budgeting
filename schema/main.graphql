@@ -9,6 +9,7 @@ type Account {
   name: String!
   transactions: [Transaction]!
   total: Float!
+  templates: [Template]!
 }
 
 type Bucket {
@@ -54,11 +55,13 @@ type Mutation {
   createSplitByValue(transactionId: String!, splits: [Value]!, remainder: String!): Rule!
   createTransaction(sourceId: String!, amount: Float!, merchantName: String!, description: String!, authorizedAt: Float!, capturedAt: Float, metadata: JSONObject!): Transaction!
   createTransactions(transactions: [TransactionInput]!): [Transaction]
+  createTemplate(accountId: String!, template: JSONObject!): Template!
   deleteRule(id: String!): Boolean!
   deleteIntegration(id: String!): Boolean!
   deleteAccount(id: String!): Boolean!
   deleteBucket(id: String!): Boolean!
   deleteTransaction(id: String!): Boolean!
+  deleteTemplate(id: String!): Boolean!
   ackNotification(id: String!): Boolean!
   deleteNotification(id: String!): Boolean!
   createLinkToken: CreateLinkToken!
@@ -98,6 +101,13 @@ type Rule {
 type Source {
   id: String!
   name: String!
+}
+
+type Template {
+  id: String!
+  accountId: String!
+  userId: String!
+  template: JSONObject!
 }
 
 type Transaction {
