@@ -38,11 +38,13 @@ const mutationType = new graphql.GraphQLObjectType({
       , createSplitByValue: Mutation.CreateSplitByValue.t
       , createTransaction: Mutation.CreateTransaction.t
       , createTransactions: Mutation.CreateTransactions.t
+      , createTemplate: Mutation.CreateTemplate.t
       , deleteRule: Mutation.DeleteRule.t
       , deleteIntegration: Mutation.DeleteIntegration.t
       , deleteAccount: Mutation.DeleteAccount.t
       , deleteBucket: Mutation.DeleteBucket.t
       , deleteTransaction: Mutation.DeleteTransaction.t
+      , deleteTemplate: Mutation.DeleteTemplate.t
       , ackNotification: Mutation.AckNotification.t
       , deleteNotification: Mutation.DeleteNotification.t
       , createLinkToken: PlaidMutation.CreateLinkToken.t

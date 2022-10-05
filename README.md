@@ -249,8 +249,7 @@ To dump a new schema:
 ## todo
 
 ### next
- - Nick's blob storage
-   - JSON blob + associate it with physical account ID + user ID
+ - Temporarily serve SSL directly from containers
  - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs

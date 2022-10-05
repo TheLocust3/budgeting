@@ -82,7 +82,7 @@ export const createTemplate = (pool: Pool) => (arena: UserArena.t) => (accountId
         }
       })
     , TE.bind("created", () => {
-        return TemplateFrontend.create(pool)({ id: UserArena.idFor(arena)(`template_${name}`), accountId: accountId, userId: arena.user.id, template: template });
+        return TemplateFrontend.create(pool)({ id: UserArena.idFor(arena)(`template_${JSON.stringify(template)}`), accountId: accountId, userId: arena.user.id, template: template });
       })
     , TE.map(({ created }) => created)
   );
