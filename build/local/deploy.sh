@@ -30,9 +30,11 @@ spec:
     - port: 5432
       targetPort: 5432
   type: LoadBalancer"
+export HOST="localhost"
 
 minikube mount $(PWD)/dist:/dist &
 
 kubectl create secret generic secrets --from-env-file secrets.env
+kubectl create secret generic cert --from-file=tls.key=cert.key --from-file=tls.crt=cert.crt
 
 for f in build/cluster/*.yaml; do envsubst < $f | kubectl apply -f -; done

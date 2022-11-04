@@ -12,12 +12,24 @@
 
 `minikube start`  
 `eval $(minikube docker-env)`  
-`minikube tunnel &`
+`minikube addons enable ingress`  
+`minikube tunnel &`  
 
 Create `secrets.env` in the root of the repo:
 ```
 PLAID_CLIENT_ID=???
 PLAID_SECRET=???
+```
+
+Create a certificate called `cert`:
+```
+openssl req -newkey rsa:4096 \
+            -x509 \
+            -sha256 \
+            -days 3650 \
+            -nodes \
+            -out cert.crt \
+            -keyout cert.key
 ```
 
 ### setup + compile
@@ -250,6 +262,8 @@ To dump a new schema:
 
 ### next
  - Temporarily serve SSL directly from containers
+ - make metadata validation less strict
+ - createTransactions chooses the same uid?
  - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs

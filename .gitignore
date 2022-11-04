@@ -55,3 +55,6 @@ secrets.env
 admin.conf
 
 tmp/
+
+*.key
+*.crt
