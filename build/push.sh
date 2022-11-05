@@ -6,6 +6,7 @@ echo "Pushing to ${CONTROL_PLANE_IP} @ $VERSION"
 
 export IMAGE="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/common:$VERSION"
 export IMAGE_POLICY="IfNotPresent"
+export HOST="budgeting.jakekinsella.com"
 
 rm -rf tmp/
 mkdir -p tmp/build/cluster/

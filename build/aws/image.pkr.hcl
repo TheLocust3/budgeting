@@ -49,6 +49,10 @@ build {
       "unzip awscliv2.zip",
       "sudo ./aws/install",
 
+      "sudo snap install core; sudo snap refresh core",
+      "sudo snap install --classic certbot",
+      "sudo ln -s /snap/bin/certbot /usr/bin/certbot",
+
       "curl -sfL https://get.k3s.io > install.sh",
 
       "(sudo crontab -l 2>/dev/null; echo \"0 \* \* \* \*  ./home/ubuntu/ecr_refresh.sh\") | sudo crontab -"

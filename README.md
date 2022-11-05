@@ -261,7 +261,6 @@ To dump a new schema:
 ## todo
 
 ### next
- - Temporarily serve SSL directly from containers
  - make metadata validation less strict
  - createTransactions chooses the same uid?
  - Run more pullers

@@ -70,8 +70,8 @@ resource "aws_security_group" "control_plane" {
   name = "control_plane"
 
   ingress {
-    from_port        = 8080
-    to_port          = 8080
+    from_port        = 443
+    to_port          = 443
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
   }
@@ -119,65 +119,6 @@ resource "aws_instance" "control_plane" {
 
   echo "Control Plane setup complete"
   EOL
-}
-
-resource "aws_security_group" "load_balancer" {
-  name = "load-balancer"
-
-  ingress {
-    from_port        = 443
-    to_port          = 443
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [aws_security_group.control_plane.vpc_id]
-  }
-}
-
-resource "aws_lb" "load_balancer" {
-  name               = "load-balancer"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.load_balancer.id]
-  subnets            = data.aws_subnets.default.ids
-}
-
-resource "aws_lb_target_group" "control_plane" {
-  name     = "control-plane"
-  port     = 8080
-  vpc_id   = aws_security_group.control_plane.vpc_id
-  protocol = "HTTP"
-}
-
-resource "aws_lb_target_group_attachment" "control_plane" {
-  target_group_arn = aws_lb_target_group.control_plane.arn
-  target_id        = aws_instance.control_plane.id
-  port             = 8080
-}
-
-resource "aws_lb_listener" "control_plane" {
-  load_balancer_arn = aws_lb.load_balancer.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  certificate_arn   = data.aws_acm_certificate.root.arn
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.control_plane.arn
-  }
 }
 
 output "control_plane_ip" {
