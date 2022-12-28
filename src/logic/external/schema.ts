@@ -46,21 +46,40 @@ export namespace Login {
 }
 
 export namespace CreateUser {
+  type CreatedUser = {
+    id: string;
+    email: string;
+    password: string;
+    role: string;
+    token: string;
+  };
+  const CreatedUser = new graphql.GraphQLObjectType({
+      name: 'CreatedUser'
+    , fields: {
+        id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
+        email: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
+        password: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
+        role: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
+        token: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
+      }
+  })
+
   type Args = { email: string; password: string; };
   const Args = {
       email: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
     , password: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
   };
 
-  const resolve = (source: any, { email, password }: Args, context: Context.t): Promise<User.Internal.t> => {
+  const resolve = (source: any, { email, password }: Args, context: Context.t): Promise<CreatedUser> => {
     return pipe(
         UserResource.create(context.pool)({ id: context.id, email: email, password: password, role: User.DEFAULT_ROLE })
+      , TE.map((user) => ({ token: JWT.sign(user), ...user }))
       , Pipe.toPromise
     );
   }
 
   export const t = {
-      type: new graphql.GraphQLNonNull(Types.User.t)
+      type: new graphql.GraphQLNonNull(CreatedUser)
     , args: Args
     , resolve: resolve
   };

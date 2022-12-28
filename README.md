@@ -263,7 +263,6 @@ To dump a new schema:
 ## todo
 
 ### next
- - respond to user creation with token
  - make metadata validation less strict
  - createTransactions chooses the same uid?
  - Run more pullers
