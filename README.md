@@ -7,13 +7,15 @@
  - [minikube](https://minikube.sigs.k8s.io/docs/)
  - [nodejs](https://nodejs.org/en/)
  - [yarn](https://classic.yarnpkg.com/lang/en/docs/install/)
+ - envsubst
+   - `brew install gettext`
 
 ### initial setup
 
 `minikube start`  
 `eval $(minikube docker-env)`  
 `minikube addons enable ingress`  
-`minikube tunnel &`  
+`minikube tunnel`  
 
 Create `secrets.env` in the root of the repo:
 ```
@@ -261,6 +263,7 @@ To dump a new schema:
 ## todo
 
 ### next
+ - respond to user creation with token
  - make metadata validation less strict
  - createTransactions chooses the same uid?
  - Run more pullers
