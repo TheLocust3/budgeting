@@ -208,6 +208,19 @@ To dump a new schema:
 `yarn global add get-graphql-schema`
 `./schema/dump.sh "${ADMIN_TOKEN}"`
 
+## testing
+```
+createdb budget
+
+export PGDATABASE=budget
+export PGHOST=localhost
+export PGPORT=5432
+export PGUSER=jakekinsella
+export PGPASSWORD=foobar
+
+yarn test
+```
+
 ## notes
 
 ### code structure
