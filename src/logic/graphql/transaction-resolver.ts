@@ -33,6 +33,7 @@ const transformTransaction = (transaction: Transaction.Internal.t): Types.Transa
     , description: transaction.description
     , authorizedAt: transaction.authorizedAt.getTime()
     , capturedAt: pipe(transaction.capturedAt, O.match(() => undefined, (capturedAt) => capturedAt.getTime()))
+    , metadata: transaction.metadata
   };
 }
 

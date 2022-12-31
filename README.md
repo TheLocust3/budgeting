@@ -276,8 +276,7 @@ yarn test
 ## todo
 
 ### next
- - make metadata validation less strict
- - createTransactions chooses the same uid?
+ - utilize Firebase authentication
  - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs

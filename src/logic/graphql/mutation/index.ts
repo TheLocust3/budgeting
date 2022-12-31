@@ -128,14 +128,14 @@ export namespace CreateTransactions {
   const resolve = (source: any, args: Args, context: Context.t): Promise<Transaction.Internal.t[]> => {
     return pipe(
         args.transactions
-      , A.map(transaction => {
+      , A.mapWithIndex((index, transaction) => {
           const authorizedAt: Date = new Date(transaction.authorizedAt);
           const capturedAt: O.Option<Date> = pipe(
               O.fromNullable(transaction.capturedAt)
             , O.map((capturedAt) => new Date(capturedAt))
           );
 
-          return UserResource.Transaction.create(context.pool)(context.arena)({ ...transaction, authorizedAt: authorizedAt, capturedAt: capturedAt })
+          return UserResource.Transaction.create(context.pool)(context.arena)({ ...transaction, authorizedAt: authorizedAt, capturedAt: capturedAt }, `transaction_${index}`);
         })
       , A.sequence(TE.ApplicativeSeq)
       , Pipe.toPromise

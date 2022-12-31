@@ -276,11 +276,11 @@ export const createManualAccount =
 export const createTransaction =
   (pool: Pool) =>
   (arena: UserArena.t) =>
-  (transaction: Transaction.Arena.Create.t): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+  (transaction: Transaction.Arena.Create.t, id : string = "transaction"): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
   return pipe(
       SourceFrontend.getById(pool)(arena.user.id)(transaction.sourceId)
     , TE.mapLeft(() => Exception.throwValidationError(`Source '${transaction.sourceId}' not found`))
-    , TE.chain(() => TransactionFrontend.create(pool)({ ...transaction, id: UserArena.idFor(arena)("transaction"), userId: arena.user.id }))
+    , TE.chain(() => TransactionFrontend.create(pool)({ ...transaction, id: UserArena.idFor(arena)(id), userId: arena.user.id }))
   );
 }
 

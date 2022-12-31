@@ -118,6 +118,7 @@ type Transaction {
   description: String!
   authorizedAt: Float!
   capturedAt: Float
+  metadata: JSONObject!
 }
 
 input TransactionInput {

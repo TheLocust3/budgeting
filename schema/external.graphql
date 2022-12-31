@@ -4,9 +4,17 @@ directive @specifiedBy(
   url: String!
 ) on SCALAR
 
+type CreatedUser {
+  id: String!
+  email: String!
+  password: String!
+  role: String!
+  token: String!
+}
+
 type Mutation {
   login(email: String!, password: String!): Token!
-  createUser(email: String!, password: String!): User!
+  createUser(email: String!, password: String!): CreatedUser!
 }
 
 type Query {
@@ -15,10 +23,5 @@ type Query {
 
 type Token {
   token: String!
-}
-
-type User {
-  id: String!
-  email: String!
 }
 
