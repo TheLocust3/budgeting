@@ -4,6 +4,7 @@ export * as UserArena from "./arena";
 
 export namespace UserResource {
   export const create = Resource.createUser;
+  export const getOrCreate = Resource.getOrCreateUser;
 
   export namespace Account {
     export const create = Resource.createManualAccount;

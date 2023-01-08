@@ -25,6 +25,11 @@ namespace Query {
     ADD CONSTRAINT user_unq UNIQUE(email)
   `;
 
+  export const migrate002 = `
+    ALTER TABLE users
+    DROP CONSTRAINT user_unq
+  `;
+
   export const dropTable = "DROP TABLE users";
 
   export const create = (id: string, email: string, password: string, role: string) => {
@@ -105,6 +110,16 @@ export const migrate = (pool: Pool): T.Task<boolean> => async () => {
 export const migrate001 = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.migrate001);
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
+export const migrate002 = (pool: Pool): T.Task<boolean> => async () => {
+  try {
+    await pool.query(Query.migrate002);
     return true;
   } catch (err) {
     console.log(err);

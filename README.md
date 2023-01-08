@@ -34,6 +34,8 @@ openssl req -newkey rsa:4096 \
             -keyout cert.key
 ```
 
+Create a file called `service.json` with the Firebase credentials (https://firebase.google.com/docs/admin/setup?authuser=0#initialize-sdk).  
+
 ### setup + compile
 `yarn setup`  
 
@@ -276,7 +278,6 @@ yarn test
 ## todo
 
 ### next
- - utilize Firebase authentication
  - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs

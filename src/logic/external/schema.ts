@@ -4,6 +4,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 import { UserResource } from "../../user";
 import * as Context from './context';
@@ -11,7 +12,7 @@ import * as Types from "../graphql/types";
 import { JWT } from "../util";
 
 import { User } from "../../model";
-import { Pipe } from "../../magic";
+import { Exception, Pipe } from "../../magic";
 import { UserFrontend } from "../../storage";
 
 export namespace Login {
@@ -30,12 +31,27 @@ export namespace Login {
   };
 
   const resolve = (source: any, { email, password }: Args, context: Context.t): Promise<Token> => {
-    return pipe(
-        UserFrontend.login(context.pool)(email, password)
-      , TE.map((user) => JWT.sign(user))
-      , TE.map((token) => ({ token: token }))
-      , Pipe.toPromise
-    );
+    if (password === null || password === "") { // JK: for my own sanity
+      return pipe(
+          <TE.TaskEither<Exception.t, Token>>TE.throwError(Exception.throwNotFound)
+        , Pipe.toPromise
+      )
+    } else {
+      return pipe(
+          UserFrontend.login(context.pool)(email, password)
+        , TE.map((user) => JWT.sign(user))
+        , TE.orElse(() => pipe(
+              signInWithEmailAndPassword(context.auth, email, password)
+            , Pipe.fromPromise
+            , TE.chain((res) => pipe(
+                  res.user.getIdToken(true)
+                , Pipe.fromPromise
+              ))
+          ))
+        , TE.map((token) => ({ token: token }))
+        , Pipe.toPromise
+      );
+    }
   }
 
   export const t = {
@@ -96,7 +112,6 @@ const mutation = new graphql.GraphQLObjectType({
     name: 'Mutation'
   , fields: {
         login: Login.t
-      , createUser: CreateUser.t
     }
 });
 

@@ -37,6 +37,10 @@ export namespace UserFrontend {
     );
   };
 
+  export const createFromFirebase = (pool: Pool) => (user: User.Frontend.FromFirebase.t): TE.TaskEither<Exception.t, User.Internal.t> => {
+    return UsersTable.create(pool)({ id: user.id, email: user.email, password: "", role: User.DEFAULT_ROLE });
+  };
+
   export const create = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
     return pipe(
         TE.tryCatch(

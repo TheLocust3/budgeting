@@ -58,3 +58,4 @@ tmp/
 
 *.key
 *.crt
+service.json

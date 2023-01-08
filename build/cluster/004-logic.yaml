@@ -34,10 +34,18 @@ spec:
                 name: config
             - secretRef:
                 name: secrets
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/etc/firebase/service.json"
           imagePullPolicy: $IMAGE_POLICY
           command: ["/bin/sh", "-c", "node /home/node/app/dist/logic/index.js"]
           volumeMounts: $LOCAL_MOUNT
+          - name: service
+            mountPath: /etc/firebase
       volumes: $LOCAL_VOLUME
+      - name: service
+        secret:
+          secretName: service
       initContainers:
         - name: wait-for-postgres
           image: postgres:13.4

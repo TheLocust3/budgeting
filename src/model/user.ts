@@ -53,6 +53,16 @@ export namespace Frontend {
     export type t = iot.TypeOf<typeof t>;
     export const Json = new Format.JsonFormatter(t);
   }
+
+  export namespace FromFirebase {
+    const t = iot.type({
+        id: iot.string
+      , email: iot.string
+    });
+
+    export type t = iot.TypeOf<typeof t>;
+    export const Json = new Format.JsonFormatter(t);
+  }
 }
 
 export namespace External {
