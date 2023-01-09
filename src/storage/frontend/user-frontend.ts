@@ -38,7 +38,7 @@ export namespace UserFrontend {
   };
 
   export const createFromFirebase = (pool: Pool) => (user: User.Frontend.FromFirebase.t): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return UsersTable.create(pool)({ id: user.id, email: user.email, password: "", role: User.DEFAULT_ROLE });
+    return UsersTable.create(pool)({ id: user.id, email: user.email, password: O.none, role: User.DEFAULT_ROLE });
   };
 
   export const create = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
@@ -63,8 +63,12 @@ export namespace UserFrontend {
     return pipe(
         TE.Do
       , TE.bind("user", () => getByEmail(pool)(email))
-      , TE.bind("match", ({ user }) => TE.tryCatch(
-          () => bcrypt.compare(password, user.password),
+      , TE.bind("userPassword", ({ user }) => O.match(
+            () => <TE.TaskEither<Exception.t, string>>TE.throwError(Exception.throwUnauthorized)
+          , (password) => <TE.TaskEither<Exception.t, string>>TE.of(password)
+        )(user.password))
+      , TE.bind("match", ({ userPassword }) => TE.tryCatch(
+          () => bcrypt.compare(password, userPassword),
           () => Exception.throwInternalError("bcrypt.compare failed")
         ))
       , TE.chain(({ user, match }) => {

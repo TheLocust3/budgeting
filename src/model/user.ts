@@ -13,7 +13,7 @@ export namespace Internal {
   export const t = iot.type({
       id: iot.string
     , email: iot.string
-    , password: iot.string
+    , password: types.option(iot.string)
     , role: iot.string
   });
 
@@ -23,7 +23,7 @@ export namespace Internal {
     TableType = iot.type({
         id: iot.string
       , email: iot.string
-      , password: iot.string
+      , password: types.optionFromNullable(iot.string)
       , role: iot.string
     });    
 

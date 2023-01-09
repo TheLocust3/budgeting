@@ -65,7 +65,7 @@ export namespace CreateUser {
   type CreatedUser = {
     id: string;
     email: string;
-    password: string;
+    password?: string;
     role: string;
     token: string;
   };
@@ -74,7 +74,7 @@ export namespace CreateUser {
     , fields: {
         id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
         email: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
-        password: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
+        password: { type: graphql.GraphQLString },
         role: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) },
         token: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       }
@@ -89,7 +89,7 @@ export namespace CreateUser {
   const resolve = (source: any, { email, password }: Args, context: Context.t): Promise<CreatedUser> => {
     return pipe(
         UserResource.create(context.pool)({ id: context.id, email: email, password: password, role: User.DEFAULT_ROLE })
-      , TE.map((user) => ({ token: JWT.sign(user), ...user }))
+      , TE.map((user) => ({ token: JWT.sign(user), ...user, password: O.getOrElse(() => <string | undefined>undefined)(user.password) }))
       , Pipe.toPromise
     );
   }

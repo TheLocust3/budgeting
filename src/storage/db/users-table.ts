@@ -30,6 +30,12 @@ namespace Query {
     DROP CONSTRAINT user_unq
   `;
 
+  export const migrate003 = `
+    ALTER TABLE users
+    ALTER COLUMN password
+    DROP NOT NULL
+  `;
+
   export const dropTable = "DROP TABLE users";
 
   export const create = (id: string, email: string, password: string, role: string) => {
@@ -120,6 +126,16 @@ export const migrate001 = (pool: Pool): T.Task<boolean> => async () => {
 export const migrate002 = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.migrate002);
+    return true;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
+
+export const migrate003 = (pool: Pool): T.Task<boolean> => async () => {
+  try {
+    await pool.query(Query.migrate003);
     return true;
   } catch (err) {
     console.log(err);

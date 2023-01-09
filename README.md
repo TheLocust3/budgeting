@@ -278,6 +278,7 @@ yarn test
 ## todo
 
 ### next
+ - remove graphql external endpoint
  - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes
    - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs

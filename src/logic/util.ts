@@ -116,6 +116,7 @@ export namespace Firebase {
 
             return UserResource.getOrCreate(pool)({ id: decoded.uid, email: email });
           })
+        , TE.mapLeft(() => Exception.throwUnauthorized)
       );
     } else {
       return TE.throwError(Exception.throwUnauthorized);
