@@ -11,7 +11,8 @@
     "clean": "rm -rf dist",
     "test": "./test.sh",
     "migrate": "yarn build && node dist/job/migrate/index.js",
-    "rollback": "yarn build && node dist/storage/db/rollback.js"
+    "rollback": "yarn build && node dist/storage/db/rollback.js",
+    "signin": "yarn build && node dist/scripts/signin.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",

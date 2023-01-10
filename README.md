@@ -106,17 +106,9 @@ Deploy the cluster:
 ... wait \~10minutes time (until `sudo kubectl get pods` shows all the containers running) ...  
 
 ## graphql api
-### External API
-Open `localhost:8080/external/graphql`.
-
-Login:
-```
-mutation {
-  login(email: "jake.kinsella@gmail.com", password: "foobar") {
-    token
-  }
-}
-```
+### authentication
+Login to Firebase via:  
+`yarn signin`  
 
 Store the token as a cookie using the Developer Console:
 `document.cookie="auth-token=${TOKEN}"`
@@ -279,7 +271,6 @@ yarn test
 ## todo
 
 ### next
- - add js entrypoint to authenticate into firebase
  - createManualAccount, unique tag or remove unique tag constraint?
  - change bucket to funds on graphql endpoint
  - remove graphql external endpoint
