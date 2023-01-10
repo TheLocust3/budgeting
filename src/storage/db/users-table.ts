@@ -15,51 +15,34 @@ namespace Query {
     CREATE TABLE users (
       id TEXT NOT NULL UNIQUE PRIMARY KEY,
       email TEXT NOT NULL,
-      password TEXT NOT NULL,
       role TEXT NOT NULL
     )
   `;
 
-  export const migrate001 = `
-    ALTER TABLE users
-    ADD CONSTRAINT user_unq UNIQUE(email)
-  `;
-
-  export const migrate002 = `
-    ALTER TABLE users
-    DROP CONSTRAINT user_unq
-  `;
-
-  export const migrate003 = `
-    ALTER TABLE users
-    ALTER COLUMN password
-    DROP NOT NULL
-  `;
-
   export const dropTable = "DROP TABLE users";
 
-  export const create = (id: string, email: string, password: string, role: string) => {
+  export const create = (id: string, email: string, role: string) => {
     return {
       text: `
-        INSERT INTO users (id, email, password, role)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO users (id, email, role)
+        VALUES ($1, $2, $3)
         ON CONFLICT (id)
-        DO UPDATE SET email=excluded.email, password=excluded.password, role=excluded.role
+        DO UPDATE SET email=excluded.email, role=excluded.role
         RETURNING *
       `,
-      values: [id, email, password, role]
+      values: [id, email, role]
     };
   };
 
   export const all = `
-    SELECT id, email, password, role
+    SELECT id, email, role
     FROM users
   `;
 
   export const byId = (id: string) => {
     return {
       text: `
-        SELECT id, email, password, role
+        SELECT id, email, role
         FROM users
         WHERE id = $1
         LIMIT 1
@@ -71,7 +54,7 @@ namespace Query {
     export const byEmail = (email: string) => {
     return {
       text: `
-        SELECT id, email, password, role
+        SELECT id, email, role
         FROM users
         WHERE email = $1
         LIMIT 1
@@ -96,7 +79,7 @@ namespace Query {
         UPDATE users
         SET role = $2
         WHERE id = $1
-        RETURNING id, email, password, role
+        RETURNING id, email, role
       `,
       values: [id, role]
     };
@@ -106,36 +89,6 @@ namespace Query {
 export const migrate = (pool: Pool): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.createTable);
-    return true;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-};
-
-export const migrate001 = (pool: Pool): T.Task<boolean> => async () => {
-  try {
-    await pool.query(Query.migrate001);
-    return true;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-};
-
-export const migrate002 = (pool: Pool): T.Task<boolean> => async () => {
-  try {
-    await pool.query(Query.migrate002);
-    return true;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-};
-
-export const migrate003 = (pool: Pool): T.Task<boolean> => async () => {
-  try {
-    await pool.query(Query.migrate003);
     return true;
   } catch (err) {
     console.log(err);
@@ -223,7 +176,7 @@ export const deleteById = (pool: Pool) => (id: string) : TE.TaskEither<Exception
 export const create = (pool: Pool) => (user: User.Frontend.Create.t) : TE.TaskEither<Exception.t, User.Internal.t> => {
   return pipe(
       TE.tryCatch(
-        () => pool.query(Query.create(user.id, user.email, user.password, user.role)),
+        () => pool.query(Query.create(user.id, user.email, user.role)),
         E.toError
       )
     , Db.expectOne

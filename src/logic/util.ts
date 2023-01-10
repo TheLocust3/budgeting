@@ -1,6 +1,5 @@
 import Express from "express";
 import { Pool } from "pg";
-import jwt from "jsonwebtoken";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
@@ -15,17 +14,11 @@ import { Exception, Message, Route, Pipe } from "../magic";
 
 export namespace AuthenticationFor {
   const tryHeader = (request: Express.Request): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return pipe(
-        JWT.verify(request.app.locals.db)(String(request.header("Authorization")))
-      , TE.orElse(() => Firebase.verify(request.app.locals.db)(request.app.locals.adminAuth)(String(request.header("Authorization"))))
-    );
+    return Firebase.verify(request.app.locals.db)(request.app.locals.adminAuth)(String(request.header("Authorization")));
   }
 
   const tryCookie = (request: Express.Request): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return pipe(
-        JWT.verify(request.app.locals.db)(String(request.cookies["auth-token"]))
-      , TE.orElse(() => Firebase.verify(request.app.locals.db)(request.app.locals.adminAuth)(String(request.cookies["auth-token"])))
-    );
+    return Firebase.verify(request.app.locals.db)(request.app.locals.adminAuth)(String(request.cookies["auth-token"]));
   }
 
   export const user = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {
@@ -61,45 +54,6 @@ export namespace AuthenticationFor {
           }
       )
     )();
-  };
-}
-
-export namespace JWT {
-  namespace Payload {
-    export const t = iot.type({
-      userId: iot.string
-    });
-    export type t = iot.TypeOf<typeof t>
-
-    export const from = (request: any): E.Either<Exception.t, t> => {
-      return pipe(
-          request
-        , t.decode
-        , E.mapLeft((_) => Exception.throwMalformedJson)
-      );
-    };
-  }
-
-  export const sign = (user: User.Internal.t): string => {
-    const payload: Payload.t = { userId: user.id };
-    return jwt.sign(payload, "secret"); // TODO: JK
-  };
-
-  export const verify = (pool: Pool) => (token: string): TE.TaskEither<Exception.t, User.Internal.t> => {
-    if (token !== undefined && token !== null && token !== "") {
-      return pipe(
-          E.tryCatch(
-              () => jwt.verify(token, "secret") // TODO: JK
-            , () => Exception.throwUnauthorized
-          )
-        , E.chain(Payload.from)
-        , TE.fromEither
-        , TE.chain(({ userId }) => UserFrontend.getById(pool)(userId))
-        , TE.mapLeft((_) => Exception.throwUnauthorized)
-      );
-    } else {
-      return TE.throwError(Exception.throwUnauthorized);
-    }
   };
 }
 

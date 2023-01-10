@@ -45,7 +45,6 @@
     "graphql-type-json": "^0.3.2",
     "io-ts": "^2.2.16",
     "io-ts-types": "^0.5.16",
-    "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.3",
     "monocle-ts": "^2.3.12",
     "newtype-ts": "^0.3.5",

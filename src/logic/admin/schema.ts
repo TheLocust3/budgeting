@@ -8,7 +8,6 @@ import * as graphql from "graphql";
 import * as Context from './context';
 import Mutation from './mutation';
 import * as Types from "../graphql/types";
-import { JWT } from "../util";
 
 import { Pipe } from "../../magic";
 import { User } from "../../model";

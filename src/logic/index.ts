@@ -14,7 +14,6 @@ import { initializeApp as initializeAdminApp } from "firebase-admin/app";
 import { getAuth as getAdminAuth } from "firebase-admin/auth";
 
 import GraphqlEndpoint from "./graphql/index";
-import ExternalEndpoint from "./external/index";
 import AdminEndpoint from "./admin/index";
 import { AuthenticationFor } from "./util";
 import { router as rootRouter } from "./route/root";
@@ -60,8 +59,6 @@ app.use(cookieParser());
 app.use(Express.json());
 
 app.use("/", rootRouter.router);
-
-app.use("/external/graphql", ExternalEndpoint);
 
 app.use(AuthenticationFor.user)
 app.use("/graphql", GraphqlEndpoint);

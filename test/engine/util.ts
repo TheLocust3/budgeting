@@ -118,7 +118,7 @@ export const addTransaction = (system: System) => ({
 export class System {
   static async build() {
     const userId = await pipe(
-        UserFrontend.create(pool)({ id: uuid(), email: `${uuid()}-test`, password: "foobar", role: "user" })
+        UserFrontend.create(pool)({ id: uuid(), email: `${uuid()}-test`, role: "user" })
       , TE.map((user) => user.id)
       , Pipe.toPromise
     );

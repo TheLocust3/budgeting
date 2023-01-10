@@ -38,46 +38,17 @@ export namespace UserFrontend {
   };
 
   export const createFromFirebase = (pool: Pool) => (user: User.Frontend.FromFirebase.t): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return UsersTable.create(pool)({ id: user.id, email: user.email, password: O.none, role: User.DEFAULT_ROLE });
+    return UsersTable.create(pool)({ id: user.id, email: user.email, role: User.DEFAULT_ROLE });
   };
 
   export const create = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return pipe(
-        TE.tryCatch(
-            () => bcrypt.hash(user.password, 10)
-          , Exception.raise
-        )
-      , TE.map((hashed) => { return { ...user, password: hashed }; })
-      , TE.chain(UsersTable.create(pool))
-    );
+    return UsersTable.create(pool)(user);
   };
 
   export const deleteById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
       , UsersTable.deleteById(pool)
-    );
-  };
-
-  export const login = (pool: Pool) => (email: string, password: string): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return pipe(
-        TE.Do
-      , TE.bind("user", () => getByEmail(pool)(email))
-      , TE.bind("userPassword", ({ user }) => O.match(
-            () => <TE.TaskEither<Exception.t, string>>TE.throwError(Exception.throwUnauthorized)
-          , (password) => <TE.TaskEither<Exception.t, string>>TE.of(password)
-        )(user.password))
-      , TE.bind("match", ({ userPassword }) => TE.tryCatch(
-          () => bcrypt.compare(password, userPassword),
-          () => Exception.throwInternalError("bcrypt.compare failed")
-        ))
-      , TE.chain(({ user, match }) => {
-          if (match) {
-            return TE.of(user);
-          } else {
-            return TE.throwError(Exception.throwNotFound);
-          }
-        })
     );
   };
 

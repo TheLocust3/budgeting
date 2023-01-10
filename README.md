@@ -220,6 +220,7 @@ export PGPORT=5432
 export PGUSER=jakekinsella
 export PGPASSWORD=foobar
 
+yarn migrate
 yarn test
 ```
 
@@ -278,6 +279,9 @@ yarn test
 ## todo
 
 ### next
+ - add js entrypoint to authenticate into firebase
+ - createManualAccount, unique tag or remove unique tag constraint?
+ - change bucket to funds on graphql endpoint
  - remove graphql external endpoint
  - Run more pullers
  - Move control plane to separate instance + use ASGs for nodes

@@ -42,22 +42,6 @@ export const getOrCreateUser = (pool: Pool) => (user: User.Frontend.FromFirebase
         , TE.map(({ user }) => user)
       ))
   );
-  return pipe(
-      TE.Do
-    , TE.bind("user", () => UserFrontend.getById(pool)(user.id))
-    , TE.bind("globalAccount", ({ user }) => AccountFrontend.create(pool)({ id: idFor("account_global"), parentId: O.none, userId: user.id, name: GLOBAL_ACCOUNT, metadata: { sourceId: O.none } }))
-    , TE.bind("globalRule", ({ user, globalAccount }) => {
-        return RuleFrontend.create(pool)({
-            id: idFor("rule_global")
-          , accountId: globalAccount.id
-          , userId: user.id
-          , rule: <Rule.Internal.Rule>{ _type: "Include", where: { _type: "StringMatch", field: "userId", operator: "Eq", value: user.id } }
-        });
-      })
-    , TE.bind("physicalAccount", ({ user, globalAccount }) => AccountFrontend.create(pool)({ id: idFor("account_physical"), parentId: O.some(globalAccount.id), userId: user.id, name: PHYSICAL_ACCOUNT, metadata: { sourceId: O.none } }))
-    , TE.bind("virtualAccount", ({ user, globalAccount }) => AccountFrontend.create(pool)({ id: idFor("account_virtual"), parentId: O.some(globalAccount.id), userId: user.id, name: VIRTUAL_ACCOUNT, metadata: { sourceId: O.none } }))
-    , TE.map(({ user }) => user)
-  );
 }
 
 export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {

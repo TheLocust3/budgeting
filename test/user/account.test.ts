@@ -23,7 +23,7 @@ beforeEach(async () => {
   await TE.match(
       (error: Exception.t) => { throw new Error(`Failed with ${error}`); }
     , (newUser: User.Internal.t) => user = newUser
-  )(UserResource.create(pool)({ id: id, email: email, password: "foobar", role: User.DEFAULT_ROLE }))();
+  )(UserResource.create(pool)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
 
   wrap = wrapperBuilder(user);
 });

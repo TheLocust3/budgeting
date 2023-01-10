@@ -9,7 +9,6 @@ import { UserArena, UserResource } from "../../user";
 import * as Context from './context';
 import * as Types from "../graphql/types";
 import { asList } from "../graphql/util";
-import { JWT } from "../util";
 
 import { User } from "../../model";
 import { UserFrontend, IntegrationFrontend, SourceFrontend } from "../../storage";
