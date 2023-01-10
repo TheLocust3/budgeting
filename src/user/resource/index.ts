@@ -289,7 +289,7 @@ export const createManualAccount =
         , userId: arena.user.id
         , name: name
         , integrationId: O.none
-        , tag: ""
+        , tag: UserArena.idFor(arena)(`tag_${name}`)
       }
     , SourceFrontend.create(pool)
     , TE.chain((source) => pipe(createAccount(pool)(arena)(source), TE.map((account) => ({ account: account, source: source }))))
