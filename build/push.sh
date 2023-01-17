@@ -19,5 +19,6 @@ ssh ubuntu@"${CONTROL_PLANE_IP}" "mkdir ~/cluster/"
 ssh ubuntu@"${CONTROL_PLANE_IP}" "mkdir ~/tools/"
 
 scp -r secrets.env ubuntu@"${CONTROL_PLANE_IP}":~/secrets.env
+scp -r service.json ubuntu@"${CONTROL_PLANE_IP}":~/service.json
 scp -r tmp/build/cluster/* ubuntu@"${CONTROL_PLANE_IP}":~/cluster/
 scp -r tmp/build/tools/* ubuntu@"${CONTROL_PLANE_IP}":~/tools/
