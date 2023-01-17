@@ -29,6 +29,7 @@ const resolveFor = (key: "physical" | "virtual") => (context: Context.t) => {
 const resolveChildrenFor = 
   (key: "physical" | "virtual") =>
   (source: any, args: any, context: Context.t): Promise<Account.Internal.t[]> => {
+  context.log.info(`AccountResolver.resolveChildrenFor - ${key}`)
   return pipe(
       resolveFor(key)(context)
     , TE.map((context: UserArena.Account.t) => {

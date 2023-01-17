@@ -26,6 +26,7 @@ export namespace CreateLinkToken {
   });
 
   const resolve = (source: any, args: any, context: Context.t): Promise<Token> => {
+    context.log.info("CreateLinkToken.resolve")
     return pipe(
         PlaidHelper.createLinkToken(context.plaidClient)(context.arena.user.id)
       , TE.map((token) => { return { token: token }; })
@@ -48,6 +49,7 @@ export namespace ExchangePublicToken {
   };
 
   const resolve = (source: any, { publicToken, accounts, institutionName }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`ExchangePublicToken.resolve - ${{ publicToken, accounts, institutionName }}`)
     return pipe(
         PlaidHelper.exchangePublicToken(context.plaidClient)(publicToken)
       , TE.chain((publicToken) =>

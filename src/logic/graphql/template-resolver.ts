@@ -17,6 +17,7 @@ import { Exception } from "../../magic";
 
 const resolveTemplatesForAccount =
   (source: Account.Internal.t, args: any, context: Context.t): Promise<Template.Internal.t[]> => {
+  context.log.info(`TemplateResolver.resolveTemplatesForAccount - ${source.id}`)
   return pipe(
       UserArena.templatesFor(context.pool)(context.arena)(source.id)
     , Pipe.toPromise

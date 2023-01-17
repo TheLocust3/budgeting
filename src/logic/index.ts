@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import Express from "express";
+import pino from "pino-http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Pool } from "pg";
@@ -22,6 +23,8 @@ import { Reaper, Plaid } from "../magic";
 import { User } from "../model";
 
 const app = Express();
+app.use(pino());
+
 app.locals.db = new Pool();
 app.locals.plaidClient = Plaid.buildClient();
 

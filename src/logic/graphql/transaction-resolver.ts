@@ -16,6 +16,7 @@ import { Account, Transaction, Materialize, Rule } from "../../model";
 import { Exception, Pipe } from "../../magic";
 
 const materializeFor = (key: "physical" | "virtual") => (context: Context.t) => {
+  context.log.info(`TransactionResolver.materializeFor - ${key}`)
   switch (key) {
     case "physical":
       return UserArena.materializePhysical(context.pool)(context.arena);
@@ -40,6 +41,7 @@ const transformTransaction = (transaction: Transaction.Internal.t): Types.Transa
 const resolveForAccount =
   (key: "physical" | "virtual") =>
   (source: Account.Internal.t, args: any, context: Context.t): Promise<Types.Transaction.t[]> => {
+  context.log.info(`TransactionResolver.resolveForAccount - ${key} - ${source.id}`)
   return pipe(
       materializeFor(key)(context)
     , TE.map((materialize) => {
@@ -57,6 +59,7 @@ const resolveForAccount =
 const resolveTotalForAccount =
   (key: "physical" | "virtual") =>
   (source: Account.Internal.t, args: any, context: Context.t): Promise<number> => {
+  context.log.info(`TransactionResolver.resolveTotalForAccount - ${key} - ${source.id}`)
   return pipe(
       materializeFor(key)(context)
     , TE.map((materialize) => {
@@ -74,6 +77,7 @@ const resolveTotalForAccount =
 const resolveTotal =
   (key: "physical" | "virtual") =>
   (source: any, args: any, context: Context.t): Promise<number> => {
+  context.log.info(`TransactionResolver.resolveTotal - ${key}`)
   return pipe(
       materializeFor(key)(context)
     , TE.map((materialize) => {
@@ -89,6 +93,7 @@ const resolveTotal =
 }
 
 const resolveForUntagged = (source: any, args: any, context: Context.t): Promise<Types.Transaction.t[]> => {
+  context.log.info("TransactionResolver.resolveForUntagged")
   return pipe(
       materializeFor("virtual")(context)
     , TE.map((materialize) => A.map(transformTransaction)(materialize.untagged))
@@ -97,6 +102,7 @@ const resolveForUntagged = (source: any, args: any, context: Context.t): Promise
 }
 
 const resolveForConflicts = (source: any, args: any, context: Context.t): Promise<Conflicts.t> => {
+  context.log.info("TransactionResolver.resolveForConflicts")
   return pipe(
       materializeFor("virtual")(context)
     , TE.map((materialize) => {

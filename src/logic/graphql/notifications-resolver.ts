@@ -18,6 +18,7 @@ const transform = (notification : Notification.Internal.t): Types.Notification.t
 }
 
 const resolve = (source: any, args: any, context: Context.t): Promise<Types.Notification.t[]> => {
+  context.log.info("NotificationResolver.resolve")
   return pipe(
       UserArena.notifications(context.pool)(context.arena)
     , TE.map(A.map(transform))

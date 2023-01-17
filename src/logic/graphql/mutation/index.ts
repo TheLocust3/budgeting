@@ -27,6 +27,7 @@ export namespace CreateBucket {
   const Args = { name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
+    context.log.info(`CreateBucket.resolve - ${name}`)
     return pipe(
         UserResource.Bucket.create(context.pool)(context.arena)(name)
       , Pipe.toPromise
@@ -53,6 +54,7 @@ export namespace CreateAccount {
   const Args = { name: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
+    context.log.info(`CreateAccount.resolve - ${name}`)
     return pipe(
         UserResource.Account.create(context.pool)(context.arena)(name)
       , TE.map(({ account }) => account)
@@ -75,6 +77,7 @@ export namespace CreateTemplate {
   };
 
   const resolve = (source: any, { accountId, template }: Args, context: Context.t): Promise<Template.Internal.t> => {
+    context.log.info(`CreateTemplate.resolve - ${accountId} - ${template}`)
     return pipe(
         UserResource.Template.create(context.pool)(context.arena)(accountId, template)
       , Pipe.toPromise
@@ -93,6 +96,8 @@ export namespace CreateTransaction {
   const Args = Types.Transaction.Input.t;
 
   const resolve = (source: any, args: Args, context: Context.t): Promise<Transaction.Internal.t> => {
+    context.log.info(`CreateTransaction.resolve - ${args}`)
+
     const authorizedAt: Date = new Date(args.authorizedAt);
     const capturedAt: O.Option<Date> = pipe(
         O.fromNullable(args.capturedAt)
@@ -126,6 +131,7 @@ export namespace CreateTransactions {
   };
 
   const resolve = (source: any, args: Args, context: Context.t): Promise<Transaction.Internal.t[]> => {
+    context.log.info(`CreateTransactions.resolve - ${args}`)
     return pipe(
         args.transactions
       , A.mapWithIndex((index, transaction) => {
@@ -167,6 +173,7 @@ export namespace CreateSplitByValue {
   }
 
   const resolve = (source: any, { transactionId, splits, remainder }: Args, context: Context.t): Promise<Rule.Internal.t> => {
+    context.log.info(`CreateSplitByValue.resolve - ${{ transactionId, splits, remainder }}`)
     return pipe(
         UserResource.Rule.splitTransaction(context.pool)(context.arena)(transactionId, splits, remainder)
       , Pipe.toPromise
@@ -185,6 +192,7 @@ export namespace DeleteRule {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`DeleteRule.resolve - ${id}`)
     return pipe(
         UserResource.Rule.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
@@ -204,6 +212,7 @@ export namespace DeleteIntegration {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`DeleteIntegration.resolve - ${id}`)
     return pipe(
         UserResource.Integration.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
@@ -223,6 +232,7 @@ export namespace DeleteAccount {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`DeleteAccount.resolve - ${id}`)
     return pipe(
         UserResource.Account.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
@@ -242,6 +252,7 @@ export namespace DeleteBucket {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`DeleteBucket.resolve - ${id}`)
     return pipe(
         UserResource.Bucket.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
@@ -261,6 +272,7 @@ export namespace DeleteTemplate {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`DeleteTemplate.resolve - ${id}`)
     return pipe(
         UserResource.Template.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
@@ -280,6 +292,7 @@ export namespace DeleteTransaction {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`DeleteTransaction.resolve - ${id}`)
     return pipe(
         UserResource.Transaction.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)
@@ -299,6 +312,7 @@ export namespace AckNotification {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`AckNotification.resolve - ${id}`)
     return pipe(
         UserResource.Notification.ack(context.pool)(context.arena)(id)
       , TE.map(() => true)
@@ -318,6 +332,7 @@ export namespace DeleteNotification {
   const Args = { id: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) } };
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
+    context.log.info(`DeleteNotification.resolve - ${id}`)
     return pipe(
         UserResource.Notification.remove(context.pool)(context.arena)(id)
       , TE.map(() => true)

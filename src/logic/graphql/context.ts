@@ -1,4 +1,5 @@
 import Express from "express";
+import pino from "pino";
 import { Pool } from "pg";
 import { PlaidApi } from "plaid";
 import * as A from "fp-ts/Array";
@@ -12,6 +13,7 @@ import { UserArena } from "../../user";
 type Resolvable<T> = O.Option<Promise<T>>;
 
 export type t = {
+  log: pino.Logger;
   id: string;
   pool: Pool;
   plaidClient: PlaidApi;
@@ -20,7 +22,8 @@ export type t = {
 
 export const empty = (request: any, response: any) => {
   return {
-      id: response.locals.id
+      log: request.log
+    , id: response.locals.id
     , pool: request.app.locals.db
     , plaidClient: request.app.locals.plaidClient
     , arena: UserArena.empty(response.locals.id)(response.locals.user)

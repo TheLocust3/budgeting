@@ -10,6 +10,7 @@ const endpoint = graphqlHTTP((request, response) => ({
   , graphiql: true
   , context: Context.empty(request, response)
   , customFormatErrorFn: (error) => {
+      request.log.error(error)
       if (error.originalError === undefined) {
         return error.toJSON();
       }
