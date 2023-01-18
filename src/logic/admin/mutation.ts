@@ -12,7 +12,7 @@ import { asList } from "../graphql/util";
 
 import { User } from "../../model";
 import { UserFrontend, IntegrationFrontend, SourceFrontend } from "../../storage";
-import { Exception, Reaper, Pipe } from "../../magic";
+import { Exception, Pipe } from "../../magic";
 
 namespace MakeSuperuser {
   type Args = { id: string };

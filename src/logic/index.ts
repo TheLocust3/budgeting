@@ -20,7 +20,7 @@ import AdminEndpoint from "./admin/index";
 import { AuthenticationFor } from "./util";
 import { router as rootRouter } from "./route/root";
 
-import { Reaper, Plaid } from "../magic";
+import { Plaid } from "../magic";
 import { User } from "../model";
 
 const log = pinoLogger();

@@ -1,3 +1,5 @@
+import { Logger } from "pino";
+
 export type InvalidRule = { name: "InvalidRule" } & Error
 export const throwInvalidRule: t = { name: "InvalidRule", message: "InvalidRule" };
 
@@ -34,8 +36,8 @@ export const pgRaise = (error: any): t => {
   }
 }
 
-export const raise = (error: any): t => {
-  console.log(JSON.stringify(error, null, 2))
+export const raise = (log: Logger) => (error: any): t => {
+  log.error(JSON.stringify(error, null, 2))
   return throwInternalError(error);
 }
 

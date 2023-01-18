@@ -10,7 +10,7 @@ import { Configuration, PlaidApi, PlaidEnvironments } from "plaid";
 
 import * as RollupJob from "./rollup-job";
 
-import { Exception, Reaper, Plaid } from "../../magic";
+import { Exception, Plaid } from "../../magic";
 import { SourceFrontend } from "../../storage";
 import { Source } from "../../model";
 
