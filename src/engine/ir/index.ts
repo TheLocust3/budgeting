@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -154,9 +155,9 @@ export namespace Frontend {
     }
   }
 
-  const sourceFor = (pool: Pool) => (plan: Plan.t): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
+  const sourceFor = (pool: Pool) => (log: Logger) => (plan: Plan.t): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     const buildTransactionsForUser = (planSource: Plan.Source.TransactionsForUser): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
-      console.log(`Frontend.sourceFor[${plan.queryId}] - getting transactions for user ${planSource.userId}`)
+      log.info(`Frontend.sourceFor[${plan.queryId}] - getting transactions for user ${planSource.userId}`)
       return TransactionFrontend.all(pool)(planSource.userId);
     }
 
@@ -166,15 +167,15 @@ export namespace Frontend {
     }
   }
 
-  export const execute = (pool: Pool) => (plan: Plan.t): TE.TaskEither<Exception.t, Result.t> => {
-    console.log(`Frontend.execute[${plan.queryId}] - ${JSON.stringify(plan, null, 2)}`)
+  export const execute = (pool: Pool) => (log: Logger) => (plan: Plan.t): TE.TaskEither<Exception.t, Result.t> => {
+    log.info(`Frontend.execute[${plan.queryId}] - ${JSON.stringify(plan, null, 2)}`)
     const executablePlan = build(plan);
 
     return pipe(
-        sourceFor(pool)(plan)
+        sourceFor(pool)(log)(plan)
       , TE.map(executablePlan)
       , TE.map((result) => {
-          console.log(`Frontend.execute[${plan.queryId}] - complete`)
+          log.info(`Frontend.execute[${plan.queryId}] - complete`)
           return result;
         })
     );
@@ -251,7 +252,7 @@ export namespace Builder {
       aggregations: GroupAndAggregate.t;
     };
 
-    export const build = (pool: Pool) => (builder: t): TE.TaskEither<Exception.t, { plan: Plan.t, account: Account.Internal.Rich }> => {
+    export const build = (pool: Pool) => (log: Logger) => (builder: t): TE.TaskEither<Exception.t, { plan: Plan.t, account: Account.Internal.Rich }> => {
       const buildAccount = (): TE.TaskEither<Exception.t, Account.Internal.Rich> => {
         return pipe(
             AccountFrontend.getByIdAndUserId(pool)(builder.userId)(builder.accountId)
@@ -260,7 +261,7 @@ export namespace Builder {
         );
       }
 
-      console.log(`ForAccount.build[${builder.queryId}] - ${JSON.stringify(builder, null, 2)}`)
+      log.info(`ForAccount.build[${builder.queryId}] - ${JSON.stringify(builder, null, 2)}`)
 
       return pipe(
           TE.Do
@@ -278,7 +279,7 @@ export namespace Builder {
               , reductions: GroupAndAggregate.build(builder.aggregations)
             };
 
-            console.log(`ForAccount.build[${builder.queryId}] - ${JSON.stringify(plan, null, 2)} - complete`)
+            log.info(`ForAccount.build[${builder.queryId}] - ${JSON.stringify(plan, null, 2)} - complete`)
 
             return { plan: plan, account: account };
           })

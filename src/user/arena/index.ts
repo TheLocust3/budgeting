@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { v5 as uuid } from 'uuid';
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -39,6 +40,7 @@ export type t = {
 }
 
 const resolve =
+  (log : Logger) =>
   (arena: t) =>
   <T>(get: (arena: t) => Resolvable<T>) =>
   (set: (value: Resolvable<T>) => (arena: t) => void) =>
@@ -47,71 +49,71 @@ const resolve =
       () => {
         const out = Pipe.toPromise(resolver(arena));
         set(O.some(out))(arena);
-        return Pipe.fromPromise(out); // a silly jig to make sure this task only evaluates _once_
+        return Pipe.fromPromise(log)(out); // a silly jig to make sure this task only evaluates _once_
       }
     , (value: Promise<T>) => TE.tryCatch(() => value, Exception.throwInternalError)
   )(get(arena))
 }
 
-export const physical = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
+export const physical = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
   const get = (arena: t) => { return arena.physical.account };
   const set = (value: Resolvable<AccountArena.t>) => (arena: t) => { arena.physical.account = value };
 
-  return resolve(arena)(get)(set)(AccountArena.resolve(pool)(PHYSICAL_ACCOUNT))
+  return resolve(log)(arena)(get)(set)(AccountArena.resolve(pool)(PHYSICAL_ACCOUNT))
 }
 
-export const materializePhysical = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
+export const materializePhysical = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
   const get = (arena: t) => { return arena.physical.transactions };
   const set = (value: Resolvable<TransactionArena.t>) => (arena: t) => { arena.physical.transactions = value };
 
   return pipe(
-      physical(pool)(arena)
-    , TE.chain((physical) => resolve(arena)(get)(set)(TransactionArena.resolve(pool)(physical.account.id)))
+      physical(pool)(log)(arena)
+    , TE.chain((physical) => resolve(log)(arena)(get)(set)(TransactionArena.resolve(pool)(log)(physical.account.id)))
   );
 }
 
-export const virtual = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
+export const virtual = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, AccountArena.t> => {
   const get = (arena: t) => { return arena.virtual.account };
   const set = (value: Resolvable<AccountArena.t>) => (arena: t) => { arena.virtual.account = value };
 
-  return resolve(arena)(get)(set)(AccountArena.resolve(pool)(VIRTUAL_ACCOUNT))
+  return resolve(log)(arena)(get)(set)(AccountArena.resolve(pool)(VIRTUAL_ACCOUNT))
 }
 
-export const virtualRules = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, RuleArena.t> => {
+export const virtualRules = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, RuleArena.t> => {
   const get = (arena: t) => { return arena.virtual.rules };
   const set = (value: Resolvable<RuleArena.t>) => (arena: t) => { arena.virtual.rules = value };
 
   return pipe(
-      virtual(pool)(arena)
-    , TE.chain((virtual) => resolve(arena)(get)(set)(RuleArena.resolve(pool)(virtual.account.id)))
+      virtual(pool)(log)(arena)
+    , TE.chain((virtual) => resolve(log)(arena)(get)(set)(RuleArena.resolve(pool)(virtual.account.id)))
   );
 }
 
-export const materializeVirtual = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
+export const materializeVirtual = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
   const get = (arena: t) => { return arena.virtual.transactions };
   const set = (value: Resolvable<TransactionArena.t>) => (arena: t) => { arena.virtual.transactions = value };
 
   return pipe(
-      virtual(pool)(arena)
-    , TE.chain((virtual) => resolve(arena)(get)(set)(TransactionArena.resolve(pool)(virtual.account.id)))
+      virtual(pool)(log)(arena)
+    , TE.chain((virtual) => resolve(log)(arena)(get)(set)(TransactionArena.resolve(pool)(log)(virtual.account.id)))
   );
 }
 
-export const integrations = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, IntegrationArena.t> => {
+export const integrations = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, IntegrationArena.t> => {
   const get = (arena: t) => { return arena.integrations };
   const set = (value: Resolvable<IntegrationArena.t>) => (arena: t) => { arena.integrations = value };
 
-  return resolve(arena)(get)(set)(IntegrationArena.resolve(pool))
+  return resolve(log)(arena)(get)(set)(IntegrationArena.resolve(pool))
 }
 
-export const notifications = (pool: Pool) => (arena: t): TE.TaskEither<Exception.t, NotificationArena.t> => {
+export const notifications = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, NotificationArena.t> => {
   const get = (arena: t) => { return arena.notifications };
   const set = (value: Resolvable<NotificationArena.t>) => (arena: t) => { arena.notifications = value };
 
-  return resolve(arena)(get)(set)(NotificationArena.resolve(pool))
+  return resolve(log)(arena)(get)(set)(NotificationArena.resolve(pool))
 }
 
-export const templatesFor = (pool: Pool) => (arena: t) => (accountId: string): TE.TaskEither<Exception.t, TemplateArena.t> => {
+export const templatesFor = (pool: Pool) => (log : Logger) => (arena: t) => (accountId: string): TE.TaskEither<Exception.t, TemplateArena.t> => {
   const get = (arena: t) => {
     const maybe = arena.templates[accountId]
     if (maybe === undefined) {
@@ -122,7 +124,7 @@ export const templatesFor = (pool: Pool) => (arena: t) => (accountId: string): T
   };
   const set = (value: Resolvable<TemplateArena.t>) => (arena: t) => { arena.templates[accountId] = value };
 
-  return resolve(arena)(get)(set)(TemplateArena.resolve(pool)(accountId))
+  return resolve(log)(arena)(get)(set)(TemplateArena.resolve(pool)(accountId))
 }
 
 export const idFor = (arena: t) => (tag: string) => {
@@ -141,7 +143,7 @@ export const empty = (id: string) => (user: User.Internal.t): t => {
   }
 }
 
-export const fromId = (pool: Pool) => (id: string) => (userId: string): TE.TaskEither<Exception.t, t> => {
+export const fromId = (pool: Pool) => (log : Logger) => (id: string) => (userId: string): TE.TaskEither<Exception.t, t> => {
   return pipe(
       UserFrontend.getById(pool)(userId)
     , TE.map(empty(id))

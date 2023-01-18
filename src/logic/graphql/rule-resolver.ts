@@ -17,7 +17,7 @@ import { Exception, Pipe } from "../../magic";
 const resolve = (source: any, args: any, context: Context.t): Promise<Rule.Internal.t[]> => {
   context.log.info("RuleResolver.resolve")
   return pipe(
-      UserArena.virtualRules(context.pool)(context.arena)
+      UserArena.virtualRules(context.pool)(context.log)(context.arena)
     , Pipe.toPromise
   );
 }

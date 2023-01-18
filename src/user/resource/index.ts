@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { PlaidApi } from "plaid";
 import { v5 as uuid } from 'uuid';
 import * as A from "fp-ts/Array";
@@ -17,11 +18,10 @@ import { User, Account, Rule, Source, Integration, Plaid, Transaction, Template 
 import { AccountFrontend, IntegrationFrontend, SourceFrontend, RuleFrontend, TransactionFrontend, UserFrontend, NotificationFrontend, TemplateFrontend } from "../../storage";
 import { Exception, Message, Plaid as PlaidHelper, Route, Pipe } from "../../magic";
 
-export const getOrCreateUser = (pool: Pool) => (user: User.Frontend.FromFirebase.t): TE.TaskEither<Exception.t, User.Internal.t> => {
+export const getOrCreateUser = (pool: Pool) => (log : Logger) => (user: User.Frontend.FromFirebase.t): TE.TaskEither<Exception.t, User.Internal.t> => {
   const idFor = (tag: string) => {
     return uuid(`${user.id}_${tag}`, uuid.URL);
   }
-
 
   return pipe(
       UserFrontend.getById(pool)(user.id)
@@ -44,7 +44,7 @@ export const getOrCreateUser = (pool: Pool) => (user: User.Frontend.FromFirebase
   );
 }
 
-export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
+export const createUser = (pool: Pool) => (log : Logger) => (user: User.Frontend.Create.t): TE.TaskEither<Exception.t, User.Internal.t> => {
   const idFor = (tag: string) => {
     return uuid(`${user.id}_${tag}`, uuid.URL);
   }
@@ -67,10 +67,10 @@ export const createUser = (pool: Pool) => (user: User.Frontend.Create.t): TE.Tas
   );
 }
 
-const createAccount = (pool: Pool) => (arena: UserArena.t) => (source: Source.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
+const createAccount = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (source: Source.Internal.t): TE.TaskEither<Exception.t, Account.Internal.t> => {
   const createSingleAccount = (): TE.TaskEither<Exception.t, Account.Internal.t> => {
     return pipe(
-        UserArena.physical(pool)(arena)
+        UserArena.physical(pool)(log)(arena)
       , TE.map((physical) => ({ id: UserArena.idFor(arena)(`account_${source.name}`), userId: arena.user.id, parentId: O.some(physical.account.id), name: source.name, metadata: { sourceId: O.some(source.id) } }))
       , TE.chain(AccountFrontend.create(pool))
     );
@@ -79,7 +79,7 @@ const createAccount = (pool: Pool) => (arena: UserArena.t) => (source: Source.In
   return pipe(
       TE.Do
     , TE.bind("account", () => createSingleAccount())
-    , TE.bind("rule", ({ account }) => createRule(pool)(arena)(`rule_${source.name}`)("physical")(<Rule.Internal.Rule>{
+    , TE.bind("rule", ({ account }) => createRule(pool)(log)(arena)(`rule_${source.name}`)("physical")(<Rule.Internal.Rule>{
           _type: "SplitByPercent"
         , where: { _type: "StringMatch", field: "sourceId", operator: "Eq", value: source.id }
         , splits: [{ _type: "Percent", account: account.id, percent: 1 }]
@@ -88,18 +88,18 @@ const createAccount = (pool: Pool) => (arena: UserArena.t) => (source: Source.In
   );
 }
 
-export const createBucket = (pool: Pool) => (arena: UserArena.t) => (name: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
+export const createBucket = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (name: string): TE.TaskEither<Exception.t, Account.Internal.t> => {
   return pipe(
-      UserArena.virtual(pool)(arena)
+      UserArena.virtual(pool)(log)(arena)
     , TE.map((virtual) => ({ id: UserArena.idFor(arena)(`bucket_${name}`), userId: arena.user.id, parentId: O.some(virtual.account.id), name: name, metadata: { sourceId: O.none } }))
     , TE.chain(AccountFrontend.create(pool))
   );
 }
 
-export const createTemplate = (pool: Pool) => (arena: UserArena.t) => (accountId: string, template: object): TE.TaskEither<Exception.t, Template.Internal.t> => {
+export const createTemplate = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (accountId: string, template: object): TE.TaskEither<Exception.t, Template.Internal.t> => {
   return pipe(
       TE.Do
-    , TE.bind("physicalAccount", () => resolveUserAccount(pool)(arena)("physical"))
+    , TE.bind("physicalAccount", () => resolveUserAccount(pool)(log)(arena)("physical"))
     , TE.bind("account", () => AccountFrontend.getByIdAndUserId(pool)(arena.user.id)(accountId))
     , TE.bind("validate", ({ physicalAccount, account }) => {
         if (pipe(account.parentId, O.map((parentId) => parentId === physicalAccount.account.id), O.getOrElse(() => false))) {
@@ -117,23 +117,24 @@ export const createTemplate = (pool: Pool) => (arena: UserArena.t) => (accountId
 
 
 type UserAccount = "physical" | "virtual";
-const resolveUserAccount = (pool: Pool) => (arena: UserArena.t) => (key: UserAccount): TE.TaskEither<Exception.t, UserArena.Account.t> => {
+const resolveUserAccount = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (key: UserAccount): TE.TaskEither<Exception.t, UserArena.Account.t> => {
   switch (key) {
     case "physical":
-      return UserArena.physical(pool)(arena);
+      return UserArena.physical(pool)(log)(arena);
     case "virtual":
-      return UserArena.virtual(pool)(arena);
+      return UserArena.virtual(pool)(log)(arena);
   }
 }
 
 const createRule =
   (pool: Pool) => 
+  (log : Logger) =>
   (arena: UserArena.t) =>
   (tag: string) =>
   (key: UserAccount) =>
   (rule: Rule.Internal.Rule): TE.TaskEither<Exception.t, Rule.Internal.t> => {
   return pipe(
-      resolveUserAccount(pool)(arena)(key)
+      resolveUserAccount(pool)(log)(arena)(key)
     , TE.chain((account) => {
         return pipe(
             <Rule.Frontend.Create.t> { id: UserArena.idFor(arena)(tag), accountId: account.account.id, userId: arena.user.id, rule: rule }
@@ -146,13 +147,14 @@ const createRule =
 
 export const splitTransaction =
   (pool: Pool) => 
+  (log : Logger) =>
   (arena: UserArena.t) =>
   (transactionId: string, splits: { bucket: string, value: number}[], remainder: string): TE.TaskEither<Exception.t, Rule.Internal.t> => {
   return pipe(
       TE.Do
     , TE.bind("validateTransaction", () => TransactionFrontend.getById(pool)(arena.user.id)(transactionId))
-    , TE.bind("virtual", () => UserArena.virtual(pool)(arena))
-    , TE.chain(({ virtual }) => createRule(pool)(arena)(`rule_${transactionId}`)("virtual")(<Rule.Internal.Split.SplitByValue>{
+    , TE.bind("virtual", () => UserArena.virtual(pool)(log)(arena))
+    , TE.chain(({ virtual }) => createRule(pool)(log)(arena)(`rule_${transactionId}`)("virtual")(<Rule.Internal.Split.SplitByValue>{
           _type: "SplitByValue"
         , where: { _type: "StringMatch", field: "id", operator: "Eq", value: transactionId }
         , splits: A.map(({ bucket, value }: { bucket: string, value: number}) =>
@@ -163,25 +165,25 @@ export const splitTransaction =
   );
 }
 
-export const removeRule = (pool: Pool) => (arena: UserArena.t) => (ruleId: string): TE.TaskEither<Exception.t, void> => {
+export const removeRule = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (ruleId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
-      UserArena.virtual(pool)(arena)
+      UserArena.virtual(pool)(log)(arena)
     , TE.chain((virtual) => RuleFrontend.deleteById(pool)(arena.user.id)(virtual.account.id)(ruleId))
     , TE.map(() => {})
   );
 }
 
-export const removeIntegration = (pool: Pool) => (arena: UserArena.t) => (integrationId: string): TE.TaskEither<Exception.t, void> => {
+export const removeIntegration = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (integrationId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       IntegrationFrontend.deleteById(pool)(arena.user.id)(integrationId)
     , TE.map(() => {})
   );
 }
 
-export const removeAccount = (pool: Pool) => (arena: UserArena.t) => (accountId: string): TE.TaskEither<Exception.t, void> => {
+export const removeAccount = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (accountId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       TE.Do
-    , TE.bind("physicalAccount", () => resolveUserAccount(pool)(arena)("physical"))
+    , TE.bind("physicalAccount", () => resolveUserAccount(pool)(log)(arena)("physical"))
     , TE.bind("account", () => AccountFrontend.getByIdAndUserId(pool)(arena.user.id)(accountId))
     , TE.bind("validate", ({ physicalAccount, account }) => {
         if (pipe(account.parentId, O.map((parentId) => parentId === physicalAccount.account.id), O.getOrElse(() => false))) {
@@ -193,7 +195,7 @@ export const removeAccount = (pool: Pool) => (arena: UserArena.t) => (accountId:
     , TE.bind("deleteSource", ({ account }) => {
         return <TE.TaskEither<Exception.t, any>> pipe(
             account.metadata.sourceId
-          , O.map(removeSource(pool)(arena))
+          , O.map(removeSource(pool)(log)(arena))
           , O.getOrElse(() => TE.of({}))
         );
       })
@@ -202,10 +204,10 @@ export const removeAccount = (pool: Pool) => (arena: UserArena.t) => (accountId:
   );
 }
 
-export const removeBucket = (pool: Pool) => (arena: UserArena.t) => (bucketId: string): TE.TaskEither<Exception.t, void> => {
+export const removeBucket = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (bucketId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       TE.Do
-    , TE.bind("virtualAccount", () => resolveUserAccount(pool)(arena)("virtual"))
+    , TE.bind("virtualAccount", () => resolveUserAccount(pool)(log)(arena)("virtual"))
     , TE.bind("account", () => AccountFrontend.getByIdAndUserId(pool)(arena.user.id)(bucketId))
     , TE.bind("validate", ({ virtualAccount, account }) => {
         if (pipe(account.parentId, O.map((parentId) => parentId === virtualAccount.account.id), O.getOrElse(() => false))) {
@@ -214,7 +216,7 @@ export const removeBucket = (pool: Pool) => (arena: UserArena.t) => (bucketId: s
           return TE.throwError(Exception.throwValidationError(`${bucketId} is not a virtual account`))
         }
       })
-    , TE.bind("materialized", () => UserArena.materializeVirtual(pool)(arena))
+    , TE.bind("materialized", () => UserArena.materializeVirtual(pool)(log)(arena))
     , TE.bind("validateEmpty", ({ materialized }) => {
         if (materialized.tagged[bucketId].transactions.length == 0) {
           return TE.of(true);
@@ -222,7 +224,7 @@ export const removeBucket = (pool: Pool) => (arena: UserArena.t) => (bucketId: s
           return TE.throwError(Exception.throwBadRequest(`Bucket ${bucketId} is not empty`));
         }
       })
-    , TE.bind("virtualRules", () => UserArena.virtualRules(pool)(arena))
+    , TE.bind("virtualRules", () => UserArena.virtualRules(pool)(log)(arena))
     , TE.bind("validateNoRules", ({ virtualRules }) => {
         const accounts = pipe(
             virtualRules
@@ -242,35 +244,35 @@ export const removeBucket = (pool: Pool) => (arena: UserArena.t) => (bucketId: s
   );
 }
 
-export const removeTemplate = (pool: Pool) => (arena: UserArena.t) => (templateId: string): TE.TaskEither<Exception.t, any> => {
+export const removeTemplate = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (templateId: string): TE.TaskEither<Exception.t, any> => {
   return pipe(
       TemplateFrontend.deleteById(pool)(arena.user.id)(templateId)
     , TE.map(() => {})
   );
 }
 
-export const removeSource = (pool: Pool) => (arena: UserArena.t) => (sourceId: string): TE.TaskEither<Exception.t, any> => {
+export const removeSource = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (sourceId: string): TE.TaskEither<Exception.t, any> => {
   return pipe(
       SourceFrontend.deleteById(pool)(arena.user.id)(sourceId)
     , TE.map(() => {})
   );
 }
 
-export const removeTransaction = (pool: Pool) => (arena: UserArena.t) => (transactionId: string): TE.TaskEither<Exception.t, void> => {
+export const removeTransaction = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (transactionId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       TransactionFrontend.deleteById(pool)(arena.user.id)(transactionId)
     , TE.map(() => {})
   );
 }
 
-export const ackNotification = (pool: Pool) => (arena: UserArena.t) => (notificationId: string): TE.TaskEither<Exception.t, void> => {
+export const ackNotification = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (notificationId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       NotificationFrontend.ack(pool)(arena.user.id)(notificationId)
     , TE.map(() => {})
   );
 }
 
-export const removeNotification = (pool: Pool) => (arena: UserArena.t) => (notificationId: string): TE.TaskEither<Exception.t, void> => {
+export const removeNotification = (pool: Pool) => (log : Logger) => (arena: UserArena.t) => (notificationId: string): TE.TaskEither<Exception.t, void> => {
   return pipe(
       NotificationFrontend.deleteById(pool)(arena.user.id)(notificationId)
     , TE.map(() => {})
@@ -279,6 +281,7 @@ export const removeNotification = (pool: Pool) => (arena: UserArena.t) => (notif
 
 export const createManualAccount =
   (pool: Pool) =>
+  (log : Logger) =>
   (arena: UserArena.t) =>
   (name: string): TE.TaskEither<Exception.t, { account: Account.Internal.t, source: Source.Internal.t }> => {
   console.log(`[${arena.id}] - building source + account`);
@@ -292,7 +295,7 @@ export const createManualAccount =
         , tag: UserArena.idFor(arena)(`tag_${name}`)
       }
     , SourceFrontend.create(pool)
-    , TE.chain((source) => pipe(createAccount(pool)(arena)(source), TE.map((account) => ({ account: account, source: source }))))
+    , TE.chain((source) => pipe(createAccount(pool)(log)(arena)(source), TE.map((account) => ({ account: account, source: source }))))
     , TE.map((both) => {
         console.log(`[${arena.id}] - source + account built`);
         return both;
@@ -302,6 +305,7 @@ export const createManualAccount =
 
 export const createTransaction =
   (pool: Pool) =>
+  (log : Logger) =>
   (arena: UserArena.t) =>
   (transaction: Transaction.Arena.Create.t, id : string = "transaction"): TE.TaskEither<Exception.t, Transaction.Internal.t> => {
   return pipe(
@@ -313,6 +317,7 @@ export const createTransaction =
 
 export const createIntegration =
   (pool: Pool) =>
+  (log : Logger) =>
   (plaidClient: PlaidApi) =>
   (arena: UserArena.t) =>
   (request: { institutionName: string, accounts: { id: string, name: string }[] }) =>
@@ -362,7 +367,7 @@ export const createIntegration =
     return pipe(
         contexts
       , A.map(({ source }) => source)
-      , A.map(createAccount(pool)(arena))
+      , A.map(createAccount(pool)(log)(arena))
       , A.sequence(TE.ApplicativeSeq)
       , TE.map(() => contexts)
     );

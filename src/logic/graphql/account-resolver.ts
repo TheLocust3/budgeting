@@ -20,9 +20,9 @@ import { Exception } from "../../magic";
 const resolveFor = (key: "physical" | "virtual") => (context: Context.t) => {
   switch (key) {
     case "physical":
-      return UserArena.physical(context.pool)(context.arena);
+      return UserArena.physical(context.pool)(context.log)(context.arena);
     case "virtual":
-      return UserArena.virtual(context.pool)(context.arena);
+      return UserArena.virtual(context.pool)(context.log)(context.arena);
   }
 }
 

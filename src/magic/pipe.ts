@@ -1,3 +1,4 @@
+import { Logger } from "pino";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -29,11 +30,11 @@ export const toPromise = <T>(task: TE.TaskEither<Exception.t, T>): Promise<T> =>
   )(task)();
 }
 
-export const fromPromise = <T>(promise: Promise<T>): TE.TaskEither<Exception.t, T> => {
+export const fromPromise = (log : Logger) => <T>(promise: Promise<T>): TE.TaskEither<Exception.t, T> => {
   return TE.tryCatch(
       () => promise
     , (error) => {
-        console.log(error);
+        log.error(error);
         return Exception.throwInternalError(error);
       }
   );

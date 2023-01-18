@@ -19,9 +19,9 @@ const materializeFor = (key: "physical" | "virtual") => (context: Context.t) => 
   context.log.info(`TransactionResolver.materializeFor - ${key}`)
   switch (key) {
     case "physical":
-      return UserArena.materializePhysical(context.pool)(context.arena);
+      return UserArena.materializePhysical(context.pool)(context.log)(context.arena);
     case "virtual":
-      return UserArena.materializeVirtual(context.pool)(context.arena);
+      return UserArena.materializeVirtual(context.pool)(context.log)(context.arena);
   }
 }
 

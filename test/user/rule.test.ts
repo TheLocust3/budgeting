@@ -12,7 +12,7 @@ import { UserFrontend } from "../../src/storage";
 import { User, Transaction } from "../../src/model";
 import { Exception } from "../../src/magic";
 
-import { pool, plaidClient, wrapperBuilder, Wrapper } from './util';
+import { pool, log, plaidClient, wrapperBuilder, Wrapper } from './util';
 
 let user: User.Internal.t;
 let wrap: Wrapper;
@@ -23,7 +23,7 @@ beforeEach(async () => {
   await TE.match(
       (error: Exception.t) => { throw new Error(`Failed with ${error}`); }
     , (newUser: User.Internal.t) => user = newUser
-  )(UserResource.create(pool)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
+  )(UserResource.create(pool)(log)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
 
   wrap = wrapperBuilder(user);
 });
@@ -46,11 +46,11 @@ it("can create a split rule", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
-    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [], bucket.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket, materialized }) => {
@@ -70,11 +70,11 @@ it("can create a split rule 2", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
-    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket.id, value: 1 }], bucket.id)))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [{ bucket: bucket.id, value: 1 }], bucket.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket, materialized }) => {
@@ -97,12 +97,12 @@ it("can delete rule", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
-    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
-    , TE.bind("deleted", ({ rule }) => wrap((arena) => UserResource.Rule.remove(pool)(arena)(rule.id)))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [], bucket.id)))
+    , TE.bind("deleted", ({ rule }) => wrap((arena) => UserResource.Rule.remove(pool)(log)(arena)(rule.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket, materialized }) => {
@@ -124,11 +124,11 @@ it("can't delete unknown rule", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
-    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], bucket.id)))
-    , TE.bind("deleted", ({ rule }) => wrap((arena) => UserResource.Rule.remove(pool)(arena)("nonsense")))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [], bucket.id)))
+    , TE.bind("deleted", ({ rule }) => wrap((arena) => UserResource.Rule.remove(pool)(log)(arena)("nonsense")))
     , TE.match(
           (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
         , () => { throw new Error(`Should not have been able to delete rule`); }
@@ -142,10 +142,10 @@ it("can't create a split rule against unknown transaction", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
-    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)("nonsense", [], bucket.id)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)("nonsense", [], bucket.id)))
     , TE.match(
           (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
         , () => { throw new Error(`Should not have been able to create rule`); }
@@ -159,10 +159,10 @@ it("can't create a split rule against unknown bucket", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
-    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [], "nonsense")))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucketName)))
+    , TE.bind("rule", ({ transaction, bucket }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [], "nonsense")))
     , TE.match(
           (error: Exception.t) => { expect(error).toEqual(Exception.throwInvalidRule) }
         , () => { throw new Error(`Should not have been able to create rule`); }

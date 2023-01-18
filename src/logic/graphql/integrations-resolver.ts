@@ -15,7 +15,7 @@ import { Exception, Pipe } from "../../magic";
 const resolve = (source: any, args: any, context: Context.t): Promise<Types.Integration.t[]> => {
   context.log.info("IntegrationResolver.resolve")
   return pipe(
-      UserArena.integrations(context.pool)(context.arena)
+      UserArena.integrations(context.pool)(context.log)(context.arena)
     , TE.map(A.map(({ integration, sources }) => ({ ...integration, sources: sources })))
     , Pipe.toPromise
   );

@@ -29,7 +29,7 @@ export namespace CreateBucket {
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
     context.log.info(`CreateBucket.resolve - ${name}`)
     return pipe(
-        UserResource.Bucket.create(context.pool)(context.arena)(name)
+        UserResource.Bucket.create(context.pool)(context.log)(context.arena)(name)
       , Pipe.toPromise
     );
   }
@@ -56,7 +56,7 @@ export namespace CreateAccount {
   const resolve = (source: any, { name }: Args, context: Context.t): Promise<Account.Internal.t> => {
     context.log.info(`CreateAccount.resolve - ${name}`)
     return pipe(
-        UserResource.Account.create(context.pool)(context.arena)(name)
+        UserResource.Account.create(context.pool)(context.log)(context.arena)(name)
       , TE.map(({ account }) => account)
       , Pipe.toPromise
     );
@@ -79,7 +79,7 @@ export namespace CreateTemplate {
   const resolve = (source: any, { accountId, template }: Args, context: Context.t): Promise<Template.Internal.t> => {
     context.log.info(`CreateTemplate.resolve - ${accountId} - ${template}`)
     return pipe(
-        UserResource.Template.create(context.pool)(context.arena)(accountId, template)
+        UserResource.Template.create(context.pool)(context.log)(context.arena)(accountId, template)
       , Pipe.toPromise
     );
   }
@@ -105,7 +105,7 @@ export namespace CreateTransaction {
     );
 
     return pipe(
-        UserResource.Transaction.create(context.pool)(context.arena)({ ...args, authorizedAt: authorizedAt, capturedAt: capturedAt })
+        UserResource.Transaction.create(context.pool)(context.log)(context.arena)({ ...args, authorizedAt: authorizedAt, capturedAt: capturedAt })
       , Pipe.toPromise
     );
   }
@@ -141,7 +141,7 @@ export namespace CreateTransactions {
             , O.map((capturedAt) => new Date(capturedAt))
           );
 
-          return UserResource.Transaction.create(context.pool)(context.arena)({ ...transaction, authorizedAt: authorizedAt, capturedAt: capturedAt }, `transaction_${index}`);
+          return UserResource.Transaction.create(context.pool)(context.log)(context.arena)({ ...transaction, authorizedAt: authorizedAt, capturedAt: capturedAt }, `transaction_${index}`);
         })
       , A.sequence(TE.ApplicativeSeq)
       , Pipe.toPromise
@@ -175,7 +175,7 @@ export namespace CreateSplitByValue {
   const resolve = (source: any, { transactionId, splits, remainder }: Args, context: Context.t): Promise<Rule.Internal.t> => {
     context.log.info(`CreateSplitByValue.resolve - ${{ transactionId, splits, remainder }}`)
     return pipe(
-        UserResource.Rule.splitTransaction(context.pool)(context.arena)(transactionId, splits, remainder)
+        UserResource.Rule.splitTransaction(context.pool)(context.log)(context.arena)(transactionId, splits, remainder)
       , Pipe.toPromise
     );
   }
@@ -194,7 +194,7 @@ export namespace DeleteRule {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`DeleteRule.resolve - ${id}`)
     return pipe(
-        UserResource.Rule.remove(context.pool)(context.arena)(id)
+        UserResource.Rule.remove(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -214,7 +214,7 @@ export namespace DeleteIntegration {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`DeleteIntegration.resolve - ${id}`)
     return pipe(
-        UserResource.Integration.remove(context.pool)(context.arena)(id)
+        UserResource.Integration.remove(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -234,7 +234,7 @@ export namespace DeleteAccount {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`DeleteAccount.resolve - ${id}`)
     return pipe(
-        UserResource.Account.remove(context.pool)(context.arena)(id)
+        UserResource.Account.remove(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -254,7 +254,7 @@ export namespace DeleteBucket {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`DeleteBucket.resolve - ${id}`)
     return pipe(
-        UserResource.Bucket.remove(context.pool)(context.arena)(id)
+        UserResource.Bucket.remove(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -274,7 +274,7 @@ export namespace DeleteTemplate {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`DeleteTemplate.resolve - ${id}`)
     return pipe(
-        UserResource.Template.remove(context.pool)(context.arena)(id)
+        UserResource.Template.remove(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -294,7 +294,7 @@ export namespace DeleteTransaction {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`DeleteTransaction.resolve - ${id}`)
     return pipe(
-        UserResource.Transaction.remove(context.pool)(context.arena)(id)
+        UserResource.Transaction.remove(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -314,7 +314,7 @@ export namespace AckNotification {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`AckNotification.resolve - ${id}`)
     return pipe(
-        UserResource.Notification.ack(context.pool)(context.arena)(id)
+        UserResource.Notification.ack(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );
@@ -334,7 +334,7 @@ export namespace DeleteNotification {
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     context.log.info(`DeleteNotification.resolve - ${id}`)
     return pipe(
-        UserResource.Notification.remove(context.pool)(context.arena)(id)
+        UserResource.Notification.remove(context.pool)(context.log)(context.arena)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );

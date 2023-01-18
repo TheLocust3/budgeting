@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -89,16 +90,15 @@ export const executePlan = (plan: Plan.t) => (transactions: Transaction.Internal
   }
 };
 
-export const execute = (id: string) => (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
-  // TODO: JK track materialize logs with id
-  console.log(`[${id}] materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
+export const execute = (id: string) => (pool: Pool) => (log: Logger) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+  log.info(`[${id}] materialize - starting for account ${JSON.stringify(account, null, 2)}}`);
   
   return pipe(
       account
     , linkedAccounts(pool)
     , TE.chain((accounts) => {
         const plan = Plan.build(accounts.concat(account));
-        console.log(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
+        log.info(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
 
         return pipe(
             TransactionFrontend.all(pool)(account.userId)
@@ -108,11 +108,11 @@ export const execute = (id: string) => (pool: Pool) => (account: Account.Interna
   );
 };
 
-export const account = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
+export const account = (pool: Pool) => (log: Logger) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
   return pipe(
       AccountFrontend.getByIdAndUserId(pool)(userId)(accountId)
     , TE.chain(AccountFrontend.withRules(pool))
     , TE.chain(AccountFrontend.withChildren(pool))
-    , TE.chain((account) => execute(crypto.randomUUID())(pool)(account))
+    , TE.chain((account) => execute(crypto.randomUUID())(pool)(log)(account))
   );
 }

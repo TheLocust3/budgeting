@@ -12,7 +12,7 @@ import { UserFrontend } from "../../src/storage";
 import { User, Transaction } from "../../src/model";
 import { Exception } from "../../src/magic";
 
-import { pool, plaidClient, wrapperBuilder, Wrapper } from './util';
+import { pool, log, plaidClient, wrapperBuilder, Wrapper } from './util';
 
 let user: User.Internal.t;
 let wrap: Wrapper;
@@ -23,7 +23,7 @@ beforeEach(async () => {
   await TE.match(
       (error: Exception.t) => { throw new Error(`Failed with ${error}`); }
     , (newUser: User.Internal.t) => user = newUser
-  )(UserResource.create(pool)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
+  )(UserResource.create(pool)(log)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
 
   wrap = wrapperBuilder(user);
 });
@@ -45,8 +45,8 @@ it("can materialize physical", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transactionArena", () => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transactionArena", () => wrap((arena) => UserArena.materializePhysical(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ account, transactionArena }) => {
@@ -65,7 +65,7 @@ it("can materialize empty physical", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
   await pipe(
-      wrap((arena) => UserArena.materializePhysical(pool)(arena))
+      wrap((arena) => UserArena.materializePhysical(pool)(log)(arena))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactionArena: UserArena.Transaction.t) => {
@@ -83,8 +83,8 @@ it("can materialize virtual", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(name)))
-    , TE.bind("transactionArena", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(name)))
+    , TE.bind("transactionArena", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket, transactionArena }) => {
@@ -103,7 +103,7 @@ it("can materialize empty virtual", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
   await pipe(
-      wrap((arena) => UserArena.materializeVirtual(pool)(arena))
+      wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactionArena: UserArena.Transaction.t) => {
@@ -121,9 +121,9 @@ it("can materialize physical and 1 transaction", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ account, materialized }) => {
@@ -144,10 +144,10 @@ it("can materialize virtual and 1 transaction and no rules", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucketName)))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucketName)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket, materialized }) => {
@@ -171,12 +171,12 @@ it("can materialize mutliple buckets", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket1)))
-    , TE.bind("bucket2", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket2)))
-    , TE.bind("rule", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 1 }], bucket2.id)))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucket1)))
+    , TE.bind("bucket2", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucket2)))
+    , TE.bind("rule", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [{ bucket: bucket1.id, value: 1 }], bucket2.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket1, bucket2, materialized }) => {
@@ -203,11 +203,11 @@ it("can materialize rule over amount", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket1)))
-    , TE.bind("rule", ({ transaction, bucket1 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 101 }], bucket1.id)))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucket1)))
+    , TE.bind("rule", ({ transaction, bucket1 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [{ bucket: bucket1.id, value: 101 }], bucket1.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket1, materialized }) => {
@@ -230,13 +230,13 @@ it("can materialize conflict", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket1)))
-    , TE.bind("bucket2", () => wrap((arena) => UserResource.Bucket.create(pool)(arena)(bucket2)))
-    , TE.bind("rule1", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 1 }], bucket2.id)))
-    , TE.bind("rule2", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(arena)(transaction.id, [{ bucket: bucket1.id, value: 99 }], bucket2.id)))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("bucket1", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucket1)))
+    , TE.bind("bucket2", () => wrap((arena) => UserResource.Bucket.create(pool)(log)(arena)(bucket2)))
+    , TE.bind("rule1", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [{ bucket: bucket1.id, value: 1 }], bucket2.id)))
+    , TE.bind("rule2", ({ transaction, bucket1, bucket2 }) => wrap((arena) => UserResource.Rule.splitTransaction(pool)(log)(arena)(transaction.id, [{ bucket: bucket1.id, value: 99 }], bucket2.id)))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializeVirtual(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ bucket1, bucket2, rule1, rule2, materialized }) => {
@@ -263,9 +263,9 @@ it("can round totals", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)({ ...sampleTransaction(account.source.id), amount: 67.743 })))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)({ ...sampleTransaction(account.source.id), amount: 67.743 })))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ account, materialized }) => {
@@ -285,10 +285,10 @@ it("can order", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction1", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)({ ...sampleTransaction(account.source.id), authorizedAt: new Date(2012, 9, 23, 0, 0, 0, 0) })))
-    , TE.bind("transaction2", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)({ ...sampleTransaction(account.source.id), authorizedAt: new Date(2011, 9, 23, 0, 0, 0, 0) })))
-    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction1", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)({ ...sampleTransaction(account.source.id), authorizedAt: new Date(2012, 9, 23, 0, 0, 0, 0) })))
+    , TE.bind("transaction2", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)({ ...sampleTransaction(account.source.id), authorizedAt: new Date(2011, 9, 23, 0, 0, 0, 0) })))
+    , TE.bind("materialized", () => wrap((arena) => UserArena.materializePhysical(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , ({ account, materialized }) => {

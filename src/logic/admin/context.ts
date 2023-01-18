@@ -1,9 +1,9 @@
-import pino from "pino";
+import { Logger } from "pino";
 import { Pool } from "pg";
 import { PlaidApi } from "plaid";
 
 export type t = {
-  log: pino.Logger;
+  log: Logger;
   id: string;
   pool: Pool;
   plaidClient: PlaidApi;

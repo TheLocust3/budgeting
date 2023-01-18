@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import Express from "express";
 import pino from "pino-http";
+import pinoLogger from "pino";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Pool } from "pg";
@@ -21,6 +22,8 @@ import { router as rootRouter } from "./route/root";
 
 import { Reaper, Plaid } from "../magic";
 import { User } from "../model";
+
+const log = pinoLogger();
 
 const app = Express();
 app.use(pino());
@@ -49,12 +52,12 @@ app.use(async (request, response, next) => {
     response.locals.id = crypto.randomUUID();
   }
 
-  console.log(`[${response.locals.id}] ${request.method}: ${request.url}`)
+  request.log.info(`[${response.locals.id}] ${request.method}: ${request.url}`)
 
   await next();
 
   const took = Date.now() - start;
-  console.log(`[${response.locals.id}] took ${took}ms`)
+  request.log.info(`[${response.locals.id}] took ${took}ms`)
 });
 
 app.use(cors());
@@ -71,4 +74,4 @@ app.use("/admin/graphql", AdminEndpoint);
 
 const port = process.env.PORT ? process.env.PORT : 8080
 app.listen(port);
-console.log(`Listening at localhost:${port}`);
+log.info(`Listening at localhost:${port}`);

@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { Pool } from "pg";
+import pino from "pino";
 import { pipe } from "fp-ts/lib/pipeable";
 import fetch, { Response } from "node-fetch";
 import * as A from "fp-ts/Array";
@@ -14,6 +15,8 @@ import { Account, Rule, Transaction } from "../../src/model";
 import { AccountFrontend, TransactionFrontend, RuleFrontend, SourceFrontend, UserFrontend } from "../../src/storage";
 
 const pool = new Pool();
+const log = pino();
+log.level = "error";
 
 export const uuid = (): string => crypto.randomUUID();
 
@@ -216,7 +219,7 @@ export class System {
 
   materialize(accountId: string, userId: string = this.userId): TE.TaskEither<Error, any> {
     return pipe(
-        Frontend.ForAccount.execute(pool)(userId)(accountId)
+        Frontend.ForAccount.execute(pool)(log)(userId)(accountId)
       , TE.mapLeft(E.toError)
       , TE.map(({ conflicts, tagged, untagged }) => {
           const retagged = pipe(

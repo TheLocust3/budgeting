@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -22,7 +23,7 @@ export namespace ForAccount {
     };
   }
 
-  export const execute = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Result.t> => {
+  export const execute = (pool: Pool) => (log: Logger) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Result.t> => {
     const round = (num: number): number => +(num.toFixed(2)) // TODO: JK this round is not _technically_ correct for exact amounts
 
     const queryId = crypto.randomUUID();
@@ -43,13 +44,13 @@ export namespace ForAccount {
         }
     };
 
-    console.log(`ForAccount.execute[${queryId}] - user: ${userId} account: ${accountId}`)
+    log.info(`ForAccount.execute[${queryId}] - user: ${userId} account: ${accountId}`)
 
     return pipe(
-        Builder.ForAccount.build(pool)(builder)
-      , TE.chain(({ account, plan }) => pipe(Frontend.execute(pool)(plan), TE.map((result) => ({ account, result }))))
+        Builder.ForAccount.build(pool)(log)(builder)
+      , TE.chain(({ account, plan }) => pipe(Frontend.execute(pool)(log)(plan), TE.map((result) => ({ account, result }))))
       , TE.map(({ account, result }) => {
-          console.log(`ForAccount.execute[${queryId}] - user: ${userId} account: ${account} - complete`)
+          log.info(`ForAccount.execute[${queryId}] - user: ${userId} account: ${account} - complete`)
 
           const { materialized, reductions } = result;
 

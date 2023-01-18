@@ -12,7 +12,7 @@ import { UserFrontend } from "../../src/storage";
 import { User, Transaction } from "../../src/model";
 import { Exception } from "../../src/magic";
 
-import { pool, plaidClient, wrapperBuilder, Wrapper } from './util';
+import { pool, log, plaidClient, wrapperBuilder, Wrapper } from './util';
 
 let user: User.Internal.t;
 let wrap: Wrapper;
@@ -23,7 +23,7 @@ beforeEach(async () => {
   await TE.match(
       (error: Exception.t) => { throw new Error(`Failed with ${error}`); }
     , (newUser: User.Internal.t) => user = newUser
-  )(UserResource.create(pool)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
+  )(UserResource.create(pool)(log)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
 
   wrap = wrapperBuilder(user);
 });
@@ -45,9 +45,9 @@ it("can't delete unknown transaction", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction(account.source.id))))
-    , TE.bind("deleted", () => wrap((arena) => UserResource.Transaction.remove(pool)(arena)("unknown")))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction(account.source.id))))
+    , TE.bind("deleted", () => wrap((arena) => UserResource.Transaction.remove(pool)(log)(arena)("unknown")))
     , TE.match(
           (error: Exception.t) => { expect(error).toEqual(Exception.throwNotFound) }
         , () => { throw new Error(`Should not have been able to delete transaction`); }
@@ -60,8 +60,8 @@ it("can't create transaction with unknown source", async () => {
 
   await pipe(
       TE.Do
-    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(arena)(name)))
-    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(arena)(sampleTransaction("nonsense"))))
+    , TE.bind("account", () => wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name)))
+    , TE.bind("transaction", ({ account }) => wrap((arena) => UserResource.Transaction.create(pool)(log)(arena)(sampleTransaction("nonsense"))))
     , TE.match(
           (error: Exception.t) => { expect(error.name).toEqual("ValidationError") }
         , () => { throw new Error(`Should not have been able to create transaction`); }

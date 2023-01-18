@@ -12,7 +12,7 @@ import { UserFrontend } from "../../src/storage";
 import { User } from "../../src/model";
 import { Exception } from "../../src/magic";
 
-import { pool, plaidClient, wrapperBuilder, Wrapper } from './util';
+import { pool, log, plaidClient, wrapperBuilder, Wrapper } from './util';
 
 let user: User.Internal.t;
 let wrap: Wrapper;
@@ -23,14 +23,14 @@ beforeEach(async () => {
   await TE.match(
       (error: Exception.t) => { throw new Error(`Failed with ${error}`); }
     , (newUser: User.Internal.t) => user = newUser
-  )(UserResource.create(pool)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
+  )(UserResource.create(pool)(log)({ id: id, email: email, role: User.DEFAULT_ROLE }))();
 
   wrap = wrapperBuilder(user);
 });
 
 it("can resolve integrations", async () => {
   await pipe(
-      wrap((arena) => UserArena.integrations(pool)(arena))
+      wrap((arena) => UserArena.integrations(pool)(log)(arena))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (integrationArena: UserArena.Integrations.t) => {
@@ -49,8 +49,8 @@ it("can create manual source", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
   await pipe(
-      wrap((arena) => UserResource.Account.create(pool)(arena)(name))
-    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
+      wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name))
+    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (integrationArena: UserArena.Integrations.t) => {
@@ -71,9 +71,9 @@ it("can delete manual source", async () => {
   const name = `test-${crypto.randomUUID()}`;
 
   await pipe(
-      wrap((arena) => UserResource.Account.create(pool)(arena)(name))
-    , TE.chain(({ account }) => wrap((arena) => UserResource.Account.remove(pool)(arena)(account.id)))
-    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
+      wrap((arena) => UserResource.Account.create(pool)(log)(arena)(name))
+    , TE.chain(({ account }) => wrap((arena) => UserResource.Account.remove(pool)(log)(arena)(account.id)))
+    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (integrationArena: UserArena.Integrations.t) => {
@@ -95,8 +95,8 @@ it("can create an integration", async () => {
   const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
-      wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
-    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
+      wrap((arena) => UserResource.Integration.create(pool)(log)(plaidClient)(arena)(request)(publicToken))
+    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (integrationArena: UserArena.Integrations.t) => {
@@ -124,8 +124,8 @@ it("can create an integration and create account", async () => {
   const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
-      wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
-    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(arena)))
+      wrap((arena) => UserResource.Integration.create(pool)(log)(plaidClient)(arena)(request)(publicToken))
+    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (accountArena: UserArena.Account.t) => {
@@ -144,8 +144,8 @@ it("can create an integration and rollup initial balance", async () => {
   const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
-      wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
-    , TE.chain(() => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+      wrap((arena) => UserResource.Integration.create(pool)(log)(plaidClient)(arena)(request)(publicToken))
+    , TE.chain(() => wrap((arena) => UserArena.materializePhysical(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactionArena: UserArena.Transaction.t) => {
@@ -164,13 +164,13 @@ it("can delete a source via account", async () => {
   const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
-      wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
-    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(arena)))
+      wrap((arena) => UserResource.Integration.create(pool)(log)(plaidClient)(arena)(request)(publicToken))
+    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(log)(arena)))
     , TE.chain((accountArena) => {
         const accountId = accountArena.children[0].account.id;
-        return wrap((arena) => UserResource.Account.remove(pool)(arena)(accountId));
+        return wrap((arena) => UserResource.Account.remove(pool)(log)(arena)(accountId));
       })
-    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(arena)))
+    , TE.chain(() => wrap((arena) => UserArena.integrations(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (integrationArena: UserArena.Integrations.t) => {
@@ -196,13 +196,13 @@ it("can delete a source via account with transactions", async () => {
   const publicToken = { item_id: "yGWxrZJMlbuX4QmBnpPZCJMXk97x67cy5qGXB", access_token: "access-sandbox-def2638b-c885-4211-a43a-f47aa824db0a" }
 
   await pipe(
-      wrap((arena) => UserResource.Integration.create(pool)(plaidClient)(arena)(request)(publicToken))
-    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(arena)))
+      wrap((arena) => UserResource.Integration.create(pool)(log)(plaidClient)(arena)(request)(publicToken))
+    , TE.chain(() => wrap((arena) => UserArena.physical(pool)(log)(arena)))
     , TE.chain((accountArena) => {
         const accountId = accountArena.children[0].account.id;
-        return wrap((arena) => UserResource.Account.remove(pool)(arena)(accountId));
+        return wrap((arena) => UserResource.Account.remove(pool)(log)(arena)(accountId));
       })
-    , TE.chain(() => wrap((arena) => UserArena.materializePhysical(pool)(arena)))
+    , TE.chain(() => wrap((arena) => UserArena.materializePhysical(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
         , (transactionArena: UserArena.Transaction.t) => {
