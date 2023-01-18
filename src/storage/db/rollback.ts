@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import pino, { Logger } from "pino";
 
 import * as UsersTable from "./users-table";
 import * as SourcesTable from "./sources-table";
@@ -9,23 +10,24 @@ import * as RulesTable from "./rules-table";
 import * as NotificationsTable from "./notifications-table";
 import * as TemplatesTable from "./templates-table";
 
-const rollback = async (pool: Pool) => {
-  await TemplatesTable.rollback(pool)();
-  await NotificationsTable.rollback(pool)();
+const rollback = (pool: Pool) => async (log: Logger) => {
+  await TemplatesTable.rollback(pool)(log)();
+  await NotificationsTable.rollback(pool)(log)();
 
-  await SourcesTable.rollback(pool)();
-  await IntegrationsTable.rollback(pool)();
-  await UsersTable.rollback(pool)();
+  await SourcesTable.rollback(pool)(log)();
+  await IntegrationsTable.rollback(pool)(log)();
+  await UsersTable.rollback(pool)(log)();
 
-  await RulesTable.rollback(pool)();
-  await AccountsTable.rollback(pool)();
-  await TransactionsTable.rollback(pool)();
+  await RulesTable.rollback(pool)(log)();
+  await AccountsTable.rollback(pool)(log)();
+  await TransactionsTable.rollback(pool)(log)();
 
-  console.log("Rollback complete");
+  log.info("Rollback complete");
   process.exit(0);
 };
 
-console.log("Rollback start");
+const pool = new Pool();
+const log = pino();
 
-export const pool = new Pool();
-rollback(pool);
+log.info("Rollback start");
+rollback(pool)(log);

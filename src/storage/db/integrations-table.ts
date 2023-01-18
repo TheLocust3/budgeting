@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { pipe } from "fp-ts/lib/function";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -70,22 +71,22 @@ namespace Query {
   };
 }
 
-export const migrate = (pool: Pool): T.Task<boolean> => async () => {
+export const migrate = (pool: Pool) => (log: Logger): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.createTable);
     return true;
   } catch (err) {
-    console.log(err);
+    log.error(err);
     return false;
   }
 };
 
-export const rollback = (pool: Pool): T.Task<boolean> => async () => {
+export const rollback = (pool: Pool) => (log: Logger): T.Task<boolean> => async () => {
   try {
     await pool.query(Query.dropTable);
     return true;
   } catch (err) {
-    console.log(err);
+    log.error(err);
     return false;
   }
 };
