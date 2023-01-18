@@ -14,18 +14,18 @@ import { Transaction, Rule, Account, Materialize } from "../../model";
 import { AccountFrontend, TransactionFrontend, RuleFrontend } from "../../storage";
 import { Exception, Format } from "../../magic";
 
-export const linkedAccounts = (pool: Pool) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Account.Internal.Rich[]> => {
+export const linkedAccounts = (pool: Pool) => (log: Logger) => (account: Account.Internal.Rich): TE.TaskEither<Exception.t, Account.Internal.Rich[]> => {
   return O.match(
       () => TE.of([])
     , (parentId: string) => pipe(
           TE.Do
         , TE.bind("parent", () => pipe(
               parentId
-            , AccountFrontend.getById(pool)
-            , TE.chain(AccountFrontend.withRules(pool))
-            , TE.chain(AccountFrontend.withChildren(pool))
+            , AccountFrontend.getById(pool)(log)
+            , TE.chain(AccountFrontend.withRules(pool)(log))
+            , TE.chain(AccountFrontend.withChildren(pool)(log))
           ))
-        , TE.bind("rest", ({ parent }) => linkedAccounts(pool)(parent))
+        , TE.bind("rest", ({ parent }) => linkedAccounts(pool)(log)(parent))
         , TE.map(({ parent, rest }) => rest.concat(parent))
       )
   )(account.parentId);
@@ -95,13 +95,13 @@ export const execute = (id: string) => (pool: Pool) => (log: Logger) => (account
   
   return pipe(
       account
-    , linkedAccounts(pool)
+    , linkedAccounts(pool)(log)
     , TE.chain((accounts) => {
         const plan = Plan.build(accounts.concat(account));
         log.info(`[${id}] materialize - with plan ${JSON.stringify(plan, null, 2)}`);
 
         return pipe(
-            TransactionFrontend.all(pool)(account.userId)
+            TransactionFrontend.all(pool)(log)(account.userId)
           , TE.map(executePlan(plan))
         );
       })
@@ -110,9 +110,9 @@ export const execute = (id: string) => (pool: Pool) => (log: Logger) => (account
 
 export const account = (pool: Pool) => (log: Logger) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Materialize.Internal.t> => {
   return pipe(
-      AccountFrontend.getByIdAndUserId(pool)(userId)(accountId)
-    , TE.chain(AccountFrontend.withRules(pool))
-    , TE.chain(AccountFrontend.withChildren(pool))
+      AccountFrontend.getByIdAndUserId(pool)(log)(userId)(accountId)
+    , TE.chain(AccountFrontend.withRules(pool)(log))
+    , TE.chain(AccountFrontend.withChildren(pool)(log))
     , TE.chain((account) => execute(crypto.randomUUID())(pool)(log)(account))
   );
 }

@@ -12,17 +12,17 @@ import { GLOBAL_ACCOUNT, PHYSICAL_ACCOUNT, VIRTUAL_ACCOUNT } from "./constants";
 import { UserFrontend, AccountFrontend, RuleFrontend } from "../storage";
 import { Rule } from "../model";
 
-const createUser = (pool: Pool) => (id: string, email: string, role: string) => {
+const createUser = (pool: Pool) => (log: Logger) => (id: string, email: string, role: string) => {
   return pipe(
-      UserFrontend.getByEmail(pool)(email)
-    , TE.orElse(() => UserFrontend.create(pool)({ id: id, email: email, role: role }))
+      UserFrontend.getByEmail(pool)(log)(email)
+    , TE.orElse(() => UserFrontend.create(pool)(log)({ id: id, email: email, role: role }))
   );
 }
 
 export const migrate = (pool: Pool) => async (log: Logger) => {
   await pipe(
       TE.Do
-    , TE.bind("user", () => createUser(pool)("F9pqIrbjf9bdxGF8H32wkRm2uRx1", "admin@jakekinsella.com", "superuser")) // TODO: JK hardcoding this seems like a bad idea
+    , TE.bind("user", () => createUser(pool)(log)("F9pqIrbjf9bdxGF8H32wkRm2uRx1", "admin@jakekinsella.com", "superuser")) // TODO: JK hardcoding this seems like a bad idea
     , TE.map(({ user }) => {
         log.info(`User created ${user.email}`)
       })

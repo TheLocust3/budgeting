@@ -22,7 +22,7 @@ import { Source, Integration, Transaction } from "../../model";
 
 const pull = (pool: Pool) => (log: Logger): TE.TaskEither<PullerException, Source.Internal.t> => {
   return pipe(
-      SourceFrontend.pull(pool)()
+      SourceFrontend.pull(pool)(log)()
     , TE.mapLeft((error) => {
         switch (error.name) {
           case "NotFound":
@@ -71,9 +71,9 @@ const pullTransactions = (log: Logger) => (plaidClient: PlaidApi) => (id: string
   );
 }
 
-export const countNewTransactions = (pool: Pool) => (context: Context) => (transactions: Transaction.Internal.t[]): TE.TaskEither<PullerException, number> => {
+export const countNewTransactions = (pool: Pool) => (log: Logger) => (context: Context) => (transactions: Transaction.Internal.t[]): TE.TaskEither<PullerException, number> => {
   return pipe(
-      TransactionFrontend.all(pool)(context.source.userId)
+      TransactionFrontend.all(pool)(log)(context.source.userId)
     , TE.map(A.map((transaction) => transaction.id))
     , TE.map((stored) => new Set(stored))
     , TE.map((stored) => pipe(transactions, A.filter((transaction) => !stored.has(transaction.id))))
@@ -92,16 +92,16 @@ export const run = (pool: Pool) => (log: Logger) => (plaidClient: PlaidApi) => (
               log.info(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
               return pullTransactions(log)(plaidClient)(id)(context);
             })
-          , TE.bind("count", ({ context, transactions }) => countNewTransactions(pool)(context)(transactions))
+          , TE.bind("count", ({ context, transactions }) => countNewTransactions(pool)(log)(context)(transactions))
           , TE.bind("_", ({ transactions }) => pushTransactions(pool)(log)(id)(transactions))
           , TE.chain(({ count }) => {
               if (count > 0) {
-                return notifySuccess(pool)(source.userId)(count);
+                return notifySuccess(pool)(log)(source.userId)(count);
               } else {
                 return TE.of(true);
               }
             })
-          , TE.orElse(notifyFailure(pool)(source.userId))
+          , TE.orElse(notifyFailure(pool)(log)(source.userId))
         );
       })
     , TE.match(

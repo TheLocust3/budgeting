@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -15,6 +16,7 @@ export type t = Notification.Internal.t[];
 
 export const resolve = 
   (pool: Pool) => 
+  (log: Logger) => 
   (arena: Arena.t): TE.TaskEither<Exception.t, t> => {
-  return NotificationFrontend.all(pool)(arena.user.id);
+  return NotificationFrontend.all(pool)(log)(arena.user.id);
 }

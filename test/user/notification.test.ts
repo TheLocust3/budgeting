@@ -29,7 +29,7 @@ beforeEach(async () => {
 
 it("can list notifications", async () => {
   await pipe(
-      NotificationFrontend.create(pool)(Notification.Frontend.Create.newTransactions(user.id)(1))
+      NotificationFrontend.create(pool)(log)(Notification.Frontend.Create.newTransactions(user.id)(1))
     , TE.chain(() => wrap((arena) => UserArena.notifications(pool)(log)(arena)))
     , TE.match(
           (error) => { throw new Error(`Failed with ${error}`); }
@@ -47,7 +47,7 @@ it("can list notifications", async () => {
 
 it("can ack notification", async () => {
   await pipe(
-      NotificationFrontend.create(pool)(Notification.Frontend.Create.newTransactions(user.id)(1))
+      NotificationFrontend.create(pool)(log)(Notification.Frontend.Create.newTransactions(user.id)(1))
     , TE.chain((notification) => wrap((arena) => UserResource.Notification.ack(pool)(log)(arena)(notification.id)))
     , TE.chain(() => wrap((arena) => UserArena.notifications(pool)(log)(arena)))
     , TE.match(
@@ -66,7 +66,7 @@ it("can ack notification", async () => {
 
 it("can delete notification", async () => {
   await pipe(
-      NotificationFrontend.create(pool)(Notification.Frontend.Create.newTransactions(user.id)(1))
+      NotificationFrontend.create(pool)(log)(Notification.Frontend.Create.newTransactions(user.id)(1))
     , TE.chain((notification) => wrap((arena) => UserResource.Notification.remove(pool)(log)(arena)(notification.id)))
     , TE.chain(() => wrap((arena) => UserArena.notifications(pool)(log)(arena)))
     , TE.match(

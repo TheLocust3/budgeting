@@ -59,7 +59,7 @@ export const physical = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEit
   const get = (arena: t) => { return arena.physical.account };
   const set = (value: Resolvable<AccountArena.t>) => (arena: t) => { arena.physical.account = value };
 
-  return resolve(log)(arena)(get)(set)(AccountArena.resolve(pool)(PHYSICAL_ACCOUNT))
+  return resolve(log)(arena)(get)(set)(AccountArena.resolve(pool)(log)(PHYSICAL_ACCOUNT))
 }
 
 export const materializePhysical = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, TransactionArena.t> => {
@@ -76,7 +76,7 @@ export const virtual = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEith
   const get = (arena: t) => { return arena.virtual.account };
   const set = (value: Resolvable<AccountArena.t>) => (arena: t) => { arena.virtual.account = value };
 
-  return resolve(log)(arena)(get)(set)(AccountArena.resolve(pool)(VIRTUAL_ACCOUNT))
+  return resolve(log)(arena)(get)(set)(AccountArena.resolve(pool)(log)(VIRTUAL_ACCOUNT))
 }
 
 export const virtualRules = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, RuleArena.t> => {
@@ -85,7 +85,7 @@ export const virtualRules = (pool: Pool) => (log : Logger) => (arena: t): TE.Tas
 
   return pipe(
       virtual(pool)(log)(arena)
-    , TE.chain((virtual) => resolve(log)(arena)(get)(set)(RuleArena.resolve(pool)(virtual.account.id)))
+    , TE.chain((virtual) => resolve(log)(arena)(get)(set)(RuleArena.resolve(pool)(log)(virtual.account.id)))
   );
 }
 
@@ -103,14 +103,14 @@ export const integrations = (pool: Pool) => (log : Logger) => (arena: t): TE.Tas
   const get = (arena: t) => { return arena.integrations };
   const set = (value: Resolvable<IntegrationArena.t>) => (arena: t) => { arena.integrations = value };
 
-  return resolve(log)(arena)(get)(set)(IntegrationArena.resolve(pool))
+  return resolve(log)(arena)(get)(set)(IntegrationArena.resolve(pool)(log))
 }
 
 export const notifications = (pool: Pool) => (log : Logger) => (arena: t): TE.TaskEither<Exception.t, NotificationArena.t> => {
   const get = (arena: t) => { return arena.notifications };
   const set = (value: Resolvable<NotificationArena.t>) => (arena: t) => { arena.notifications = value };
 
-  return resolve(log)(arena)(get)(set)(NotificationArena.resolve(pool))
+  return resolve(log)(arena)(get)(set)(NotificationArena.resolve(pool)(log))
 }
 
 export const templatesFor = (pool: Pool) => (log : Logger) => (arena: t) => (accountId: string): TE.TaskEither<Exception.t, TemplateArena.t> => {
@@ -124,7 +124,7 @@ export const templatesFor = (pool: Pool) => (log : Logger) => (arena: t) => (acc
   };
   const set = (value: Resolvable<TemplateArena.t>) => (arena: t) => { arena.templates[accountId] = value };
 
-  return resolve(log)(arena)(get)(set)(TemplateArena.resolve(pool)(accountId))
+  return resolve(log)(arena)(get)(set)(TemplateArena.resolve(pool)(log)(accountId))
 }
 
 export const idFor = (arena: t) => (tag: string) => {
@@ -145,7 +145,7 @@ export const empty = (id: string) => (user: User.Internal.t): t => {
 
 export const fromId = (pool: Pool) => (log : Logger) => (id: string) => (userId: string): TE.TaskEither<Exception.t, t> => {
   return pipe(
-      UserFrontend.getById(pool)(userId)
+      UserFrontend.getById(pool)(log)(userId)
     , TE.map(empty(id))
   );
 }

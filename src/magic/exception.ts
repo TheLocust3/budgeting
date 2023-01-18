@@ -26,8 +26,8 @@ export const throwNotUnique: t = { name: "NotUnique", message: "NotUnique" };
 
 export type t = Error & (InvalidRule | BadRequest | MalformedJson | NotFound | InternalError | Unauthorized | ValidationError | NotUnique)
 
-export const pgRaise = (error: any): t => {
-  console.log(JSON.stringify(error, null, 2))
+export const pgRaise = (log: Logger) => (error: any): t => {
+  log.error(JSON.stringify(error, null, 2))
   switch (error.code) {
     case "23505":
       return throwNotUnique;

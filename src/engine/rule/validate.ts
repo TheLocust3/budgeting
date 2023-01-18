@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -41,21 +42,21 @@ namespace Validate {
     return !A.exists((rule: Rule.Frontend.Create.t) => rule.rule._type !== "Attach" && rule.rule._type !== "Include")(context.account.rules); // include cannot be used with splits
   };
 
-  const buildContext = (pool: Pool) => (body: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Context> => {
+  const buildContext = (pool: Pool) => (log: Logger) => (body: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Context> => {
     return pipe(
         body.accountId
-      , AccountFrontend.getById(pool)
-      , TE.chain(AccountFrontend.withRules(pool))
-      , TE.chain(AccountFrontend.withChildren(pool))
+      , AccountFrontend.getById(pool)(log)
+      , TE.chain(AccountFrontend.withRules(pool)(log))
+      , TE.chain(AccountFrontend.withChildren(pool)(log))
       , TE.map((account) => { return { account: account }; })
     );
   };
 
-  export const rule = (pool: Pool) => (body: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Rule.Frontend.Create.t> => {
+  export const rule = (pool: Pool) => (log: Logger) => (body: Rule.Frontend.Create.t): TE.TaskEither<Exception.t, Rule.Frontend.Create.t> => {
     const inner = body.rule;
     return pipe(
         body
-      , buildContext(pool)
+      , buildContext(pool)(log)
       , TE.chain((context) => {
           switch (inner._type) {
             case "Attach":

@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { NIL as NIL_UUID } from 'uuid';
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
@@ -21,10 +22,11 @@ export type t = WithSources[];
 
 export const resolve = 
   (pool: Pool) =>
+  (log: Logger) =>
   (arena: Arena.t): TE.TaskEither<Exception.t, t> => {
   const withSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, WithSources> => {
     return pipe(
-        SourceFrontend.allByIntegrationId(pool)(arena.user.id)(integration.id)
+        SourceFrontend.allByIntegrationId(pool)(log)(arena.user.id)(integration.id)
       , TE.map((sources) => ({ integration: integration, sources: sources }))
     );
   }
@@ -33,13 +35,13 @@ export const resolve =
     const integration: Integration.Internal.t = { id: NIL_UUID, userId: arena.user.id, name: "Manual Sources", credentials: { _type: "Null" } }
     
     return pipe(
-        SourceFrontend.allWithoutIntegrationId(pool)(arena.user.id)
+        SourceFrontend.allWithoutIntegrationId(pool)(log)(arena.user.id)
       , TE.map((sources) => ({ integration: integration, sources: sources }))
     );
   }
 
   return pipe(
-      IntegrationFrontend.all(pool)(arena.user.id)
+      IntegrationFrontend.all(pool)(log)(arena.user.id)
     , TE.chain((integrations) => {
         return pipe(integrations, A.map(withSources), A.sequence(TE.ApplicativeSeq))
       })

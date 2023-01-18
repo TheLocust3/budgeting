@@ -123,7 +123,7 @@ export const rollback = (pool: Pool) => (log: Logger): T.Task<boolean> => async 
   }
 };
 
-export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
+export const all = (pool: Pool) => (log: Logger) => (userId: string) : TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.all(userId)),
@@ -135,11 +135,11 @@ export const all = (pool: Pool) => (userId: string) : TE.TaskEither<Exception.t,
         , A.map(E.mapLeft(E.toError))
         , A.sequence(E.Applicative)
       )))
-    , TE.mapLeft(Exception.pgRaise)
+    , TE.mapLeft(Exception.pgRaise(log))
   );
 };
 
-export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Exception.t, O.Option<Transaction.Internal.t>> => {
+export const byId = (pool: Pool) => (log: Logger) => (id: string) : TE.TaskEither<Exception.t, O.Option<Transaction.Internal.t>> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.byId(id)),
@@ -152,17 +152,17 @@ export const byId = (pool: Pool) => (id: string) : TE.TaskEither<Exception.t, O.
         , A.sequence(E.Applicative)
       )))
     , TE.map(A.lookup(0))
-    , TE.mapLeft(Exception.pgRaise)
+    , TE.mapLeft(Exception.pgRaise(log))
   );
 };
 
-export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.TaskEither<Exception.t, void> => {
+export const deleteById = (pool: Pool) => (log: Logger) => (userId: string) => (id: string) : TE.TaskEither<Exception.t, void> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.deleteById(id, userId)),
         E.toError
       )
-    , TE.mapLeft(Exception.pgRaise)
+    , TE.mapLeft(Exception.pgRaise(log))
     , TE.chain(x => {
         if (x.rowCount <= 0) {
           return TE.throwError(Exception.throwNotFound);
@@ -173,7 +173,7 @@ export const deleteById = (pool: Pool) => (userId: string) => (id: string) : TE.
   );
 };
 
-export const create = (pool: Pool) => (transaction: Transaction.Frontend.Create.t) : TE.TaskEither<Exception.t, Transaction.Internal.t> => {
+export const create = (pool: Pool) => (log: Logger) => (transaction: Transaction.Frontend.Create.t) : TE.TaskEither<Exception.t, Transaction.Internal.t> => {
   return pipe(
       TE.tryCatch(
         () => pool.query(Query.create(
@@ -188,12 +188,12 @@ export const create = (pool: Pool) => (transaction: Transaction.Frontend.Create.
           , transaction.metadata
         )),
         (e) => {
-          console.log(e)
+          log.error(e)
           return E.toError(e)
         }
       )
     , Db.expectOne
     , TE.chain(res => pipe(res.rows[0], Transaction.Internal.Database.from, E.mapLeft(E.toError), TE.fromEither))
-    , TE.mapLeft(Exception.pgRaise)
+    , TE.mapLeft(Exception.pgRaise(log))
   );
 };

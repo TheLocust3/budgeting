@@ -121,7 +121,7 @@ export const addTransaction = (system: System) => ({
 export class System {
   static async build() {
     const userId = await pipe(
-        UserFrontend.create(pool)({ id: uuid(), email: `${uuid()}-test`, role: "user" })
+        UserFrontend.create(pool)(log)({ id: uuid(), email: `${uuid()}-test`, role: "user" })
       , TE.map((user) => user.id)
       , Pipe.toPromise
     );
@@ -133,7 +133,7 @@ export class System {
 
   buildTestSource(): Promise<string> {
     return pipe(
-        SourceFrontend.create(pool)({ id: uuid(), userId: this.userId, name: "test", integrationId: O.none, tag: "test" })
+        SourceFrontend.create(pool)(log)({ id: uuid(), userId: this.userId, name: "test", integrationId: O.none, tag: "test" })
       , TE.map((source) => source.id)
       , Pipe.toPromise
     );
@@ -149,7 +149,7 @@ export class System {
     , capturedAt: O.Option<Date>
     , metadata: any
   ): TE.TaskEither<Error, any> {
-    return pipe(TransactionFrontend.create(pool)(<Transaction.Internal.t> {
+    return pipe(TransactionFrontend.create(pool)(log)(<Transaction.Internal.t> {
         id: uuid()
       , sourceId: sourceId
       , userId: userId
@@ -163,19 +163,19 @@ export class System {
   }
 
   getTransaction(id: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(TransactionFrontend.getById(pool)(userId)(id), TE.mapLeft(E.toError));
+    return pipe(TransactionFrontend.getById(pool)(log)(userId)(id), TE.mapLeft(E.toError));
   }
 
   listTransactions(userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(TransactionFrontend.all(pool)(userId), TE.mapLeft(E.toError));
+    return pipe(TransactionFrontend.all(pool)(log)(userId), TE.mapLeft(E.toError));
   }
 
   deleteTransaction(id: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(TransactionFrontend.deleteById(pool)(userId)(id), TE.mapLeft(E.toError));
+    return pipe(TransactionFrontend.deleteById(pool)(log)(userId)(id), TE.mapLeft(E.toError));
   }
 
   addAccount(name: string, parentId: O.Option<string> = O.none, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(AccountFrontend.create(pool)({
+    return pipe(AccountFrontend.create(pool)(log)({
         id: uuid()
       , parentId: parentId
       , userId: userId
@@ -185,36 +185,36 @@ export class System {
   }
 
   getAccount(id: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(AccountFrontend.getByIdAndUserId(pool)(userId)(id), TE.mapLeft(E.toError));
+    return pipe(AccountFrontend.getByIdAndUserId(pool)(log)(userId)(id), TE.mapLeft(E.toError));
   }
 
   listAccounts(userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(AccountFrontend.all(pool)(userId), TE.mapLeft(E.toError));
+    return pipe(AccountFrontend.all(pool)(log)(userId), TE.mapLeft(E.toError));
   }
 
   deleteAccount(id: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(AccountFrontend.deleteById(pool)(userId)(id), TE.mapLeft(E.toError));
+    return pipe(AccountFrontend.deleteById(pool)(log)(userId)(id), TE.mapLeft(E.toError));
   }
 
   addRule(accountId: string, rule: any, userId: string = this.userId): TE.TaskEither<Error, any> {
     return pipe(
         { id: uuid(), accountId: accountId , userId: userId , rule: rule }
       , Validate.rule(pool)
-      , TE.chain(RuleFrontend.create(pool))
+      , TE.chain(RuleFrontend.create(pool)(log))
       , TE.mapLeft(E.toError)
     );
   }
 
   getRule(id: string, accountId: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(RuleFrontend.getById(pool)(userId)(accountId)(id), TE.mapLeft(E.toError));
+    return pipe(RuleFrontend.getById(pool)(log)(userId)(accountId)(id), TE.mapLeft(E.toError));
   }
 
   listRules(accountId: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(RuleFrontend.getByAccountId(pool)(userId)(accountId), TE.mapLeft(E.toError));
+    return pipe(RuleFrontend.getByAccountId(pool)(log)(userId)(accountId), TE.mapLeft(E.toError));
   }
 
   deleteRule(id: string, accountId: string, userId: string = this.userId): TE.TaskEither<Error, any> {
-    return pipe(RuleFrontend.deleteById(pool)(userId)(accountId)(id), TE.mapLeft(E.toError));
+    return pipe(RuleFrontend.deleteById(pool)(log)(userId)(accountId)(id), TE.mapLeft(E.toError));
   }
 
   materialize(accountId: string, userId: string = this.userId): TE.TaskEither<Error, any> {

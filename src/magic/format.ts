@@ -19,7 +19,6 @@ export class JsonFormatter<T> implements Formatter<T> {
         json
       , this.type.decode
       , E.mapLeft((e) => {
-          console.log(JSON.stringify(e, null, 2));
           return Exception.throwMalformedJson;
         })
     ); 

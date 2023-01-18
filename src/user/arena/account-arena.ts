@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -32,6 +33,7 @@ const build = (accounts: Account.Internal.t[]) => (forAccount: Account.Internal.
 
 export const resolve = 
   (pool: Pool) => 
+  (log: Logger) => 
   (name: string) =>
   (arena: Arena.t): TE.TaskEither<Exception.t, t> => {
   const forName = (name: string) => (accounts: Account.Internal.t[]): TE.TaskEither<Exception.t, Account.Internal.t> => {
@@ -46,7 +48,7 @@ export const resolve =
 
   return pipe(
       TE.Do
-    , TE.bind("allAccounts", () => AccountFrontend.all(pool)(arena.user.id))
+    , TE.bind("allAccounts", () => AccountFrontend.all(pool)(log)(arena.user.id))
     , TE.bind("account", ({ allAccounts }) => forName(name)(allAccounts))
     , TE.map(({ allAccounts, account }) => {
         return build(allAccounts)(account);

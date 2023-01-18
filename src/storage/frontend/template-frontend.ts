@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -10,18 +11,18 @@ import * as TemplatesTable from "../db/templates-table";
 import { Exception } from "../../magic";
 
 export namespace TemplateFrontend {
-  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Template.Internal.t[]> => {
-    return TemplatesTable.all(pool)(userId);
+  export const all = (pool: Pool) => (log: Logger) => (userId: string): TE.TaskEither<Exception.t, Template.Internal.t[]> => {
+    return TemplatesTable.all(pool)(log)(userId);
   };
 
-  export const getByAccountId = (pool: Pool) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Template.Internal.t[]> => {
-    return TemplatesTable.byAccountId(pool)(userId)(accountId);
+  export const getByAccountId = (pool: Pool) => (log: Logger) => (userId: string) => (accountId: string): TE.TaskEither<Exception.t, Template.Internal.t[]> => {
+    return TemplatesTable.byAccountId(pool)(log)(userId)(accountId);
   };
 
-  export const getById = (pool: Pool) => (id: string): TE.TaskEither<Exception.t, Template.Internal.t> => {
+  export const getById = (pool: Pool) => (log: Logger) => (id: string): TE.TaskEither<Exception.t, Template.Internal.t> => {
     return pipe(
         id
-      , TemplatesTable.byId(pool)
+      , TemplatesTable.byId(pool)(log)
       , TE.chain(O.fold(
             (): TE.TaskEither<Exception.t, Template.Internal.t> => TE.throwError(Exception.throwNotFound)
           , (template) => TE.of(template)
@@ -29,10 +30,10 @@ export namespace TemplateFrontend {
     );
   };
 
-  export const getByIdAndUserId = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Template.Internal.t> => {
+  export const getByIdAndUserId = (pool: Pool) => (log: Logger) => (userId: string) => (id: string): TE.TaskEither<Exception.t, Template.Internal.t> => {
     return pipe(
         id
-      , getById(pool)
+      , getById(pool)(log)
       , TE.chain((template) => {
           if (template.userId == userId) {
             return TE.of(template);
@@ -43,17 +44,17 @@ export namespace TemplateFrontend {
     );
   };
 
-  export const create = (pool: Pool) => (template: Template.Frontend.Create.t): TE.TaskEither<Exception.t, Template.Internal.t> => {
+  export const create = (pool: Pool) => (log: Logger) => (template: Template.Frontend.Create.t): TE.TaskEither<Exception.t, Template.Internal.t> => {
     return pipe(
         template
-      , TemplatesTable.create(pool)
+      , TemplatesTable.create(pool)(log)
     );
   };
 
-  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (pool: Pool) => (log: Logger) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , TemplatesTable.deleteById(pool)(userId)
+      , TemplatesTable.deleteById(pool)(log)(userId)
     );
   };
 }

@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -15,7 +16,8 @@ export type t = Template.Internal.t[];
 
 export const resolve = 
   (pool: Pool) => 
+  (log: Logger) => 
   (accountId: string) =>
   (arena: Arena.t): TE.TaskEither<Exception.t, Template.Internal.t[]> => {
-  return TemplateFrontend.getByAccountId(pool)(arena.user.id)(accountId)
+  return TemplateFrontend.getByAccountId(pool)(log)(arena.user.id)(accountId)
 }

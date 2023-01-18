@@ -22,7 +22,7 @@ namespace MakeSuperuser {
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<User.Internal.t> => {
     return pipe(
-        UserFrontend.setRole(context.pool)(User.SUPERUSER_ROLE)(id)
+        UserFrontend.setRole(context.pool)(context.log)(User.SUPERUSER_ROLE)(id)
       , Pipe.toPromise
     );
   }
@@ -70,7 +70,7 @@ namespace DeleteUser {
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<boolean> => {
     return pipe(
-        UserFrontend.deleteById(context.pool)(id)
+        UserFrontend.deleteById(context.pool)(context.log)(id)
       , TE.map(() => true)
       , Pipe.toPromise
     );

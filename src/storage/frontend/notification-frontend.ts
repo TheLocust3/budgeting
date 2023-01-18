@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -12,28 +13,28 @@ import * as NotificationsTable from "../db/notifications-table";
 import { Exception } from "../../magic";
 
 export namespace NotificationFrontend {
-  export const all = (pool: Pool) => (userId: string): TE.TaskEither<Exception.t, Notification.Internal.t[]> => {
-    return NotificationsTable.all(pool)(userId);
+  export const all = (pool: Pool) => (log: Logger) => (userId: string): TE.TaskEither<Exception.t, Notification.Internal.t[]> => {
+    return NotificationsTable.all(pool)(log)(userId);
   };
 
-  export const create = (pool: Pool) => (notification: Notification.Frontend.Create.t): TE.TaskEither<Exception.t, Notification.Internal.t> => {
+  export const create = (pool: Pool) => (log: Logger) => (notification: Notification.Frontend.Create.t): TE.TaskEither<Exception.t, Notification.Internal.t> => {
     return pipe(
         notification
-      , NotificationsTable.create(pool)
+      , NotificationsTable.create(pool)(log)
     );
   };
 
-  export const deleteById = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const deleteById = (pool: Pool) => (log: Logger) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , NotificationsTable.deleteById(pool)(userId)
+      , NotificationsTable.deleteById(pool)(log)(userId)
     );
   };
 
-  export const ack = (pool: Pool) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
+  export const ack = (pool: Pool) => (log: Logger) => (userId: string) => (id: string): TE.TaskEither<Exception.t, void> => {
     return pipe(
         id
-      , NotificationsTable.ackById(pool)(userId)
+      , NotificationsTable.ackById(pool)(log)(userId)
     );
   };
 }

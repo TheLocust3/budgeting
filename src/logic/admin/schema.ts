@@ -16,7 +16,7 @@ import { UserFrontend } from "../../storage";
 namespace ListUsers {
   const resolve = (source: any, args: any, context: Context.t): Promise<User.Internal.t[]> => {
     return pipe(
-        UserFrontend.all(context.pool)()
+        UserFrontend.all(context.pool)(context.log)()
       , Pipe.toPromise
     );
   }
@@ -35,7 +35,7 @@ namespace GetUser {
 
   const resolve = (source: any, { id }: Args, context: Context.t): Promise<User.Internal.t> => {
     return pipe(
-        UserFrontend.getById(context.pool)(id)
+        UserFrontend.getById(context.pool)(context.log)(id)
       , Pipe.toPromise
     );
   }

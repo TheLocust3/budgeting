@@ -17,7 +17,7 @@ import { Source, Integration, Transaction } from "../../model";
 
 const pull = (pool: Pool) => (log: Logger): TE.TaskEither<PullerException, Source.Internal.t> => {
   return pipe(
-      SourceFrontend.pullForRollup(pool)()
+      SourceFrontend.pullForRollup(pool)(log)()
     , TE.mapLeft((error) => {
         switch (error.name) {
           case "NotFound":

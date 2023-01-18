@@ -158,7 +158,7 @@ export namespace Frontend {
   const sourceFor = (pool: Pool) => (log: Logger) => (plan: Plan.t): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
     const buildTransactionsForUser = (planSource: Plan.Source.TransactionsForUser): TE.TaskEither<Exception.t, Transaction.Internal.t[]> => {
       log.info(`Frontend.sourceFor[${plan.queryId}] - getting transactions for user ${planSource.userId}`)
-      return TransactionFrontend.all(pool)(planSource.userId);
+      return TransactionFrontend.all(pool)(log)(planSource.userId);
     }
 
     switch (plan.source._type) {
@@ -255,9 +255,9 @@ export namespace Builder {
     export const build = (pool: Pool) => (log: Logger) => (builder: t): TE.TaskEither<Exception.t, { plan: Plan.t, account: Account.Internal.Rich }> => {
       const buildAccount = (): TE.TaskEither<Exception.t, Account.Internal.Rich> => {
         return pipe(
-            AccountFrontend.getByIdAndUserId(pool)(builder.userId)(builder.accountId)
-          , TE.chain(AccountFrontend.withRules(pool))
-          , TE.chain(AccountFrontend.withChildren(pool))
+            AccountFrontend.getByIdAndUserId(pool)(log)(builder.userId)(builder.accountId)
+          , TE.chain(AccountFrontend.withRules(pool)(log))
+          , TE.chain(AccountFrontend.withChildren(pool)(log))
         );
       }
 
@@ -266,7 +266,7 @@ export namespace Builder {
       return pipe(
           TE.Do
         , TE.bind("account", () => buildAccount())
-        , TE.bind("linkedAccounts", ({ account }) => pipe(Materializer.linkedAccounts(pool)(account), TE.map((accounts) => accounts.concat(account))))
+        , TE.bind("linkedAccounts", ({ account }) => pipe(Materializer.linkedAccounts(pool)(log)(account), TE.map((accounts) => accounts.concat(account))))
         , TE.bind("materializePlan", ({ linkedAccounts }) => TE.of(MaterializePlan.build(linkedAccounts)))
         , TE.map(({ account, materializePlan }) => {
             const plan = <Plan.t> {
