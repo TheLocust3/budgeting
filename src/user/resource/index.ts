@@ -284,7 +284,7 @@ export const createManualAccount =
   (log : Logger) =>
   (arena: UserArena.t) =>
   (name: string): TE.TaskEither<Exception.t, { account: Account.Internal.t, source: Source.Internal.t }> => {
-  console.log(`[${arena.id}] - building source + account`);
+  log.info(`[${arena.id}] - building source + account`);
 
   return pipe(
       <Source.Frontend.Create.t>{
@@ -297,7 +297,7 @@ export const createManualAccount =
     , SourceFrontend.create(pool)
     , TE.chain((source) => pipe(createAccount(pool)(log)(arena)(source), TE.map((account) => ({ account: account, source: source }))))
     , TE.map((both) => {
-        console.log(`[${arena.id}] - source + account built`);
+        log.info(`[${arena.id}] - source + account built`);
         return both;
       })
   );
@@ -324,10 +324,10 @@ export const createIntegration =
   (publicToken: { item_id: string, access_token: string }): TE.TaskEither<Exception.t, void> => {
   const user = arena.user;
 
-  console.log(`[${arena.id}] - building integration/sources`);
+  log.info(`[${arena.id}] - building integration/sources`);
 
   const buildIntegration = (): TE.TaskEither<Exception.t, Integration.Internal.t> => {
-    console.log(`[${arena.id}] - building integration "${request.institutionName}"`);
+    log.info(`[${arena.id}] - building integration "${request.institutionName}"`);
     const integration: Integration.Frontend.Create.t = {
         id: UserArena.idFor(arena)(`integration_${request.institutionName}`)
       , userId: user.id
@@ -339,7 +339,7 @@ export const createIntegration =
   }
 
   const buildSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, Context[]> => {
-    console.log(`[${arena.id}] - building sources "${request.accounts}"`);
+    log.info(`[${arena.id}] - building sources "${request.accounts}"`);
     const sources: Source.Frontend.Create.t[] = A.map(({ id, name }: Plaid.External.Request.ExchangePublicToken.Account) => {
       return <Source.Frontend.Create.t>{
           id: UserArena.idFor(arena)(`source_${name}`)
@@ -376,7 +376,7 @@ export const createIntegration =
   const rollupAll = (contexts: Context[]): TE.TaskEither<Exception.t, void> => {
     return pipe(
         contexts
-      , A.map(rollupFor(pool)(plaidClient)(arena.id))
+      , A.map(rollupFor(pool)(log)(plaidClient)(arena.id))
       , A.sequence(TE.ApplicativeSeq)
       , TE.map(() => {})
       , TE.mapLeft(Exception.throwInternalError)
@@ -389,7 +389,7 @@ export const createIntegration =
     , TE.chain(buildAccounts)
     , TE.chain(rollupAll)
     , TE.map(() => {
-        console.log(`[${arena.id}] - integration/sources built`);
+        log.info(`[${arena.id}] - integration/sources built`);
       })
   );
 }

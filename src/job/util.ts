@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -47,28 +48,28 @@ export const notifySuccess = (pool: Pool) => (userId: string) => (count: number)
   );
 }
 
-export const withIntegration = (pool: Pool) => (source: Source.Internal.t): TE.TaskEither<PullerException, Context> => {
+export const withIntegration = (pool: Pool) => (log: Logger) => (source: Source.Internal.t): TE.TaskEither<PullerException, Context> => {
   // at this point, an integration id must exist
   const integrationId = O.match(() => "", (integrationId: string) => integrationId)(source.integrationId);
   return pipe(
       integrationId
     , IntegrationFrontend.getById(pool)
     , TE.mapLeft((error) => {
-        console.log(error);
+        log.error(error);
         return <PullerException>"Exception";
       })
     , TE.map((integration) => ({ source: source, integration: integration }))
   );
 }
 
-export const pushTransactions = (pool: Pool) => (id: string) => (transactions: Transaction.Internal.t[]): TE.TaskEither<PullerException, void> => {
-  console.log(`Scheduler.puller[${id}] - pushing ${transactions.length} transactions`)
+export const pushTransactions = (pool: Pool) => (log: Logger) => (id: string) => (transactions: Transaction.Internal.t[]): TE.TaskEither<PullerException, void> => {
+  log.info(`Scheduler.puller[${id}] - pushing ${transactions.length} transactions`)
   const push = (transaction: Transaction.Internal.t): TE.TaskEither<PullerException, void> => {
     return pipe(
         transaction
       , TransactionFrontend.create(pool)
       , TE.mapLeft((error) => {
-          console.log(error);
+          log.error(error);
           return <PullerException>"Exception";
         })
       , TE.map((_) => { return; })

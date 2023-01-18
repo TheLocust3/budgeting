@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { Logger } from "pino";
 import { PlaidApi, TransactionsGetResponse } from "plaid";
 import moment from "moment";
 import * as A from "fp-ts/Array";
@@ -19,7 +20,7 @@ import { Source, Integration, Transaction } from "../../model";
 //   2) pull the credentials for the source
 //   3) send all transactions after `source.createdAt` to the rules engine
 
-const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => {
+const pull = (pool: Pool) => (log: Logger): TE.TaskEither<PullerException, Source.Internal.t> => {
   return pipe(
       SourceFrontend.pull(pool)()
     , TE.mapLeft((error) => {
@@ -27,15 +28,15 @@ const pull = (pool: Pool): TE.TaskEither<PullerException, Source.Internal.t> => 
           case "NotFound":
             return <PullerException>"NoWork";
           default:
-            console.log(error);
+            log.error(error);
             return error;
         }
       })
   );
 }
 
-const pullTransactions = (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
-  console.log(`Scheduler.puller[${id}] - pulling transactions`)
+const pullTransactions = (log: Logger) => (plaidClient: PlaidApi) => (id: string) => (context: Context): TE.TaskEither<PullerException, Transaction.Internal.t[]> => {
+  log.info(`Scheduler.puller[${id}] - pulling transactions`)
   const accountId = context.source.tag;
 
   const lastMonth = moment().subtract(1, "month");
@@ -80,19 +81,19 @@ export const countNewTransactions = (pool: Pool) => (context: Context) => (trans
   );
 }
 
-export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Task<boolean> => {
+export const run = (pool: Pool) => (log: Logger) => (plaidClient: PlaidApi) => (id: string): T.Task<boolean> => {
   return pipe(
-      pull(pool)
+      pull(pool)(log)
     , TE.chain((source) => {
         return pipe(
             TE.Do
-          , TE.bind("context", () => withIntegration(pool)(source))
+          , TE.bind("context", () => withIntegration(pool)(log)(source))
           , TE.bind("transactions", ({ context }) => {
-              console.log(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
-              return pullTransactions(plaidClient)(id)(context);
+              log.info(`Scheduler.puller[${id}] - pulling for ${context.source.id}`)
+              return pullTransactions(log)(plaidClient)(id)(context);
             })
           , TE.bind("count", ({ context, transactions }) => countNewTransactions(pool)(context)(transactions))
-          , TE.bind("_", ({ transactions }) => pushTransactions(pool)(id)(transactions))
+          , TE.bind("_", ({ transactions }) => pushTransactions(pool)(log)(id)(transactions))
           , TE.chain(({ count }) => {
               if (count > 0) {
                 return notifySuccess(pool)(source.userId)(count);
@@ -105,11 +106,11 @@ export const run = (pool: Pool) => (plaidClient: PlaidApi) => (id: string): T.Ta
       })
     , TE.match(
           (error) => {
-            console.log(`Scheduler.rollup[${id}] - failed - ${error}`);
+            log.error(`Scheduler.rollup[${id}] - failed - ${error}`);
             return true;
           }
         , () => {
-            console.log(`Scheduler.rollup[${id}] - completed`);
+            log.info(`Scheduler.rollup[${id}] - completed`);
             return true;
           }
       )

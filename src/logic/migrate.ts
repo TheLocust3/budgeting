@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { Pool } from "pg";
+import { Logger } from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -18,16 +19,16 @@ const createUser = (pool: Pool) => (id: string, email: string, role: string) => 
   );
 }
 
-export const migrate = async (pool: Pool) => {
+export const migrate = (pool: Pool) => async (log: Logger) => {
   await pipe(
       TE.Do
     , TE.bind("user", () => createUser(pool)("F9pqIrbjf9bdxGF8H32wkRm2uRx1", "admin@jakekinsella.com", "superuser")) // TODO: JK hardcoding this seems like a bad idea
     , TE.map(({ user }) => {
-        console.log(`User created ${user.email}`)
+        log.info(`User created ${user.email}`)
       })
     , TE.mapLeft((error) => {
-        console.log(`User creation failed`)
-        console.log(error)
+        log.error(`User creation failed`)
+        log.error(error)
       })
   )();
 };

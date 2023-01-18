@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { Pool } from "pg";
+import pino from "pino";
 import * as A from "fp-ts/Array";
 import * as O from "fp-ts/Option";
 import * as E from "fp-ts/Either";
@@ -15,14 +16,15 @@ import { Source } from "../../model";
 
 const plaidClient = Plaid.buildClient();
 const pool = new Pool();
+const log = pino();
 const id = crypto.randomUUID();
 
 const run = async () => {
-  console.log(`Scheduler.puller[${id}] - start`)
+  log.info(`Scheduler.puller[${id}] - start`)
   
-  await PullerJob.run(pool)(plaidClient)(id)();
+  await PullerJob.run(pool)(log)(plaidClient)(id)();
 
-  console.log(`Scheduler.puller[${id}] - complete`)
+  log.info(`Scheduler.puller[${id}] - complete`)
   process.exit(0);
 }
 

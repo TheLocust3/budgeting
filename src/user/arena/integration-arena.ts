@@ -23,7 +23,6 @@ export const resolve =
   (pool: Pool) =>
   (arena: Arena.t): TE.TaskEither<Exception.t, t> => {
   const withSources = (integration: Integration.Internal.t): TE.TaskEither<Exception.t, WithSources> => {
-    console.log(integration)
     return pipe(
         SourceFrontend.allByIntegrationId(pool)(arena.user.id)(integration.id)
       , TE.map((sources) => ({ integration: integration, sources: sources }))
