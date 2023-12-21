@@ -148,6 +148,10 @@ Sample query:
       amount,
       merchantName,
       description
+    },
+    templates {
+      id,
+      template
     }
   },
   buckets {

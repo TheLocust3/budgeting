@@ -199,7 +199,7 @@ export class System {
   addRule(accountId: string, rule: any, userId: string = this.userId): TE.TaskEither<Error, any> {
     return pipe(
         { id: uuid(), accountId: accountId , userId: userId , rule: rule }
-      , Validate.rule(pool)
+      , Validate.rule(pool)(log)
       , TE.chain(RuleFrontend.create(pool)(log))
       , TE.mapLeft(E.toError)
     );
