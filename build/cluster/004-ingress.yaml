@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: budget-logic-ingress
+spec:
+  tls:
+  - hosts:
+      - $HOST
+    secretName: reader-cert
+  rules:
+  - host: $HOST
+    http:
+      paths:
+        - backend:
+            service:
+              name: budget-logic
+              port:
+                number: 8080
+          path: /api
+          pathType: Prefix
+  defaultBackend:
+    service:
+      name: budget-logic
+      port:
+        number: 8080

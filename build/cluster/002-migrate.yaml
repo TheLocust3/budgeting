@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrate
+  name: budget-migrate
 spec:
   template:
     spec:
@@ -10,7 +10,7 @@ spec:
           image: $IMAGE
           envFrom:
             - configMapRef:
-                name: config
+                name: budget-config
           imagePullPolicy: $IMAGE_POLICY
           command: ["/bin/sh", "-c", "node /home/node/app/dist/job/migrate/index.js"]
           volumeMounts: $LOCAL_MOUNT
@@ -20,4 +20,12 @@ spec:
           image: postgres:13.4
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c", "pg_isready -h postgres -p 5432 && echo $?"]
+        - name: create-database
+          image: postgres:13.4
+          envFrom:
+            - configMapRef:
+                name: budget-config
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "createdb -h postgres -p 5432 budget || echo 0"]
       restartPolicy: OnFailure
+$NODE_SELECTOR

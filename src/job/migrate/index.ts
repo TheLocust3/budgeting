@@ -9,11 +9,10 @@ const log = pino();
 
 const run = async () => {
   log.info("Migrate start");
-  await migrateStorage(pool);
+  await migrateStorage(pool)(log);
   await migrateLogic(pool)(log);
 
   log.info("Migrate complete");
-  process.exit(0);
 }
 
 run();

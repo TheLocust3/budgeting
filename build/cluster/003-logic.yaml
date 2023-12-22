@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: logic
+  name: budget-logic
 spec:
   selector:
-    app: logic
+    app: budget-logic
   ports:
     - port: 8080
       targetPort: 8080
@@ -13,25 +13,25 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: logic
+  name: budget-logic
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: logic
+      app: budget-logic
   template:
     metadata:
       labels:
-        app: logic
+        app: budget-logic
     spec:
       containers:
-        - name: logic
+        - name: budget-logic
           image: $IMAGE
           ports:
             - containerPort: 8080
           envFrom:
             - configMapRef:
-                name: config
+                name: budget-config
             - secretRef:
                 name: secrets
           env:
@@ -51,3 +51,4 @@ spec:
           image: postgres:13.4
           imagePullPolicy: "IfNotPresent"
           command: ["/bin/sh", "-c", "pg_isready -h postgres -p 5432 && echo $?"]
+$NODE_SELECTOR

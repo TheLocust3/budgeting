@@ -16,6 +16,7 @@
 `eval $(minikube docker-env)`  
 `minikube addons enable ingress`  
 `minikube tunnel`  
+`sudo sh -c 'echo "127.0.0.1       budget.localhost" >> /etc/hosts'`
 
 Create `secrets.env` in the root of the repo:
 ```
