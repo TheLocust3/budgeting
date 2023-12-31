@@ -12,7 +12,7 @@
     "test": "./test.sh",
     "migrate": "yarn build && node dist/job/migrate/index.js",
     "rollback": "yarn build && node dist/storage/db/rollback.js",
-    "signin": "yarn build && node dist/scripts/signin.js"
+    "signin": "yarn build && NODE_TLS_REJECT_UNAUTHORIZED=0 node dist/scripts/signin.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
