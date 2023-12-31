@@ -26,4 +26,8 @@
 (def routes
   [["/"
     {:name ::routes/index
-     :view index}]])
+     :view index}]
+
+   ["/login"
+    {:name ::routes/login
+     :view login}]])
