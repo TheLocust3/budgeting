@@ -1,0 +1,2 @@
+(def ::index)
+(def ::login)

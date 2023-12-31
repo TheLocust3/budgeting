@@ -1,4 +1,6 @@
-# budgeting
+# Budgeting
+
+A simple budgeting app.
 
 ## local deploy (with hot-reload)
 
@@ -272,25 +274,3 @@ yarn test
 `integrations`
  - Plaid credentials associated with a source
  - Transactions pulled from these credentials will be tagged with the associated source
-
-## todo
-
-### next
- - Run more pullers
- - Move control plane to separate instance + use ASGs for nodes
-   - Need some sort of "size" to control how many logic replicas are created + way to scale up puller jobs
-   - RDS for Postgres
-
-### miscellaneous
- - [createIntegration] createLinkToken should have actual errors
- - [createIntegration] exchangePublicToken should have actual errors
- - [createIntegration] Validate integration credentials before creating
- - Don't build plan/stages for every transaction
- - [puller] Handle Plaid pageination
-
-### future
- - Optional remainder in SplitByValue
-   - need way of raising a conflict inside of a single split rule
- - Add comment mutation
- - basic rule pushdowns
-   - all include rules are up for grabs
