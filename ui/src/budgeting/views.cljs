@@ -6,6 +6,7 @@
     [budgeting.styles :as styles]
     [budgeting.subs :as subs]
     [budgeting.events :as events]
+    [budgeting.components.sidebar :as sidebar]
     [central :as central]
     [spade.core :refer [defclass defglobal]]))
 
@@ -14,10 +15,10 @@
   [:#app>div {:height "100%"}])
 
 (defclass root-style [] {:display "flex" :width "100%" :height "100%"})
-(defn root [children] (into [:div {:class (root-style)}] children))
+(defn root [& children] (into [:div {:class (root-style)}] children))
 
 (defn index [match]
-  [root "hello world"])
+  [root [sidebar/build "hello world"]])
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
 (defn login []
