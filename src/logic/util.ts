@@ -20,7 +20,7 @@ export namespace AuthenticationFor {
   }
 
   const tryCookie = (request: Express.Request): TE.TaskEither<Exception.t, User.Internal.t> => {
-    return Central.verify(request.app.locals.db)(request.log)(String(request.cookies["auth-token"]));
+    return Central.verify(request.app.locals.db)(request.log)(String(request.cookies["token"]));
   }
 
   export const user = async (request: Express.Request, response: Express.Response, next: Express.NextFunction) => {

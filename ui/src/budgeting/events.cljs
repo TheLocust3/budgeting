@@ -22,16 +22,14 @@
 
 
 (re-frame/reg-event-db
- ::get-user-complete
- (fn [db [_ user after]]
-   (do
-     (if (not (nil? user)) (re-frame/dispatch after))
-     (assoc db :user user))))
+ ::load-complete
+ (fn [db [_ state]]
+   (assoc db :user (:user state))))
 
 (re-frame/reg-event-db
- ::get-user
- (fn [db [_ after]]
+ ::load
+ (fn [db _]
    (do
-     (.then (api/get-user)
-       #(re-frame/dispatch [::get-user-complete % after]))
+     (.then (api/load-all)
+       #(re-frame/dispatch [::load-complete %]))
      db)))

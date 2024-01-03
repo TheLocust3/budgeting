@@ -18,7 +18,8 @@
 (defn root [& children] (into [:div {:class (root-style)}] children))
 
 (defn index [match]
-  [root [sidebar/build "hello world"]])
+  (do (re-frame/dispatch [::events/load])
+      [root [sidebar/build "hello world"]]))
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
 (defn login []
