@@ -24,7 +24,10 @@
 (re-frame/reg-event-db
  ::load-complete
  (fn [db [_ state]]
-   (assoc db :user (:user state))))
+   (->
+     db
+     (assoc :user (:user state))
+     (assoc :user (:user state)))))
 
 (re-frame/reg-event-db
  ::load

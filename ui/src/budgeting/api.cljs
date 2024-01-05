@@ -11,7 +11,7 @@
 (defn request [url options]
   (->
     (central/Api.Budgeting.request url (clj->js options))
-    (.then (fn [res] (if (= (.-status res) 200) res (js/reject res))))
+    (.then (fn [res] (if (= (.-status res) 200) res (js/Promise.reject res))))
     (.then (fn [res] (.json res)))
     (.then #(js->clj % :keywordize-keys true))))
 
@@ -27,7 +27,22 @@
     (.then #(:user %))))
 
 
+(defn clj->gql [obj mutation?]
+  (defn inner [obj]
+    (cond (map? obj) (string/join ", " (map (fn [[k v]] (str (inner k) (inner v))) obj))
+          (vector? obj) (str " { " (string/join ", " (map inner obj)) " }")
+          (keyword? obj) (name obj)
+          :else (str obj)))
+
+    (if mutation?
+      (str "mutation { " (inner obj) " }")
+      (str "{ " (inner obj) " }")))
+
 (defn load-all []
-  (->
-    (request "/graphql?" {:method "POST" :body (json {:query "{\n  user {\n    id,\n    email\n  },\n  total,\n  accounts {\n    id,\n    name,\n    total,\n    transactions {\n      id,\n      amount,\n      merchantName,\n      description\n    }\n  },\n  buckets {\n    id,\n    name,\n    total,\n    transactions {\n      id\n    }\n  }\n}"})})
-    (.then #(:data %))))
+  (let [query {:user [:id :email]
+               :total nil
+               :accounts [:id :name :total {:transactions [:id :amount :merchantName :description]}]
+               :buckets [:id :name :total {:transactions [:id]}]}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (clj->gql query false)})})
+      (.then #(:data %)))))

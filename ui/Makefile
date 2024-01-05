@@ -6,3 +6,6 @@ start:
 
 release:
 	npm run release
+
+repl:
+	npm run repl
