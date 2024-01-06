@@ -11,3 +11,12 @@
  ::accounts
  (fn [db]
    (:accounts db)))
+
+(re-frame/reg-sub
+ ::account
+ (fn [db [_ id]]
+   (->>
+     (:accounts db)
+     (filter (fn [account] (= (:id account) id)))
+     first)))
+

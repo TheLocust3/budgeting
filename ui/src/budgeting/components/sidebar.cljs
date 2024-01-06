@@ -89,7 +89,7 @@
             [pane
               [pane-inner
                 [container
-                  [header {:href "/budget"} "My Budget"]
+                  [header {:href "/"} "My Budget"]
                   [spacer]
                   [item {:href "#"} "+ Add transaction"]
                   [big-spacer]
@@ -98,5 +98,6 @@
                   [header {:href "#"} "Accounts"]
                   [spacer]
                   [item {:href "#"} "+ Add account"]
+                  [spacer]
                   (build-accounts)]]]]
       children)))

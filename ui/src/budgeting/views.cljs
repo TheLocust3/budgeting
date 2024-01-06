@@ -17,9 +17,17 @@
 (defclass root-style [] {:display "flex" :width "100%" :height "100%"})
 (defn root [& children] (into [:div {:class (root-style)}] children))
 
-(defn index [match]
+(defn frame [& children]
   (do (re-frame/dispatch [::events/load])
-      [root [sidebar/build "hello world"]]))
+    [root (into [sidebar/build] children)]))
+
+(defn index []
+  [frame "hello world"])
+
+(defn account [match]
+  (let [id (:id (:path (:parameters match)))
+        account @(re-frame/subscribe [::subs/account id])]
+    [frame (:name account)]))
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
 (defn login []
@@ -32,4 +40,9 @@
 
    ["/login"
     {:name ::routes/login
-     :view login}]])
+     :view login}]
+
+   ["/account/:id"
+    {:name ::routes/account
+     :view account
+     :parameters {:path {:id string?}}}]])
