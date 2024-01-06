@@ -27,7 +27,7 @@
    (->
      db
      (assoc :user (:user state))
-     (assoc :user (:user state)))))
+     (assoc :accounts (:accounts state)))))
 
 (re-frame/reg-event-db
  ::load

@@ -3,7 +3,8 @@
     [reagent.core :as r]
     [re-frame.core :as re-frame]
     [spade.core :refer [defclass]]
-    [central :as central]))
+    [central :as central]
+    [budgeting.subs :as subs]))
 
 (defclass outer-style [] {:width "100%" :display "flex"})
 (defn outer [& children] (into [:div {:class (outer-style)}] children))
@@ -80,17 +81,22 @@
 (defn spacer2 [] [:div {:class (spacer2-style)}])
 
 (defn build [& children]
-  (into [outer
-          [pane
-            [pane-inner
-              [container
-                [header {:href "#"} "My Budget"]
-                [spacer]
-                [item {:href "#"} "+ Add transaction"]
-                [big-spacer]
-                [divider]
-                [big-spacer]
-                [header {:href "#"} "Accounts"]
-                [spacer]
-                [item {:href "#"} "+ Add account"]]]]]
-    children))
+  (letfn [(build-accounts []
+            (let [accounts @(re-frame/subscribe [::subs/accounts])]
+              (map (fn [account] [item {:key (:id account) :href (str "/account/" (:id account))} (:name account)]) accounts)))]
+
+    (into [outer
+            [pane
+              [pane-inner
+                [container
+                  [header {:href "/budget"} "My Budget"]
+                  [spacer]
+                  [item {:href "#"} "+ Add transaction"]
+                  [big-spacer]
+                  [divider]
+                  [big-spacer]
+                  [header {:href "#"} "Accounts"]
+                  [spacer]
+                  [item {:href "#"} "+ Add account"]
+                  (build-accounts)]]]]
+      children)))

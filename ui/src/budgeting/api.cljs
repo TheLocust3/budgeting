@@ -15,18 +15,6 @@
     (.then (fn [res] (.json res)))
     (.then #(js->clj % :keywordize-keys true))))
 
-(defn central-request [url options]
-  (->
-    (central/Api.Central.request url (clj->js options))
-    (.then (fn [res] (.json res)))
-    (.then #(js->clj % :keywordize-keys true))))
-
-(defn get-user []
-  (->
-    (central-request "/users/validate" {:method "POST" :body (json {:token (token)})})
-    (.then #(:user %))))
-
-
 (defn clj->gql [obj mutation?]
   (defn inner [obj]
     (cond (map? obj) (string/join ", " (map (fn [[k v]] (str (inner k) (inner v))) obj))
