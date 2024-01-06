@@ -7,6 +7,7 @@
     [budgeting.subs :as subs]
     [budgeting.events :as events]
     [budgeting.components.sidebar :as sidebar]
+    [budgeting.components.menu :as menu]
     [central :as central]
     [spade.core :refer [defclass defglobal]]))
 
@@ -17,17 +18,17 @@
 (defclass root-style [] {:display "flex" :width "100%" :height "100%"})
 (defn root [& children] (into [:div {:class (root-style)}] children))
 
-(defn frame [& children]
+(defn frame [title & children]
   (do (re-frame/dispatch [::events/load])
-    [root (into [sidebar/build] children)]))
+    [root [sidebar/build (into [menu/build title] children)]]))
 
 (defn index []
-  [frame "hello world"])
+  [frame "My Budget" "hello world"])
 
 (defn account [match]
   (let [id (:id (:path (:parameters match)))
         account @(re-frame/subscribe [::subs/account id])]
-    [frame (:name account)]))
+    [frame (:name account) [:div (:id account)]]))
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
 (defn login []
