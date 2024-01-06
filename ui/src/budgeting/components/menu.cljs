@@ -24,11 +24,30 @@
    :color central/Constants.colors.black})
 (defn title [& children] (into [:div {:class (title-style)}] children))
 
+(defclass more-style []
+  {:padding-top "5px"
+   :padding-right "30px"
+   :margin-left "auto"
+   :margin-right "0"}
+  (at-media {:max-width "750px"}
+    {:padding-right "25px"}))
+(defn more [& children] (into [:div {:class (more-style)}] children))
+
+(defclass delete-style []
+  {:cursor "pointer"
+   :color central/Constants.colors.black}
+  [:&:hover {:color central/Constants.colors.red}])
+(defn delete [attrs & children] (into [:div (merge-with + attrs {:class (delete-style)})] children))
+
 (defclass body-style []
   {:margin-top "50px"})
 (defn body [& children] (into [:div {:class (body-style)}] children))
 
-(defn build [title-text & children]
+(defn build [attrs & children]
   [:div
-    [pane [title title-text]]
+    [pane
+      [title (:title attrs)]
+      (if (not (nil? (:on-delete attrs)))
+        [more
+          [delete {:on-click (:on-delete attrs)} [:> central/Icon {:icon "delete" :size "1.25em"}]]])]
     (into [body] children)])

@@ -18,17 +18,17 @@
 (defclass root-style [] {:display "flex" :width "100%" :height "100%"})
 (defn root [& children] (into [:div {:class (root-style)}] children))
 
-(defn frame [title & children]
+(defn frame [attrs & children]
   (do (re-frame/dispatch [::events/load])
-    [root [sidebar/build (into [menu/build title] children)]]))
+    [root [sidebar/build (into [menu/build attrs] children)]]))
 
 (defn index []
-  [frame "My Budget" "hello world"])
+  [frame {:title "My Budget"} "hello world"])
 
 (defn account [match]
   (let [id (:id (:path (:parameters match)))
         account @(re-frame/subscribe [::subs/account id])]
-    [frame (:name account) [:div (:id account)]]))
+    [frame {:title (:name account) :on-delete (fn [] (println "delete"))} [:div (:id account)]]))
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
 (defn login []
