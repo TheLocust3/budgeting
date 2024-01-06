@@ -36,3 +36,12 @@
      (.then (api/load-all)
        #(re-frame/dispatch [::load-complete %]))
      db)))
+
+
+(re-frame/reg-event-db
+ ::delete-account
+ (fn [db [_ id]]
+   (do
+     (.then (api/delete-account id)
+       #(re-frame/dispatch [::load]))
+     db)))

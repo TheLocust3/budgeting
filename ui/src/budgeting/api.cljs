@@ -15,22 +15,37 @@
     (.then (fn [res] (.json res)))
     (.then #(js->clj % :keywordize-keys true))))
 
-(defn clj->gql [obj mutation?]
-  (defn inner [obj]
-    (cond (map? obj) (string/join ", " (map (fn [[k v]] (str (inner k) (inner v))) obj))
-          (vector? obj) (str " { " (string/join ", " (map inner obj)) " }")
-          (keyword? obj) (name obj)
-          :else (str obj)))
+(defn clj->gql [obj]
+  (letfn [(render-args [args]
+            (str "(" (string/join ", " (map (fn [[k v]] (str (clj->gql k) ": " (clj->gql v))) args)) ")"))]
 
-    (if mutation?
-      (str "mutation { " (inner obj) " }")
-      (str "{ " (inner obj) " }")))
+    (cond (map? obj)
+            (string/join ", " (map (fn [[k v]]
+                                     (cond (map? v) (str (clj->gql k) (render-args (:args v)) (clj->gql (:attrs v)))
+                                           :else (str (clj->gql k) (clj->gql v)))) obj))
+          (vector? obj) (str " { " (string/join ", " (map clj->gql obj)) " }")
+          (keyword? obj) (name obj)
+          (string? obj) (str "\"" obj "\"")
+          :else (str obj))))
+
+(defn query [obj]
+  (str "{ " (clj->gql obj) " }"))
+
+(defn mutation [obj]
+  (str "mutation { " (clj->gql obj) " }"))
 
 (defn load-all []
-  (let [query {:user [:id :email]
-               :total nil
-               :accounts [:id :name :total {:transactions [:id :amount :merchantName :description]}]
-               :buckets [:id :name :total {:transactions [:id]}]}]
+  (let [body {:user [:id :email]
+              :total nil
+              :accounts [:id :name :total {:transactions [:id :amount :merchantName :description]}]
+              :buckets [:id :name :total {:transactions [:id]}]}]
     (->
-      (request "/graphql?" {:method "POST" :body (json {:query (clj->gql query false)})})
+      (request "/graphql?" {:method "POST" :body (json {:query (query body)})})
       (.then #(:data %)))))
+
+(defn delete-account [id]
+  (let [body {:deleteAccount {:args {:id id}}}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
+      (.then #(:data %)))))
+
