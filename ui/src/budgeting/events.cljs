@@ -22,6 +22,23 @@
 
 
 (re-frame/reg-event-db
+ ::set-error
+ (fn [db [_ error]]
+   (assoc db :error error)))
+
+
+(re-frame/reg-event-db
+ ::dialog-open
+ (fn [db [_ dialog]]
+   (assoc db :dialog dialog)))
+
+(re-frame/reg-event-db
+ ::dialog-close
+ (fn [db _]
+   (assoc db :dialog nil :error nil)))
+
+
+(re-frame/reg-event-db
  ::load-complete
  (fn [db [_ state]]
    (->

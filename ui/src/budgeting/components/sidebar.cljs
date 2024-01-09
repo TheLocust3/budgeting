@@ -4,6 +4,7 @@
     [re-frame.core :as re-frame]
     [spade.core :refer [defclass]]
     [central :as central]
+    [budgeting.events :as events]
     [budgeting.subs :as subs]))
 
 (defclass outer-style [] {:width "100%" :display "flex"})
@@ -97,7 +98,12 @@
                   [big-spacer]
                   [header {:href "#"} "Accounts"]
                   [spacer]
-                  [item {:href "#"} "+ Add account"]
+                  [item
+                    {:href "#"
+                     :on-click
+                       (fn [event] 
+                         (do (.stopPropagation event) (re-frame/dispatch [::events/dialog-open :add-account])))}
+                    "+ Add account"]
                   [spacer]
                   (build-accounts)]]]]
       children)))

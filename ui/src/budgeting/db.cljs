@@ -2,4 +2,6 @@
 
 (def default-db
   {:user nil
-   :accounts []})
+   :accounts []
+   :dialog nil
+   :error nil})

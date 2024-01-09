@@ -20,3 +20,13 @@
      (filter (fn [account] (= (:id account) id)))
      first)))
 
+(re-frame/reg-sub
+ ::dialog
+ (fn [db]
+   (:dialog db)))
+
+(re-frame/reg-sub
+ ::error
+ (fn [db]
+   (:error db)))
+
