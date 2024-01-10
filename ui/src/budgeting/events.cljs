@@ -56,6 +56,15 @@
 
 
 (re-frame/reg-event-db
+ ::add-account
+ (fn [db [_ name]]
+   (do
+     (.then (api/add-account name)
+       #(re-frame/dispatch [::load]))
+     db)))
+
+
+(re-frame/reg-event-db
  ::delete-account
  (fn [db [_ id]]
    (do

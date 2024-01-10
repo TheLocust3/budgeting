@@ -43,6 +43,12 @@
       (request "/graphql?" {:method "POST" :body (json {:query (query body)})})
       (.then #(:data %)))))
 
+(defn add-account [name]
+  (let [body {:createManualAccount {:args {:name name} :attrs [:id]}}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
+      (.then #(:data %)))))
+
 (defn delete-account [id]
   (let [body {:deleteAccount {:args {:id id}}}]
     (->

@@ -90,7 +90,7 @@
 
 (defn add-account []
   (let [error @(re-frame/subscribe [::subs/error])
-        on-submit (fn [] (re-frame/dispatch [::events/dialog-close]))]
+        on-submit (fn [] (re-frame/dispatch [::events/add-account @value]) (re-frame/dispatch [::events/dialog-close]))]
        [card
          [title "Add Account"]
          [:form
