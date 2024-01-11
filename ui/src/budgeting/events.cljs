@@ -35,7 +35,7 @@
 (re-frame/reg-event-db
  ::dialog-close
  (fn [db _]
-   (assoc db :dialog nil :error nil)))
+   (assoc db :dialog {} :error nil)))
 
 
 (re-frame/reg-event-db

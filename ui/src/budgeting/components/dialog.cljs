@@ -29,7 +29,7 @@
    :border (str "1px solid" central/Constants.colors.black)
    :border-radius "5px"
    :box-shadow (str "0px 0px 1px" central/Constants.colors.lightBlack)})
-(defn card [& children] (into [:div {:class (card-style)}] children))
+(defn card [attrs & children] (into [:div (merge-with + {:class (card-style)} attrs)] children))
 
 (defclass title-style []
   {:padding-top "5px"
@@ -86,28 +86,67 @@
     {:font-size "20px"}))
 (defn submit [children] (into [:button {:class (submit-style)}] children))
 
-(def value (r/atom ""))
-
+(def value (r/atom {}))
 (defn add-account []
   (let [error @(re-frame/subscribe [::subs/error])
-        on-submit (fn [] (re-frame/dispatch [::events/add-account @value]) (re-frame/dispatch [::events/dialog-close]))]
+        on-submit (fn [] (re-frame/dispatch [::events/add-account (:name @value)]) (re-frame/dispatch [::events/dialog-close]))]
        [card
+         {}
          [title "Add Account"]
          [:form
            {:on-submit (fn [event] (.preventDefault event) (on-submit))}
            [label "Name"]
-           [spacer]
-           [textbox {:type "text" :value @value :on-change #(reset! value (-> % .-target .-value))}]
+           [textbox {:type "text" :value (:name @value) :on-change #(reset! value (assoc @value :name (-> % .-target .-value)))}]
            [error-label error]
            [submit "Save"]
            [:input {:type "submit" :style {:display "none"}}]]]))
 
+
+(defn add-transaction []
+  (let [error @(re-frame/subscribe [::subs/error])
+        on-submit (fn [] (re-frame/dispatch [::events/dialog-close]))]
+       [card
+         {:style {:height "250px"}}
+         [title "Add Transaction"]
+         [:form
+           {:on-submit (fn [event] (.preventDefault event) (on-submit))}
+
+           [textbox
+             {:type "text"
+              :placeholder "Date"
+              :value (:date @value)
+              :on-change #(reset! value (assoc @value :date (-> % .-target .-value)))}]
+           [spacer]
+           
+           [textbox
+             {:type "text"
+              :placeholder "Payee"
+              :value (:payee @value)
+              :on-change #(reset! value (assoc @value :payee (-> % .-target .-value)))}]
+           [spacer]
+
+           [textbox
+             {:type "number"
+              :placeholder "Amount"
+              :value (:amount @value)
+              :on-change #(reset! value (assoc @value :amount (-> % .-target .-value)))}]
+           
+           [error-label error]
+           [submit "Save"]
+           [:input {:type "submit" :style {:display "none"}}]]]))
+
+
 (defn build []
   (let [dialog @(re-frame/subscribe [::subs/dialog])]
        (cond
-         (= dialog :add-account)
+         (= (:type dialog) :add-account)
            [floating
              [:div
                {:on-click (fn [event] (.stopPropagation event))}
                [add-account]]]
-          :else (do (reset! value "") ()))))
+          (= (:type dialog) :add-transaction)
+           [floating
+             [:div
+               {:on-click (fn [event] (.stopPropagation event))}
+               [add-transaction]]]
+          :else (do (reset! value {}) ()))))

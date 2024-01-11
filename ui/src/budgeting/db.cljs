@@ -3,5 +3,5 @@
 (def default-db
   {:user nil
    :accounts []
-   :dialog nil
+   :dialog {}
    :error nil})

@@ -2,7 +2,8 @@
   (:require
     [re-frame.core :as re-frame]
     [spade.core :refer [defclass]]
-    [central :as central]))
+    [central :as central]
+    [budgeting.events :as events]))
 
 (defclass pane-style []
   {:position "fixed"
@@ -25,12 +26,11 @@
 (defn title [& children] (into [:div {:class (title-style)}] children))
 
 (defclass more-style []
-  {:padding-top "5px"
+  {:display "flex"
+   :padding-top "5px"
    :padding-right "30px"
    :margin-left "auto"
-   :margin-right "0"}
-  (at-media {:max-width "750px"}
-    {:padding-right "25px"}))
+   :margin-right "0"})
 (defn more [& children] (into [:div {:class (more-style)}] children))
 
 (defclass delete-style []
@@ -43,10 +43,32 @@
   {:margin-top "50px"})
 (defn body [& children] (into [:div {:class (body-style)}] children))
 
+(defclass spacer-style [] {:width "30px" :height "100%"})
+(defn spacer []
+  [:div {:class (spacer-style)}])
+
+(defclass item-style []
+  {:display "block"
+   :text-decoration "none"
+   :font-size "15px"
+   :color central/Constants.colors.black
+   :cursor "pointer"}
+  [:&:hover {:text-decoration "none" :color "black"}]
+  [:&:visited {:text-decoration "none"}]
+  [:&:active {:text-decoration "none"}])
+(defn item [attrs & children]
+  (into [:div (merge-with + attrs {:class (item-style)})] children))
+
 (defn build [attrs & children]
   [:div
     [pane
       [title (:title attrs)]
+      [spacer]
+      (if (:on-add-transaction attrs)
+        [item
+          {:href "#"
+           :on-click (fn [event] (do (.stopPropagation event) ((:on-add-transaction attrs))))}
+          "+ Add transaction"])
       (if (not (nil? (:on-delete attrs)))
         [more
           [delete {:on-click (:on-delete attrs)} [:> central/Icon {:icon "delete" :size "1.25em"}]]])]

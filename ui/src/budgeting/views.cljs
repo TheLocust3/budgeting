@@ -43,7 +43,11 @@
 (defn account [match]
   (let [id (:id (:path (:parameters match)))
         account @(re-frame/subscribe [::subs/account id])]
-    [frame {:title (:name account) :on-delete (fn [] (re-frame/dispatch [::events/delete-account id]))} [:div (:id account)]]))
+    [frame
+      {:title (:name account)
+       :on-add-transaction (fn [] (re-frame/dispatch [::events/dialog-open {:type :add-transaction :account account}]))
+       :on-delete (fn [] (re-frame/dispatch [::events/delete-account id]))}
+      [:div (:id account)]]))
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
 (defn login []

@@ -91,8 +91,6 @@
               [pane-inner
                 [container
                   [header {:href "/"} "My Budget"]
-                  [spacer]
-                  [item {:href "#"} "+ Add transaction"]
                   [big-spacer]
                   [divider]
                   [big-spacer]
@@ -102,7 +100,7 @@
                     {:href "#"
                      :on-click
                        (fn [event] 
-                         (do (.stopPropagation event) (re-frame/dispatch [::events/dialog-open :add-account])))}
+                         (do (.stopPropagation event) (re-frame/dispatch [::events/dialog-open {:type :add-account}])))}
                     "+ Add account"]
                   [spacer]
                   (build-accounts)]]]]
