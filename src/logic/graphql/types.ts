@@ -114,7 +114,7 @@ export namespace Transaction {
       , description: { type: new graphql.GraphQLNonNull(graphql.GraphQLString) }
       , authorizedAt: { type: new graphql.GraphQLNonNull(graphql.GraphQLFloat) }
       , capturedAt: { type: graphql.GraphQLFloat }
-      , metadata: { type: new graphql.GraphQLNonNull(GraphQLJSONObject) }
+      , metadata: { type: GraphQLJSONObject }
     };
   }
 }

@@ -103,9 +103,13 @@ export namespace CreateTransaction {
         O.fromNullable(args.capturedAt)
       , O.map((capturedAt) => new Date(capturedAt))
     );
+    const metadata: object = pipe(
+        O.fromNullable(args.metadata)
+      , O.getOrElse(() => <object>{})
+    );
 
     return pipe(
-        UserResource.Transaction.create(context.pool)(context.log)(context.arena)({ ...args, authorizedAt: authorizedAt, capturedAt: capturedAt })
+        UserResource.Transaction.create(context.pool)(context.log)(context.arena)({ ...args, authorizedAt: authorizedAt, capturedAt: capturedAt, metadata: metadata })
       , Pipe.toPromise
     );
   }
@@ -140,8 +144,12 @@ export namespace CreateTransactions {
               O.fromNullable(transaction.capturedAt)
             , O.map((capturedAt) => new Date(capturedAt))
           );
+          const metadata: object = pipe(
+              O.fromNullable(transaction.metadata)
+            , O.getOrElse(() => <object>{})
+          );
 
-          return UserResource.Transaction.create(context.pool)(context.log)(context.arena)({ ...transaction, authorizedAt: authorizedAt, capturedAt: capturedAt }, `transaction_${index}`);
+          return UserResource.Transaction.create(context.pool)(context.log)(context.arena)({ ...transaction, authorizedAt: authorizedAt, capturedAt: capturedAt, metadata: metadata }, `transaction_${index}`);
         })
       , A.sequence(TE.ApplicativeSeq)
       , Pipe.toPromise

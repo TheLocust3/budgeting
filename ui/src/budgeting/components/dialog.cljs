@@ -67,7 +67,7 @@
   (at-media {:max-width "750px"}
     {:font-size "17px"}))
 (defn textbox [attrs]
-  [:input (merge-with + {:class (textbox-style) :type "text" :required true} attrs)])
+  [:input (merge-with + {:class (textbox-style) :required true} attrs)])
 
 (defclass submit-style []
   {:width "100%"
@@ -104,7 +104,7 @@
 
 (defn add-transaction []
   (let [error @(re-frame/subscribe [::subs/error])
-        on-submit (fn [] (re-frame/dispatch [::events/dialog-close]))]
+        on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]))] ;(re-frame/dispatch [::events/dialog-close]))]
        [card
          {:style {:height "250px"}}
          [title "Add Transaction"]
@@ -127,6 +127,7 @@
 
            [textbox
              {:type "number"
+              :step "0.01"
               :placeholder "Amount"
               :value (:amount @value)
               :on-change #(reset! value (assoc @value :amount (-> % .-target .-value)))}]
@@ -144,9 +145,11 @@
              [:div
                {:on-click (fn [event] (.stopPropagation event))}
                [add-account]]]
-          (= (:type dialog) :add-transaction)
-           [floating
-             [:div
-               {:on-click (fn [event] (.stopPropagation event))}
-               [add-transaction]]]
+         (= (:type dialog) :add-transaction)
+           (do
+             (reset! value (assoc @value :account (:account dialog)))
+             [floating
+               [:div
+                 {:on-click (fn [event] (.stopPropagation event))}
+                 [add-transaction]]])
           :else (do (reset! value {}) ()))))

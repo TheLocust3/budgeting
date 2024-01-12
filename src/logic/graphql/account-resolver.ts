@@ -6,6 +6,7 @@ import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { pipe } from "fp-ts/lib/pipeable";
 import * as graphql from "graphql";
+import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { UserArena } from "../../user";
 import * as Context from "./context";
@@ -32,8 +33,8 @@ const resolveChildrenFor =
   context.log.info(`AccountResolver.resolveChildrenFor - ${key}`)
   return pipe(
       resolveFor(key)(context)
-    , TE.map((context: UserArena.Account.t) => {
-        return A.map((child: UserArena.Account.t) => child.account)(context.children)
+    , TE.map((accountContext: UserArena.Account.t) => {
+        return A.map((child: UserArena.Account.t) => child.account)(accountContext.children)
       })
    , Pipe.toPromise
   );
@@ -49,6 +50,7 @@ export namespace Accounts {
             , transactions: Transactions.Physical.t
             , total: Transactions.PhysicalTotal.t
             , templates: Templates.t
+            , metadata: { type: new graphql.GraphQLNonNull(GraphQLJSONObject) }
           }
       })))
     , resolve: resolveChildrenFor("physical")

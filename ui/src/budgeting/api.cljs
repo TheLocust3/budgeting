@@ -37,7 +37,7 @@
 (defn load-all []
   (let [body {:user [:id :email]
               :total nil
-              :accounts [:id :name :total {:transactions [:id :amount :merchantName :description]}]
+              :accounts [:id :name :total {:transactions [:id :amount :merchantName :description] :metadata nil}]
               :buckets [:id :name :total {:transactions [:id]}]}]
     (->
       (request "/graphql?" {:method "POST" :body (json {:query (query body)})})
@@ -55,3 +55,9 @@
       (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
       (.then #(:data %)))))
 
+
+(defn add-transaction [transaction]
+  (let [body {:createTransaction {:args transaction :attrs [:id]}}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
+      (.then #(:data %)))))

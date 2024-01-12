@@ -2,6 +2,7 @@
   (:require
     [re-frame.core :as re-frame]
     [reitit.frontend.easy :as rfe]
+    [moment :as moment]
     [budgeting.db :as db]
     [budgeting.api :as api]
     [central :as central]))
@@ -71,3 +72,18 @@
      (.then (api/delete-account id)
        #(re-frame/dispatch [::load]))
      db)))
+
+
+(re-frame/reg-event-db
+ ::add-transaction
+ (fn [db [_ transaction]]
+   (let [args
+          {:sourceId (-> transaction :account :metadata :sourceId :value)
+           :amount (js/Number (:amount transaction))
+           :merchantName (:payee transaction)
+           :description ""
+           :authorizedAt (-> (:date transaction) moment .valueOf)}]
+     (do
+       (.then (api/add-transaction args)
+         #(re-frame/dispatch [::load]))
+       db))))
