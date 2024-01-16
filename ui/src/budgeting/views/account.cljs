@@ -3,6 +3,7 @@
     [reagent.core :as r]
     [re-frame.core :as re-frame]
     [spade.core :refer [defclass]]
+    [moment :as moment]
     [central :as central]
     [budgeting.events :as events]
     [budgeting.subs :as subs]))
@@ -49,10 +50,10 @@
             (let [inflow (if (>= (:amount transaction) 0) (str "$" (:amount transaction)) "")
                   outflow (if (< (:amount transaction) 0) (str "$" (* -1 (:amount transaction))) "")]
               [row {:key (:id transaction)}
-                [cell {:style {:width "25%"}} (:authorizedAt transaction)]
-                [cell {:style {:width "35%"}} (:merchantName transaction)]
-                [number-cell {:style {:width "20%"}} outflow]
-                [number-cell {:style {:width "20%"}} inflow]]))]
+                [cell {:style {:width "20%"}} (-> transaction :authorizedAt moment (.format "MM/DD/YYYY"))]
+                [cell {:style {:width "50%"}} (:merchantName transaction)]
+                [number-cell {:style {:width "15%"}} outflow]
+                [number-cell {:style {:width "15%"}} inflow]]))]
          [table
            [:thead [row {} [header-cell "Date"] [header-cell "Payee"] [header-cell "Outflow"] [header-cell "Inflow"]]]
            [:tbody
