@@ -5,6 +5,10 @@
     [central :as central]
     [budgeting.events :as events]))
 
+(defclass outer-style []
+  {:width "100%"})
+(defn outer [& children] (into [:div {:class (outer-style)}] children))
+
 (defclass pane-style []
   {:position "fixed"
    :width "82vw"
@@ -40,7 +44,8 @@
 (defn delete [attrs & children] (into [:div (merge-with + attrs {:class (delete-style)})] children))
 
 (defclass body-style []
-  {:margin-top "50px"})
+  {:width "100%"
+   :margin-top "50px"})
 (defn body [& children] (into [:div {:class (body-style)}] children))
 
 (defclass spacer-style [] {:width "30px" :height "100%"})
@@ -60,7 +65,7 @@
   (into [:div (merge-with + attrs {:class (item-style)})] children))
 
 (defn build [attrs & children]
-  [:div
+  [outer
     [pane
       [title (:title attrs)]
       [spacer]
@@ -69,7 +74,6 @@
           {:href "#"
            :on-click (fn [event] (do (.stopPropagation event) ((:on-add-transaction attrs))))}
           "+ Add transaction"])
-      (if (not (nil? (:on-delete attrs)))
-        [more
-          [delete {:on-click (:on-delete attrs)} [:> central/Icon {:icon "delete" :size "1.25em"}]]])]
+      [more (if (not (nil? (:on-delete attrs)))
+              [delete {:on-click (:on-delete attrs)} [:> central/Icon {:icon "delete" :size "1.25em"}]])]]
     (into [body] children)])

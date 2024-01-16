@@ -9,6 +9,7 @@
     [budgeting.components.sidebar :as sidebar]
     [budgeting.components.menu :as menu]
     [budgeting.components.dialog :as dialog]
+    [budgeting.views.account :as account]
     [central :as central]
     [spade.core :refer [defclass defglobal]]))
 
@@ -37,32 +38,35 @@
              [root [sidebar/build (into [menu/build attrs] children)]
                    [dialog/build]]))])
 
-(defn index []
+(defn index-root []
   [frame {:title "My Budget"} "hello world"])
 
-(defn account [match]
+(defn account-root [match]
   (let [id (:id (:path (:parameters match)))
-        account @(re-frame/subscribe [::subs/account id])]
+        account @(re-frame/subscribe [::subs/account id])
+        on-delete (if (= (count (:transactions account)) 0) {:on-delete (fn [] (re-frame/dispatch [::events/delete-account id]))} {})]
     [frame
-      {:title (:name account)
-       :on-add-transaction (fn [] (re-frame/dispatch [::events/dialog-open {:type :add-transaction :account account}]))
-       :on-delete (fn [] (re-frame/dispatch [::events/delete-account id]))}
-      [:div (:id account)]]))
+      (merge-with
+        +
+        {:title (:name account)
+         :on-add-transaction (fn [] (re-frame/dispatch [::events/dialog-open {:type :add-transaction :account account}]))}
+        on-delete)
+      [account/build account]]))
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
-(defn login []
+(defn login-root []
   [:> central/Redirect {:to to_login}])
 
 (def routes
   [["/"
     {:name ::routes/index
-     :view index}]
+     :view index-root}]
 
    ["/login"
     {:name ::routes/login
-     :view login}]
+     :view login-root}]
 
    ["/account/:id"
     {:name ::routes/account
-     :view account
+     :view account-root
      :parameters {:path {:id string?}}}]])

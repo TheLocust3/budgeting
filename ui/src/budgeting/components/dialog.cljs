@@ -104,7 +104,7 @@
 
 (defn add-transaction []
   (let [error @(re-frame/subscribe [::subs/error])
-        on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]))] ;(re-frame/dispatch [::events/dialog-close]))]
+        on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]) (re-frame/dispatch [::events/dialog-close]))]
        [card
          {:style {:height "250px"}}
          [title "Add Transaction"]
