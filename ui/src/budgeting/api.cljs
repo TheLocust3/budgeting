@@ -55,6 +55,18 @@
       (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
       (.then #(:data %)))))
 
+(defn add-bucket [name]
+  (let [body {:createBucket {:args {:name name} :attrs [:id]}}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
+      (.then #(:data %)))))
+
+(defn delete-bucket [id]
+  (let [body {:deleteBucket {:args {:id id}}}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
+      (.then #(:data %)))))
+
 (defn add-transaction [transaction]
   (let [body {:createTransaction {:args transaction :attrs [:id]}}]
     (->

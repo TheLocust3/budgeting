@@ -52,7 +52,19 @@
         {:title (str (:name account) " (" total ")")
          :on-add-transaction (fn [] (re-frame/dispatch [::events/dialog-open {:type :add-transaction :account account}]))}
         on-delete)
-      [account/build account]]))
+      [account/build account {:on-delete-transaction (fn [id] (re-frame/dispatch [::events/delete-transaction id]))}]]))
+
+(defn bucket-root [match]
+  (let [id (:id (:path (:parameters match)))
+        bucket @(re-frame/subscribe [::subs/bucket id])
+        on-delete (if (= (count (:transactions bucket)) 0) {:on-delete (fn [] (re-frame/dispatch [::events/delete-bucket id]))} {})
+        total (if (< (:total bucket) 0) (str "-$" (* -1 (:total bucket))) (str "$" (:total bucket)))]
+    [frame
+      (merge-with
+        +
+        {:title (str (:name bucket) " (" total ")")}
+        on-delete)
+      [account/build bucket]]))
 
 (def to_login (str central/Constants.central.root "/login?redirect=" (js/encodeURIComponent central/Constants.budgeting.root)))
 (defn login-root []
@@ -70,4 +82,9 @@
    ["/account/:id"
     {:name ::routes/account
      :view account-root
+     :parameters {:path {:id string?}}}]
+
+   ["/bucket/:id"
+    {:name ::routes/bucket
+     :view bucket-root
      :parameters {:path {:id string?}}}]])

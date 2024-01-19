@@ -102,6 +102,21 @@
            [:input {:type "submit" :style {:display "none"}}]]]))
 
 
+(defn add-bucket []
+  (let [error @(re-frame/subscribe [::subs/error])
+        on-submit (fn [] (re-frame/dispatch [::events/add-bucket (:name @value)]) (re-frame/dispatch [::events/dialog-close]))]
+       [card
+         {}
+         [title "Add Bucket"]
+         [:form
+           {:on-submit (fn [event] (.preventDefault event) (on-submit))}
+           [label "Name"]
+           [textbox {:type "text" :value (:name @value) :on-change #(reset! value (assoc @value :name (-> % .-target .-value)))}]
+           [error-label error]
+           [submit "Save"]
+           [:input {:type "submit" :style {:display "none"}}]]]))
+
+
 (defn add-transaction []
   (let [error @(re-frame/subscribe [::subs/error])
         on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]) (re-frame/dispatch [::events/dialog-close]))]
@@ -145,6 +160,11 @@
              [:div
                {:on-click (fn [event] (.stopPropagation event))}
                [add-account]]]
+         (= (:type dialog) :add-bucket)
+           [floating
+             [:div
+               {:on-click (fn [event] (.stopPropagation event))}
+               [add-bucket]]]
          (= (:type dialog) :add-transaction)
            (do
              (reset! value (assoc @value :account (:account dialog)))

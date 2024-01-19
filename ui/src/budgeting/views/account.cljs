@@ -58,9 +58,8 @@
   [:&:hover {:color central/Constants.colors.red}])
 (defn delete [attrs & children] (into [:div (merge-with + attrs {:class (delete-style)})] children))
 
-(defn build [account]
-  (letfn [(on-delete [id] (re-frame/dispatch [::events/delete-transaction id]))
-          (render-transaction [transaction]
+(defn build [account attrs]
+  (letfn [(render-transaction [transaction]
             (let [inflow (if (>= (:amount transaction) 0) (str "$" (:amount transaction)) "")
                   outflow (if (< (:amount transaction) 0) (str "$" (* -1 (:amount transaction))) "")]
               [row {:key (:id transaction)}
@@ -68,12 +67,19 @@
                 [cell {:style {:width "47.5%"}} (:merchantName transaction)]
                 [right-cell {:style {:width "15%"}} outflow]
                 [right-cell {:style {:width "15%"}} inflow]
-                [delete-cell
-                  {:style {:width "2.5%"}}
-                  [delete
-                    {:on-click #(on-delete (:id transaction))}
-                    [:> central/Icon {:icon "delete" :size "0.95em"}]]]]))]
+                (if (not (nil? (:on-delete-transaction attrs)))
+                    [delete-cell
+                      {:style {:width "2.5%"}}
+                      [delete
+                        {:on-click #((:on-delete-transaction attrs) (:id transaction))}
+                        [:> central/Icon {:icon "delete" :size "0.95em"}]]])]))]
          [table
-           [:thead [row {} [header-cell "Date"] [header-cell "Payee"] [header-cell "Outflow"] [header-cell "Inflow"] [header-cell]]]
+           [:thead [row
+                     {}
+                     [header-cell "Date"]
+                     [header-cell "Payee"]
+                     [header-cell "Outflow"]
+                     [header-cell "Inflow"]
+                     (if (not (nil? (:on-delete-transaction attrs))) [header-cell])]]
            [:tbody
              (map render-transaction (:transactions account))]]))

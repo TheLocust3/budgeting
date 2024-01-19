@@ -45,7 +45,8 @@
    (->
      db
      (assoc :user (:user state))
-     (assoc :accounts (:accounts state)))))
+     (assoc :accounts (:accounts state))
+     (assoc :buckets (:buckets state)))))
 
 (re-frame/reg-event-db
  ::load
@@ -70,6 +71,24 @@
  (fn [db [_ id]]
    (do
      (.then (api/delete-account id)
+       #(re-frame/dispatch [::load]))
+     db)))
+
+
+(re-frame/reg-event-db
+ ::add-bucket
+ (fn [db [_ name]]
+   (do
+     (.then (api/add-bucket name)
+       #(re-frame/dispatch [::load]))
+     db)))
+
+
+(re-frame/reg-event-db
+ ::delete-bucket
+ (fn [db [_ id]]
+   (do
+     (.then (api/delete-bucket id)
        #(re-frame/dispatch [::load]))
      db)))
 

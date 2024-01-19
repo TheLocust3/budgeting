@@ -23,9 +23,7 @@
    :overflow-y "scroll"
    :border-right (str "1px solid" central/Constants.colors.black)
    :background-color "white"
-   :box-shadow (str "0px 0px 1px" central/Constants.colors.black)}
-  (at-media {:max-width "750px"}
-    {:min-width "100%"}))
+   :box-shadow (str "0px 0px 1px" central/Constants.colors.black)})
 (defn pane-inner [& children] (into [:div {:class (pane-inner-style)}] children))
 
 (defclass container-style [] {:padding-top "14px" :padding-bottom "50px"})
@@ -41,11 +39,20 @@
    :color central/Constants.colors.black}
   [:&:hover {:text-decoration "none" :color "black"}]
   [:&:visited {:text-decoration "none"}]
-  [:&:active {:text-decoration "none"}]
-  (at-media {:max-width "750px"}
-    {:font-size "22px"}))
+  [:&:active {:text-decoration "none"}])
 (defn header [attrs & children]
   (into [:a (merge-with + attrs {:class (header-style)})] children))
+
+(defclass header-no-link-style []
+  {:padding-left "20px"
+   :padding-top "5px"
+   :padding-bottom "5px"
+   :text-decoration "none"
+   :font-size "18px"
+   :color central/Constants.colors.black}
+  [:&:hover {:color "black"}])
+(defn header-no-link [children]
+  (into [:div {:class (header-style)}] children))
 
 (defclass spacer-style [] {:width "100%" :height "8px"})
 (defn spacer []
@@ -90,7 +97,14 @@
                      [item
                        {:key (:id account) :href (str "/account/" (:id account))}
                        (:name account) " (" (render-total (:total account)) ")"])
-                   accounts)))]
+                   accounts)))
+          (build-buckets []
+            (let [buckets @(re-frame/subscribe [::subs/buckets])]
+              (map (fn [bucket]
+                     [item
+                       {:key (:id bucket) :href (str "/bucket/" (:id bucket))}
+                       (:name bucket) " (" (render-total (:total bucket)) ")"])
+                   buckets)))]
 
     (into [outer
             [pane
@@ -100,7 +114,22 @@
                   [big-spacer]
                   [divider]
                   [big-spacer]
-                  [header {:href "#"} "Accounts"]
+
+                  [header-no-link "Buckets"]
+                  [spacer]
+                  [item
+                    {:href "#"
+                     :on-click
+                       (fn [event] 
+                         (do (.stopPropagation event) (re-frame/dispatch [::events/dialog-open {:type :add-bucket}])))}
+                    "+ Add bucket"]
+                  [spacer]
+                  (build-buckets)
+                  [big-spacer]
+                  [divider]
+                  [big-spacer]
+
+                  [header-no-link "Accounts"]
                   [spacer]
                   [item
                     {:href "#"

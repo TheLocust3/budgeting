@@ -21,6 +21,19 @@
      first)))
 
 (re-frame/reg-sub
+ ::bucket
+ (fn [db [_ id]]
+   (->>
+     (:buckets db)
+     (filter (fn [bucket] (= (:id bucket) id)))
+     first)))
+
+(re-frame/reg-sub
+ ::buckets
+ (fn [db]
+   (:buckets db)))
+
+(re-frame/reg-sub
  ::dialog
  (fn [db]
    (:dialog db)))
