@@ -82,9 +82,15 @@
 (defn spacer2 [] [:div {:class (spacer2-style)}])
 
 (defn build [& children]
-  (letfn [(build-accounts []
+  (letfn [(render-total [total]
+            (if (< total 0) (str "-$" (* -1 total)) (str "$" total)))
+          (build-accounts []
             (let [accounts @(re-frame/subscribe [::subs/accounts])]
-              (map (fn [account] [item {:key (:id account) :href (str "/account/" (:id account))} (:name account)]) accounts)))]
+              (map (fn [account]
+                     [item
+                       {:key (:id account) :href (str "/account/" (:id account))}
+                       (:name account) " (" (render-total (:total account)) ")"])
+                   accounts)))]
 
     (into [outer
             [pane

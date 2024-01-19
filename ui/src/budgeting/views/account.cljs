@@ -37,24 +37,43 @@
    :padding-bottom "5px"})
 (defn cell [attrs & children] (into [:td (merge-with + {:class (cell-style)} attrs)] children))
 
-(defclass number-cell-style []
+(defclass right-cell-style []
   {:text-align "right"
    :padding-left "6px"
    :padding-right "6px"
    :padding-top "5px"
    :padding-bottom "5px"})
-(defn number-cell [attrs & children] (into [:td (merge-with + {:class (number-cell-style)} attrs)] children))
+(defn right-cell [attrs & children] (into [:td (merge-with + {:class (right-cell-style)} attrs)] children))
+
+(defclass delete-cell-style []
+  {:text-align "center"
+   :padding-left "6px"
+   :padding-right "6px"
+   :padding-top "5px"})
+(defn delete-cell [attrs & children] (into [:td (merge-with + {:class (delete-cell-style)} attrs)] children))
+
+(defclass delete-style []
+  {:cursor "pointer"
+   :color central/Constants.colors.black}
+  [:&:hover {:color central/Constants.colors.red}])
+(defn delete [attrs & children] (into [:div (merge-with + attrs {:class (delete-style)})] children))
 
 (defn build [account]
-  (letfn [(render-transaction [transaction]
+  (letfn [(on-delete [id] (re-frame/dispatch [::events/delete-transaction id]))
+          (render-transaction [transaction]
             (let [inflow (if (>= (:amount transaction) 0) (str "$" (:amount transaction)) "")
                   outflow (if (< (:amount transaction) 0) (str "$" (* -1 (:amount transaction))) "")]
               [row {:key (:id transaction)}
                 [cell {:style {:width "20%"}} (-> transaction :authorizedAt moment (.format "MM/DD/YYYY"))]
-                [cell {:style {:width "50%"}} (:merchantName transaction)]
-                [number-cell {:style {:width "15%"}} outflow]
-                [number-cell {:style {:width "15%"}} inflow]]))]
+                [cell {:style {:width "47.5%"}} (:merchantName transaction)]
+                [right-cell {:style {:width "15%"}} outflow]
+                [right-cell {:style {:width "15%"}} inflow]
+                [delete-cell
+                  {:style {:width "2.5%"}}
+                  [delete
+                    {:on-click #(on-delete (:id transaction))}
+                    [:> central/Icon {:icon "delete" :size "0.95em"}]]]]))]
          [table
-           [:thead [row {} [header-cell "Date"] [header-cell "Payee"] [header-cell "Outflow"] [header-cell "Inflow"]]]
+           [:thead [row {} [header-cell "Date"] [header-cell "Payee"] [header-cell "Outflow"] [header-cell "Inflow"] [header-cell]]]
            [:tbody
              (map render-transaction (:transactions account))]]))

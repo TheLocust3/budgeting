@@ -87,3 +87,12 @@
        (.then (api/add-transaction args)
          #(re-frame/dispatch [::load]))
        db))))
+
+
+(re-frame/reg-event-db
+ ::delete-transaction
+ (fn [db [_ id]]
+   (do
+     (.then (api/delete-transaction id)
+       #(re-frame/dispatch [::load]))
+     db)))

@@ -44,11 +44,12 @@
 (defn account-root [match]
   (let [id (:id (:path (:parameters match)))
         account @(re-frame/subscribe [::subs/account id])
-        on-delete (if (= (count (:transactions account)) 0) {:on-delete (fn [] (re-frame/dispatch [::events/delete-account id]))} {})]
+        on-delete (if (= (count (:transactions account)) 0) {:on-delete (fn [] (re-frame/dispatch [::events/delete-account id]))} {})
+        total (if (< (:total account) 0) (str "-$" (* -1 (:total account))) (str "$" (:total account)))]
     [frame
       (merge-with
         +
-        {:title (:name account)
+        {:title (str (:name account) " (" total ")")
          :on-add-transaction (fn [] (re-frame/dispatch [::events/dialog-open {:type :add-transaction :account account}]))}
         on-delete)
       [account/build account]]))
