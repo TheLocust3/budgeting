@@ -103,8 +103,9 @@
            :description ""
            :authorizedAt (-> (:date transaction) moment .valueOf)}]
      (do
-       (.then (api/add-transaction args)
-         #(re-frame/dispatch [::load]))
+       (->
+         (api/add-transaction args)
+         (.then #(re-frame/dispatch [::load])))
        db))))
 
 

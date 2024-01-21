@@ -20,16 +20,15 @@
 
 (defclass card-style []
   {:width "300px"
-   :height "200px"
    :background-color "white"
    :padding-top "20px"
-   :padding-bottom "20px"
+   :padding-bottom "30px"
    :padding-left "30px"
    :padding-right "30px"
    :border (str "1px solid" central/Constants.colors.black)
    :border-radius "5px"
    :box-shadow (str "0px 0px 1px" central/Constants.colors.lightBlack)})
-(defn card [attrs & children] (into [:div (merge-with + {:class (card-style)} attrs)] children))
+(defn card [& children] (into [:div {:class (card-style)}] children))
 
 (defclass title-style []
   {:padding-top "5px"
@@ -38,6 +37,12 @@
   (at-media {:max-width "750px"}
     {:font-size "24px"}))
 (defn title [& children] (into [:div {:class (title-style)}] children))
+
+(defclass header-style []
+  {:padding-top "10px"
+   :padding-bottom "3px"
+   :font-size "14px"})
+(defn header [& children] (into [:div {:class (header-style)}] children))
 
 (defclass label-style [] {:padding-bottom "3px"})
 (defn label [& children] (into [:div {:class (label-style)}] children))
@@ -50,7 +55,7 @@
    :font-size "14px"}
   (at-media {:max-width "750px"}
     {:font-size "16px"}))
-(defn error-label [children] (into [:div {:class (error-label-style)}] children))
+(defn error-label [& children] (into [:div {:class (error-label-style)}] children))
 
 (defclass textbox-style []
   {:display "block"
@@ -84,14 +89,44 @@
   [:&:active {:background-color central/Constants.colors.whiteActive}]
   (at-media {:max-width "750px"}
     {:font-size "20px"}))
-(defn submit [children] (into [:button {:class (submit-style)}] children))
+(defn submit [& children] (into [:button {:class (submit-style)}] children))
+
+(defclass new-bucket-style []
+  {:width "100%"
+   :height "20px"
+   :margin-top "5px"
+   :margin-bottom "5px"
+   :cursor "pointer"
+   :border (str "1px solid" central/Constants.colors.lightBlack)
+   :border-radius "5px"
+   :background-color "white"
+   :font-size "14px"
+   :font-family "'Roboto', sans-serif"
+   :font-weight "100"
+   :color central/Constants.colors.black}
+  [:&:hover {:background-color central/Constants.colors.whiteHover}]
+  [:&:active {:background-color central/Constants.colors.whiteActive}])
+(defn new-bucket [attrs & children] (into [:button (merge-with + {:class (new-bucket-style)} attrs)] children))
+
+(defclass bucket-definition-style []
+  {:display "flex"
+   :margin-bottom "5px"})
+(defn bucket-definition [attrs & children] (into [:div (merge-with + {:class (bucket-definition-style)} attrs)] children))
+
+(defclass delete-style []
+  {:padding-top "7px"
+   :text-align "center"
+   :cursor "pointer"
+   :color central/Constants.colors.black}
+  [:&:hover {:color central/Constants.colors.red}])
+(defn delete [attrs & children] (into [:td (merge-with + {:class (delete-style)} attrs)] children))
+
 
 (def value (r/atom {}))
 (defn add-account []
   (let [error @(re-frame/subscribe [::subs/error])
         on-submit (fn [] (re-frame/dispatch [::events/add-account (:name @value)]) (re-frame/dispatch [::events/dialog-close]))]
        [card
-         {}
          [title "Add Account"]
          [:form
            {:on-submit (fn [event] (.preventDefault event) (on-submit))}
@@ -106,7 +141,6 @@
   (let [error @(re-frame/subscribe [::subs/error])
         on-submit (fn [] (re-frame/dispatch [::events/add-bucket (:name @value)]) (re-frame/dispatch [::events/dialog-close]))]
        [card
-         {}
          [title "Add Bucket"]
          [:form
            {:on-submit (fn [event] (.preventDefault event) (on-submit))}
@@ -119,9 +153,9 @@
 
 (defn add-transaction []
   (let [error @(re-frame/subscribe [::subs/error])
+        buckets @(re-frame/subscribe [::subs/buckets])
         on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]) (re-frame/dispatch [::events/dialog-close]))]
        [card
-         {:style {:height "250px"}}
          [title "Add Transaction"]
          [:form
            {:on-submit (fn [event] (.preventDefault event) (on-submit))}
@@ -146,6 +180,48 @@
               :placeholder "Amount"
               :value (:amount @value)
               :on-change #(reset! value (assoc @value :amount (-> % .-target .-value)))}]
+           [spacer]
+
+           [header "Buckets:"]
+           (doall (map-indexed
+             (fn [idx bucket]
+               (let [definition (-> @value :buckets (nth idx))
+                     on-change (fn [key] (fn [e]
+                                 (let [new-value (-> e .-target .-value)
+                                       next (assoc definition key new-value)]
+                                      (reset! value (assoc @value :buckets (assoc (:buckets @value) idx next))))))]
+                    [bucket-definition
+                      {:key (str (count (:bucket @value)) idx)}
+                      [textbox
+                        {:type "text"
+                         :placeholder "Bucket"
+                         :list "buckets"
+                         :style {:width "68%" :margin-right "2%"}
+                         :value (:bucket definition)
+                         :on-change (on-change :bucket)}]
+                      [textbox
+                        {:type "number"
+                         :step "0.01"
+                         :placeholder "$"
+                         :style {:width "28%" :margin-right "2%"}
+                         :value (:amount definition)
+                         :on-change (on-change :amount)}]
+                      [delete
+                        {:on-click #(reset! value (assoc @value :buckets (concat (subvec (:buckets @value) 0 idx) (subvec (:buckets @value) (+ idx 1) (count (:buckets @value))))))}
+                        [:> central/Icon {:icon "delete" :size "1.2em"}]]]))
+             (:buckets @value)))
+           [textbox
+             {:type "text"
+              :placeholder "Remainder"
+              :list "buckets"
+              :value (:remainder @value)
+              :on-change #(reset! value (assoc @value :remainder (-> % .-target .-value)))}]
+           [new-bucket
+             {:on-click (fn [e] (.preventDefault e) (reset! value (assoc @value :buckets (vec (conj (:buckets @value) {})))))}
+             "+ Bucket"]
+           [:datalist
+             {:id "buckets"}
+             (map (fn [bucket] [:option {:value (:name bucket) :key (:id bucket)}]) buckets)]
            
            [error-label error]
            [submit "Save"]
