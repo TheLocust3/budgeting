@@ -19,7 +19,8 @@
   (letfn [(render-args [args]
             (str "(" (string/join ", " (map (fn [[k v]] (str (clj->gql k) ": " (clj->gql v))) args)) ")"))]
 
-    (cond (map? obj)
+    (cond (and (map? obj) (= (:type obj) :list)) (str "[" (string/join ", " (map clj->gql (:values obj))) "]")
+          (map? obj)
             (string/join ", " (map (fn [[k v]]
                                      (cond (map? v) (str (clj->gql k) (render-args (:args v)) (clj->gql (:attrs v)))
                                            :else (str (clj->gql k) (clj->gql v)))) obj))
@@ -71,10 +72,16 @@
   (let [body {:createTransaction {:args transaction :attrs [:id]}}]
     (->
       (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
-      (.then #(:data %)))))
+      (.then #(-> % :data :createTransaction)))))
 
 (defn delete-transaction [id]
   (let [body {:deleteTransaction {:args {:id id}}}]
     (->
       (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
       (.then #(:data %)))))
+
+(defn split-by-value [rule]
+  (let [body {:createSplitByValue {:args rule :attrs [:id]}}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
+      (.then #(-> % :data :createSplitByValue)))))

@@ -96,17 +96,32 @@
 (re-frame/reg-event-db
  ::add-transaction
  (fn [db [_ transaction]]
-   (let [args
-          {:sourceId (-> transaction :account :metadata :sourceId :value)
-           :amount (js/Number (:amount transaction))
-           :merchantName (:payee transaction)
-           :description ""
-           :authorizedAt (-> (:date transaction) moment .valueOf)}]
-     (do
-       (->
-         (api/add-transaction args)
-         (.then #(re-frame/dispatch [::load])))
-       db))))
+   (letfn [(get-bucket [name]
+            (->>
+              (:buckets db)
+              (filter (fn [bucket] (= (:name bucket) name)))
+              first))]
+     (let [buckets (map (fn [rule] {:bucket (get-bucket (:bucket rule)) :value (:value rule)}) (:buckets transaction))
+           args
+            {:sourceId (-> transaction :account :metadata :sourceId :value)
+             :amount (js/Number (:amount transaction))
+             :merchantName (:payee transaction)
+             :description ""
+             :authorizedAt (-> (:date transaction) moment .valueOf)}
+           build-rule (fn [id] {:transactionId id
+                                :splits {:type :list :values buckets}
+                                :remainder (:remainder transaction)})]
+       (cond
+         (js/isNaN (:authorizedAt args)) (re-frame/dispatch [::set-error "Invalid date"])
+         (> (count (filter #(= (:bucket %) nil) buckets)) 0) (re-frame/dispatch [::set-error "Invalid bucket"])
+         (nil? (get-bucket (:remainder transaction))) (re-frame/dispatch [::set-error "Invalid remainder bucket"])
+         :else (do
+                 (->
+                   (api/add-transaction args)
+                   (.then #(api/split-by-value (build-rule (:id %))))
+                   (.then #(re-frame/dispatch [::load]))
+                   (.then #(re-frame/dispatch [::dialog-close]))
+                 db)))))))
 
 
 (re-frame/reg-event-db

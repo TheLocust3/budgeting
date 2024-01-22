@@ -52,9 +52,8 @@
 
 (defclass error-label-style []
   {:height "20px"
-   :font-size "14px"}
-  (at-media {:max-width "750px"}
-    {:font-size "16px"}))
+   :font-size "14px"
+   :color central/Constants.colors.red})
 (defn error-label [& children] (into [:div {:class (error-label-style)}] children))
 
 (defclass textbox-style []
@@ -154,7 +153,7 @@
 (defn add-transaction []
   (let [error @(re-frame/subscribe [::subs/error])
         buckets @(re-frame/subscribe [::subs/buckets])
-        on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]) (re-frame/dispatch [::events/dialog-close]))]
+        on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]))]
        [card
          [title "Add Transaction"]
          [:form
