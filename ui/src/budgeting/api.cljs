@@ -20,6 +20,7 @@
             (str "(" (string/join ", " (map (fn [[k v]] (str (clj->gql k) ": " (clj->gql v))) args)) ")"))]
 
     (cond (and (map? obj) (= (:type obj) :list)) (str "[" (string/join ", " (map clj->gql (:values obj))) "]")
+          (and (map? obj) (= (:type obj) :map)) (str "{" (string/join ", " (map (fn [[k v]] (str (clj->gql k) ": " (clj->gql v))) (:value obj))) "}")
           (map? obj)
             (string/join ", " (map (fn [[k v]]
                                      (cond (map? v) (str (clj->gql k) (render-args (:args v)) (clj->gql (:attrs v)))
@@ -39,7 +40,7 @@
   (let [body {:user [:id :email]
               :total nil
               :accounts [:id :name :total {:transactions [:id :authorizedAt :amount :merchantName] :metadata nil}]
-              :buckets [:id :name :total {:transactions [:id]}]}]
+              :buckets [:id :name :total {:transactions [:id :authorizedAt :amount :merchantName]}]}]
     (->
       (request "/graphql?" {:method "POST" :body (json {:query (query body)})})
       (.then #(:data %)))))

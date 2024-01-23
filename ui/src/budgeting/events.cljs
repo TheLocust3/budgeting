@@ -100,8 +100,10 @@
             (->>
               (:buckets db)
               (filter (fn [bucket] (= (:name bucket) name)))
-              first))]
-     (let [buckets (map (fn [rule] {:bucket (get-bucket (:bucket rule)) :value (:value rule)}) (:buckets transaction))
+              first
+              :id))]
+     (let [buckets (map (fn [rule] {:type :map :value {:bucket (get-bucket (:bucket rule)) :value (js/Number (:amount rule))}}) (:buckets transaction))
+           remainder (get-bucket (:remainder transaction))
            args
             {:sourceId (-> transaction :account :metadata :sourceId :value)
              :amount (js/Number (:amount transaction))
@@ -110,11 +112,11 @@
              :authorizedAt (-> (:date transaction) moment .valueOf)}
            build-rule (fn [id] {:transactionId id
                                 :splits {:type :list :values buckets}
-                                :remainder (:remainder transaction)})]
+                                :remainder remainder})]
        (cond
          (js/isNaN (:authorizedAt args)) (re-frame/dispatch [::set-error "Invalid date"])
-         (> (count (filter #(= (:bucket %) nil) buckets)) 0) (re-frame/dispatch [::set-error "Invalid bucket"])
-         (nil? (get-bucket (:remainder transaction))) (re-frame/dispatch [::set-error "Invalid remainder bucket"])
+         (> (count (filter #(= (:bucket (:value %)) nil) buckets)) 0) (re-frame/dispatch [::set-error "Invalid bucket"])
+         (nil? remainder) (re-frame/dispatch [::set-error "Invalid remainder bucket"])
          :else (do
                  (->
                    (api/add-transaction args)
