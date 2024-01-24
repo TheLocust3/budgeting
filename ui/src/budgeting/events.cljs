@@ -44,6 +44,7 @@
  (fn [db [_ state]]
    (->
      db
+     (assoc :loaded? true)
      (assoc :user (:user state))
      (assoc :accounts (:accounts state))
      (assoc :buckets (:buckets state))
@@ -57,6 +58,11 @@
        #(re-frame/dispatch [::load-complete %]))
      db)))
 
+(re-frame/reg-event-db
+ ::soft-load
+ (fn [db _]
+   (if (not (:loaded? db)) (re-frame/dispatch [::load]))
+   db))
 
 (re-frame/reg-event-db
  ::add-account

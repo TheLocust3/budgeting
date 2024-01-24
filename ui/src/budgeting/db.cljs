@@ -1,7 +1,8 @@
 (ns budgeting.db)
 
 (def default-db
-  {:user nil
+  {:loaded? false
+   :user nil
    :accounts []
    :buckets []
    :dialog {}

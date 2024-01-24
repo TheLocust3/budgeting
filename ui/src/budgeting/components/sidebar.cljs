@@ -110,7 +110,7 @@
             [pane
               [pane-inner
                 [container
-                  [header {:href "/"} "My Budget"]
+                  [header-no-link "My Budget"]
                   [big-spacer]
                   [divider]
                   [big-spacer]

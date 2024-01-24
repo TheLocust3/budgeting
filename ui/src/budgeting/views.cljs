@@ -22,7 +22,7 @@
 
 
 (defn init []
-  (re-frame/dispatch [::events/load])
+  (re-frame/dispatch [::events/soft-load])
   (react/useEffect (fn []
                       (let [listener (fn [event] (if (= (.-key event) "Escape") (re-frame/dispatch [::events/dialog-close])))]
                         (do (js/document.addEventListener "keydown" listener)
@@ -39,7 +39,7 @@
                    [dialog/build]]))])
 
 (defn index-root []
-  [frame {:title "My Budget"} "hello world"])
+  [frame {:title "My Budget"}])
 
 (defn account-root [match]
   (let [id (:id (:path (:parameters match)))
