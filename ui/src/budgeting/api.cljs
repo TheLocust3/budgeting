@@ -40,7 +40,8 @@
   (let [body {:user [:id :email]
               :total nil
               :accounts [:id :name :total {:transactions [:id :authorizedAt :amount :merchantName] :metadata nil}]
-              :buckets [:id :name :total {:transactions [:id :authorizedAt :amount :merchantName]}]}]
+              :buckets [:id :name :total {:transactions [:id :authorizedAt :amount :merchantName]}]
+              :rules [:id :rule]}]
     (->
       (request "/graphql?" {:method "POST" :body (json {:query (query body)})})
       (.then #(:data %)))))

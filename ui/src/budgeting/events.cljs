@@ -46,7 +46,8 @@
      db
      (assoc :user (:user state))
      (assoc :accounts (:accounts state))
-     (assoc :buckets (:buckets state)))))
+     (assoc :buckets (:buckets state))
+     (assoc :rules (:rules state)))))
 
 (re-frame/reg-event-db
  ::load
@@ -96,6 +97,7 @@
 (re-frame/reg-event-db
  ::add-transaction
  (fn [db [_ transaction]]
+   (if (not (nil? (:transaction transaction))) (re-frame/dispatch [::delete-transaction (:id (:transaction transaction))]))
    (letfn [(get-bucket [name]
             (->>
               (:buckets db)

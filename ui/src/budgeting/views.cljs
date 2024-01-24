@@ -52,7 +52,10 @@
         {:title (str (:name account) " (" total ")")
          :on-add-transaction (fn [] (re-frame/dispatch [::events/dialog-open {:type :add-transaction :account account}]))}
         on-delete)
-      [account/build account {:on-delete-transaction (fn [id] (re-frame/dispatch [::events/delete-transaction id]))}]]))
+      [account/build
+        account
+        {:on-delete-transaction (fn [id] (re-frame/dispatch [::events/delete-transaction id]))
+         :on-edit-transaction (fn [transaction] (re-frame/dispatch [::events/dialog-open {:type :add-transaction :account account :transaction transaction}]))}]]))
 
 (defn bucket-root [match]
   (let [id (:id (:path (:parameters match)))

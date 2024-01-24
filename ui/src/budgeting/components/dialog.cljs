@@ -3,6 +3,7 @@
     [reagent.core :as r]
     [re-frame.core :as re-frame]
     [spade.core :refer [defclass]]
+    [moment :as moment]
     [central :as central]
     [budgeting.subs :as subs]
     [budgeting.events :as events]))
@@ -118,7 +119,7 @@
    :cursor "pointer"
    :color central/Constants.colors.black}
   [:&:hover {:color central/Constants.colors.red}])
-(defn delete [attrs & children] (into [:td (merge-with + {:class (delete-style)} attrs)] children))
+(defn delete [attrs & children] (into [:span (merge-with + {:class (delete-style)} attrs)] children))
 
 
 (def value (r/atom {}))
@@ -150,12 +151,12 @@
            [:input {:type "submit" :style {:display "none"}}]]]))
 
 
-(defn add-transaction []
+(defn add-transaction [transaction]
   (let [error @(re-frame/subscribe [::subs/error])
         buckets @(re-frame/subscribe [::subs/buckets])
         on-submit (fn [] (re-frame/dispatch [::events/add-transaction @value]))]
        [card
-         [title "Add Transaction"]
+         [title (if (nil? transaction) "Add Transaction" "Edit Transaction")]
          [:form
            {:on-submit (fn [event] (.preventDefault event) (on-submit))}
 
@@ -242,9 +243,24 @@
                [add-bucket]]]
          (= (:type dialog) :add-transaction)
            (do
-             (reset! value (assoc @value :account (:account dialog)))
+             (if (nil? @value)
+               (do
+                 (reset! value (assoc @value :account (:account dialog)))
+                 (reset! value (assoc @value :transaction (:transaction dialog)))
+                 (if (not (nil? (:transaction dialog)))
+                   (let [rule @(re-frame/subscribe [::subs/rule-for (:id (:transaction dialog))])
+                         remainder (:name @(re-frame/subscribe [::subs/bucket (-> rule :rule :remainder)]))
+                         buckets (map
+                                   (fn [split] {:bucket (:name @(re-frame/subscribe [::subs/bucket (:account split)])) :amount (:value split)})
+                                   (-> rule :rule :splits))]
+                        (do
+                          (reset! value (assoc @value :date (-> dialog :transaction :authorizedAt moment (.format "MM/DD/YYYY"))))
+                          (reset! value (assoc @value :payee (-> dialog :transaction :merchantName)))
+                          (reset! value (assoc @value :amount (-> dialog :transaction :amount)))
+                          (reset! value (assoc @value :buckets (vec buckets)))
+                          (reset! value (assoc @value :remainder remainder)))))))
              [floating
                [:div
                  {:on-click (fn [event] (.stopPropagation event))}
-                 [add-transaction]]])
-          :else (do (reset! value {}) ()))))
+                 [add-transaction (:transaction dialog)]]])
+          :else (do (reset! value nil) ()))))

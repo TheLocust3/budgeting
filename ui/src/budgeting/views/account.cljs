@@ -58,6 +58,12 @@
   [:&:hover {:color central/Constants.colors.red}])
 (defn delete [attrs & children] (into [:div (merge-with + attrs {:class (delete-style)})] children))
 
+(defclass edit-style []
+  {:cursor "pointer"
+   :color central/Constants.colors.black}
+  [:&:hover {:color "#4fa2ef"}])
+(defn edit [attrs & children] (into [:div (merge-with + attrs {:class (edit-style)})] children))
+
 (defn build [account attrs]
   (letfn [(render-transaction [transaction]
             (let [inflow (if (>= (:amount transaction) 0) (str "$" (:amount transaction)) "")
@@ -67,6 +73,12 @@
                 [cell {:style {:width "47.5%"}} (:merchantName transaction)]
                 [right-cell {:style {:width "15%"}} outflow]
                 [right-cell {:style {:width "15%"}} inflow]
+                (if (not (nil? (:on-edit-transaction attrs)))
+                    [delete-cell
+                      {:style {:width "2.5%"}}
+                      [edit
+                        {:on-click (fn [e] (.stopPropagation e) ((:on-edit-transaction attrs) transaction))}
+                        [:> central/Icon {:icon "edit" :size "0.95em"}]]])
                 (if (not (nil? (:on-delete-transaction attrs)))
                     [delete-cell
                       {:style {:width "2.5%"}}
@@ -80,6 +92,7 @@
                      [header-cell "Payee"]
                      [header-cell "Outflow"]
                      [header-cell "Inflow"]
+                     (if (not (nil? (:on-edit-transaction attrs))) [header-cell])
                      (if (not (nil? (:on-delete-transaction attrs))) [header-cell])]]
            [:tbody
              (map render-transaction (:transactions account))]]))

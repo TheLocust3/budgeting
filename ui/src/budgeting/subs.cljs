@@ -34,6 +34,14 @@
    (:buckets db)))
 
 (re-frame/reg-sub
+ ::rule-for
+ (fn [db [_ transaction-id]]
+   (->>
+     (:rules db)
+     (filter (fn [rule] (= (-> rule :rule :where :value) transaction-id)))
+     first)))
+
+(re-frame/reg-sub
  ::dialog
  (fn [db]
    (:dialog db)))
