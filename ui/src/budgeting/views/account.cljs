@@ -1,5 +1,6 @@
 (ns budgeting.views.account
   (:require
+    [clojure.string :as string]
     [reagent.core :as r]
     [re-frame.core :as re-frame]
     [spade.core :refer [defclass]]
@@ -67,12 +68,16 @@
 (defn build [account attrs]
   (letfn [(render-transaction [transaction]
             (let [inflow (if (>= (:amount transaction) 0) (str "$" (:amount transaction)) "")
-                  outflow (if (< (:amount transaction) 0) (str "$" (* -1 (:amount transaction))) "")]
+                  outflow (if (< (:amount transaction) 0) (str "$" (* -1 (:amount transaction))) "")
+                  rule @(re-frame/subscribe [::subs/rule-for (:id transaction)])
+                  buckets (map (fn [bucket] (:name @(re-frame/subscribe [::subs/bucket (:id bucket)]))) (:splits (:rule rule)))
+                  remainder (:name @(re-frame/subscribe [::subs/bucket (:remainder (:rule rule))]))]
               [row {:key (:id transaction)}
-                [cell {:style {:width "20%"}} (-> transaction :authorizedAt moment (.format "MM/DD/YYYY"))]
-                [cell {:style {:width "47.5%"}} (:merchantName transaction)]
-                [right-cell {:style {:width "15%"}} outflow]
-                [right-cell {:style {:width "15%"}} inflow]
+                [cell {:style {:width "15%"}} (-> transaction :authorizedAt moment (.format "MM/DD/YYYY"))]
+                [cell {:style {:width "20%"}} (:merchantName transaction)]
+                [cell {:style {:width "35%"}} (string/join ", " (conj buckets remainder))]
+                [right-cell {:style {:width "10%"}} outflow]
+                [right-cell {:style {:width "10%"}} inflow]
                 (if (not (nil? (:on-edit-transaction attrs)))
                     [delete-cell
                       {:style {:width "2.5%"}}
@@ -90,6 +95,7 @@
                      {}
                      [header-cell "Date"]
                      [header-cell "Payee"]
+                     [header-cell "Bucket"]
                      [header-cell "Outflow"]
                      [header-cell "Inflow"]
                      (if (not (nil? (:on-edit-transaction attrs))) [header-cell])
