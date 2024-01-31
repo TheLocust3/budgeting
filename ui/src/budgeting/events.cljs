@@ -138,6 +138,9 @@
  ::delete-transaction
  (fn [db [_ id]]
    (do
-     (.then (api/delete-transaction id)
-       #(re-frame/dispatch [::load]))
-     db)))
+     (let [rule (->> (:rules db) (filter (fn [rule] (= (-> rule :rule :where :value) id))) first)]
+       (->
+         (api/delete-rule (:id rule))
+         (.then (api/delete-transaction id))
+         (.then #(re-frame/dispatch [::load])))
+     db))))

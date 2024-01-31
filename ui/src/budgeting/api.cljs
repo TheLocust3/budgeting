@@ -87,3 +87,9 @@
     (->
       (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
       (.then #(-> % :data :createSplitByValue)))))
+
+(defn delete-rule [id]
+  (let [body {:deleteRule {:args {:id id}}}]
+    (->
+      (request "/graphql?" {:method "POST" :body (json {:query (mutation body)})})
+      (.then #(:data %)))))
