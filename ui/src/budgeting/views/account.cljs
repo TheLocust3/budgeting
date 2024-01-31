@@ -101,4 +101,4 @@
                      (if (not (nil? (:on-edit-transaction attrs))) [header-cell])
                      (if (not (nil? (:on-delete-transaction attrs))) [header-cell])]]
            [:tbody
-             (map render-transaction (:transactions account))]]))
+             (doall (map render-transaction (:transactions account)))]]))

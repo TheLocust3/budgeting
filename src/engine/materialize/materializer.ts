@@ -162,7 +162,7 @@ const buildSplitByValue = (rule: Rule.Internal.Split.SplitByValue): TagFlow => {
       const [remaining, tagged]: [number, Tagged[]] = A.reduce(
           <[number, Tagged[]]>[transaction.amount, []]
         , ([remaining, tagged]: [number, Tagged[]], split: Rule.Internal.Split.Value) => {
-            if (remaining > 0) {
+            if (remaining != 0) {
               if (remaining >= split.value) {
                 const splitTransaction = { ...transaction, amount: split.value };
 
@@ -178,7 +178,7 @@ const buildSplitByValue = (rule: Rule.Internal.Split.SplitByValue): TagFlow => {
           }
       )(rule.splits);
 
-      if (remaining > 0) {
+      if (remaining != 0) {
         const splitTransaction = { ...transaction, amount: remaining };
         return <O.Option<TaggedSet>>O.some({ 
             _type: "TaggedSet"
