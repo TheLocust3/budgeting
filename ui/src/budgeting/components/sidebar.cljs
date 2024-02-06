@@ -11,12 +11,12 @@
 (defclass outer-style [] {:width "100%" :display "flex"})
 (defn outer [& children] (into [:div {:class (outer-style)}] children))
 
-(defclass pane-style [] {:min-width "18vw" :z-index 10})
+(defclass pane-style [] {:min-width "23vw" :z-index 10})
 (defn pane [& children] (into [:div {:class (pane-style)}] children))
 
 (defclass pane-inner-style []
-  {:min-width "18vw"
-   :max-width "18vw"
+  {:min-width "23vw"
+   :max-width "23vw"
    :min-height "100%"
    :max-height "100%"
    :position "fixed"
@@ -74,6 +74,7 @@
 (defclass item-style []
   {:display "block"
    :padding-left "30px"
+   :padding-bottom "2px"
    :text-decoration "none"
    :font-size "15px"
    :color central/Constants.colors.black

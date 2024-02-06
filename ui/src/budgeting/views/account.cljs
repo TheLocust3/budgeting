@@ -74,8 +74,8 @@
                   remainder (:name @(re-frame/subscribe [::subs/bucket (:remainder (:rule rule))]))]
               [row {:key (:id transaction)}
                 [cell {:style {:width "15%"}} (-> transaction :authorizedAt moment (.format "MM/DD/YYYY"))]
-                [cell {:style {:width "20%"}} (:merchantName transaction)]
-                [cell {:style {:width "35%"}} (string/join ", " (conj buckets remainder))]
+                [cell {:style {:width "30%"}} (:merchantName transaction)]
+                [cell {:style {:width "25%"}} (string/join ", " (conj buckets remainder))]
                 [right-cell {:style {:width "10%"}} outflow]
                 [right-cell {:style {:width "10%"}} inflow]
                 (if (not (nil? (:on-edit-transaction attrs)))
