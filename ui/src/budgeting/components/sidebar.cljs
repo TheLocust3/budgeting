@@ -91,8 +91,8 @@
 (defn spacer2 [] [:div {:class (spacer2-style)}])
 
 (defclass folder-title-style []
-  {:margin-left "10px"
-   :margin-bottom "3px"
+  {:margin-left "20px"
+   :margin-bottom "7px"
    :font-size "16px"
    :user-select "none"
    :cursor "pointer"}
