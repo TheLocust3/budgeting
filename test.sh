@@ -7,8 +7,8 @@ export PGUSER=jakekinsella
 export PGPASSWORD=foobar
 
 # sandbox credentials
-export PLAID_CLIENT_ID=***REMOVED***
-export PLAID_SECRET=***REMOVED***
+***REMOVED***
+***REMOVED***
 export ENVIRONMENT=test
 
 jest --forceExit --verbose $1

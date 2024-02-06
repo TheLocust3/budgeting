@@ -70,8 +70,8 @@
             (let [inflow (if (>= (:amount transaction) 0) (str "$" (:amount transaction)) "")
                   outflow (if (< (:amount transaction) 0) (str "$" (* -1 (:amount transaction))) "")
                   rule @(re-frame/subscribe [::subs/rule-for (:id transaction)])
-                  buckets (map (fn [bucket] (:name @(re-frame/subscribe [::subs/bucket (:id bucket)]))) (:splits (:rule rule)))
-                  remainder (:name @(re-frame/subscribe [::subs/bucket (:remainder (:rule rule))]))]
+                  buckets (map (fn [bucket] (:short-name @(re-frame/subscribe [::subs/bucket (:id bucket)]))) (:splits (:rule rule)))
+                  remainder (:short-name @(re-frame/subscribe [::subs/bucket (:remainder (:rule rule))]))]
               [row {:key (:id transaction)}
                 [cell {:style {:width "15%"}} (-> transaction :authorizedAt moment (.format "MM/DD/YYYY"))]
                 [cell {:style {:width "30%"}} (:merchantName transaction)]
