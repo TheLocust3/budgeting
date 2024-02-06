@@ -1,5 +1,6 @@
 (ns budgeting.components.sidebar
   (:require
+    [clojure.core.reducers :as reducers]
     [reagent.core :as r]
     [re-frame.core :as re-frame]
     [spade.core :refer [defclass]]
@@ -88,6 +89,20 @@
 (defclass spacer2-style [] {:height "10px"})
 (defn spacer2 [] [:div {:class (spacer2-style)}])
 
+(defclass folder-title-style []
+  {:margin-left "10px"
+   :margin-bottom "3px"
+   :font-size "16px"
+   :user-select "none"
+   :cursor "pointer"}
+  [:&:hover {:color "black"}]
+  [:&:active {:color "black"}])
+(defn folder-title [attrs & children]
+  (into [:div (merge-with + attrs {:class (folder-title-style)})]
+    children))
+
+(defonce collapsed (r/atom (set ["Hidden Categories"])))
+
 (defn build [& children]
   (letfn [(render-total [total]
             (if (< total 0) (str "-$" (* -1 total)) (str "$" total)))
@@ -99,12 +114,26 @@
                        (:name account) " (" (render-total (:total account)) ")"])
                    accounts)))
           (build-buckets []
-            (let [buckets @(re-frame/subscribe [::subs/buckets])]
-              (map (fn [bucket]
-                     [item
-                       {:key (:id bucket) :href (str "/bucket/" (:id bucket))}
-                       (:name bucket) " (" (render-total (:total bucket)) ")"])
-                   buckets)))]
+            (let [buckets @(re-frame/subscribe [::subs/buckets])
+                  by-folder (reducers/reduce
+                              (fn [acc bucket]
+                                  (let [folder (:folder bucket)]
+                                  (assoc acc (:folder bucket) (concat (get acc folder) [bucket]))))
+                                {} buckets)]
+              (doall
+                (map (fn [[folder buckets]]
+                       (if (contains? @collapsed folder)
+                         [:div {:key folder}
+                             (folder-title {:on-click (fn [] (reset! collapsed (disj @collapsed folder)))} folder)]
+                         [:div {:key folder}
+                             (folder-title {:on-click (fn [] (reset! collapsed (conj @collapsed folder)))} folder)
+                             (map (fn [bucket]
+                                    [item
+                                      {:key (:id bucket) :href (str "/bucket/" (:id bucket))}
+                                      (:short-name bucket) " (" (render-total (:total bucket)) ")"])
+                                  buckets)
+                             [spacer2]]))
+                     by-folder))))]
 
     (into [outer
             [pane

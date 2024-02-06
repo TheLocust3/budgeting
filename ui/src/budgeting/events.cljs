@@ -1,5 +1,6 @@
 (ns budgeting.events
   (:require
+    [clojure.string :as string]
     [re-frame.core :as re-frame]
     [reitit.frontend.easy :as rfe]
     [moment :as moment]
@@ -42,13 +43,21 @@
 (re-frame/reg-event-db
  ::load-complete
  (fn [db [_ state]]
-   (->
-     db
-     (assoc :loaded? true)
-     (assoc :user (:user state))
-     (assoc :accounts (:accounts state))
-     (assoc :buckets (:buckets state))
-     (assoc :rules (:rules state)))))
+   (letfn [(with-folder [bucket]
+             (let [name (:name bucket)
+                   folder (string/split name #": " 2)]
+                   (assoc (assoc bucket
+                                 :short-name
+                                 (if (= (count folder) 2) (second folder) name))
+                          :folder
+                          (if (= (count folder) 2) (first folder) "default"))))]
+     (->
+       db
+       (assoc :loaded? true)
+       (assoc :user (:user state))
+       (assoc :accounts (map with-folder (:accounts state)))
+       (assoc :buckets (map with-folder (:buckets state)))
+       (assoc :rules (:rules state))))))
 
 (re-frame/reg-event-db
  ::load
