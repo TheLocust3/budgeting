@@ -7,8 +7,6 @@ export PGUSER=jakekinsella
 export PGPASSWORD=foobar
 
 # sandbox credentials
-***REMOVED***
-***REMOVED***
 export ENVIRONMENT=test
 
 jest --forceExit --verbose $1
